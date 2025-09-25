@@ -4,17 +4,109 @@
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title> Quasar App </q-toolbar-title>
+        <q-toolbar-title>IRC Chat App</q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <div v-if="authStore.user" class="row items-center q-gutter-sm">
+          <q-chip
+            :label="`@${authStore.user.nickName}`"
+            color="primary"
+            text-color="white"
+            size="sm"
+          />
+          <q-btn-dropdown flat round icon="account_circle">
+            <q-list>
+              <q-item clickable @click="$router.push('/profile')">
+                <q-item-section avatar>
+                  <q-icon name="person" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Profile</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item clickable @click="$router.push('/sessions')">
+                <q-item-section avatar>
+                  <q-icon name="devices" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Sessions</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-separator />
+
+              <q-item clickable @click="handleLogout">
+                <q-item-section avatar>
+                  <q-icon name="logout" color="negative" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-negative">Logout</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </q-toolbar>
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label header> Essential Links </q-item-label>
+        <q-item-label header>Navigation</q-item-label>
 
-        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
+        <q-item clickable @click="$router.push('/')" :active="$route.path === '/'">
+          <q-item-section avatar>
+            <q-icon name="home" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Home</q-item-label>
+            <q-item-label caption>Main chat area</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable @click="$router.push('/profile')" :active="$route.path === '/profile'">
+          <q-item-section avatar>
+            <q-icon name="person" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Profile</q-item-label>
+            <q-item-label caption>Account settings</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable @click="$router.push('/sessions')" :active="$route.path === '/sessions'">
+          <q-item-section avatar>
+            <q-icon name="devices" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Sessions</q-item-label>
+            <q-item-label caption>Device management</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-separator class="q-my-md" />
+
+        <q-item-label header>Account</q-item-label>
+
+        <q-item v-if="authStore.user">
+          <q-item-section avatar>
+            <q-avatar color="primary" text-color="white" size="md">
+              {{ getInitials() }}
+            </q-avatar>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ authStore.user.fullName }}</q-item-label>
+            <q-item-label caption>@{{ authStore.user.nickName }}</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable @click="handleLogout">
+          <q-item-section avatar>
+            <q-icon name="logout" color="negative" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-negative">Logout</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
@@ -26,56 +118,37 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import EssentialLink, { type EssentialLinkProps } from 'components/EssentialLink.vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from 'src/stores/auth-store';
 
-const linksList: EssentialLinkProps[] = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev',
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework',
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev',
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev',
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev',
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev',
-  },
-];
+const router = useRouter();
+const authStore = useAuthStore();
 
 const leftDrawerOpen = ref(false);
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+
+const getInitials = () => {
+  if (!authStore.user) return '??'
+
+  const firstName = authStore.user.firstName || ''
+  const lastName = authStore.user.lastName || ''
+
+  if (firstName && lastName) {
+    return `${firstName[0]}${lastName[0]}`.toUpperCase()
+  } else if (firstName) {
+    return firstName[0].toUpperCase()
+  } else if (authStore.user?.nickName) {
+    return authStore.user.nickName[0].toUpperCase()
+  }
+
+  return '??'
+}
+
+const handleLogout = async () => {
+  await authStore.logout();
+  router.push('/auth/login');
 }
 </script>

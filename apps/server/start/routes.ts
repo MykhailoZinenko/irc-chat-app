@@ -8,6 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import { middleware } from './kernel.js'
 
 router.get('api/test', async () => {
   return {
@@ -25,3 +26,17 @@ router.get('api/test', async () => {
     },
   }
 })
+
+const AuthController = () => import('#controllers/auth_controller')
+
+router
+  .group(() => {
+    router.post('register', [AuthController, 'register'])
+    router.post('login', [AuthController, 'login'])
+    router.post('logout', [AuthController, 'logout']).use(middleware.auth())
+    router.delete('logout-all', [AuthController, 'logoutAll']).use(middleware.auth())
+    router.get('sessions', [AuthController, 'sessions']).use(middleware.auth())
+    router.delete('sessions/:tokenId', [AuthController, 'revokeSession']).use(middleware.auth())
+    router.get('me', [AuthController, 'me']).use(middleware.auth())
+  })
+  .prefix('api/auth')
