@@ -1,25 +1,1807 @@
-// Quasar SCSS (& Sass) Variables
-// --------------------------------------------------
-// To customize the look and feel of this app, you can override
-// the Sass/SCSS variables found in Quasar's source Sass/SCSS files.
+@use 'sass:map';
 
-// Check documentation for full list of Quasar variables
+$space-base: 16px !default;
+$space-x-base: $space-base !default;
+$space-y-base: $space-base !default;
 
-// Your own variables (that are declared here) and Quasar's own
-// ones will be available out of the box in your .vue/.scss/.sass files
+$space-none: (
+    x: 0,
+    y: 0) !default;
+$space-xs: (
+    x: ($space-x-base * .25),
+    y: ($space-y-base * .25)) !default;
+$space-sm: (
+    x: ($space-x-base * .5),
+    y: ($space-y-base * .5)) !default;
+$space-md: (
+    x: $space-x-base,
+    y: $space-y-base) !default;
+$space-lg: (
+    x: ($space-x-base * 1.5),
+    y: ($space-y-base * 1.5)) !default;
+$space-xl: (
+    x: ($space-x-base * 3),
+    y: ($space-y-base * 3)) !default;
 
-// It's highly recommended to change the default colors
-// to match your app's branding.
-// Tip: Use the "Theme Builder" on Quasar's documentation website.
+$spaces: (
+    'none': $space-none,
+    'xs': $space-xs,
+    'sm': $space-sm,
+    'md': $space-md,
+    'lg': $space-lg,
+    'xl': $space-xl) !default;
 
-$primary: #1976d2;
-$secondary: #26a69a;
-$accent: #9c27b0;
+$animate-duration: .2s !default;
+$animate-delay: .1s !default;
+$animate-repeat: 1 !default;
 
-$dark: #1d1d1d;
-$dark-page: #121212;
+$breakpoint-xs: 599px !default;
+$breakpoint-sm: 1023px !default;
+$breakpoint-md: 1439px !default;
+$breakpoint-lg: 1919px !default;
 
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+$flex-cols: 12 !default;
+$flex-gutter-xs: (
+    $space-base * .25) !default;
+$flex-gutter-sm: (
+    $space-base * .5) !default;
+$flex-gutter-md: $space-base !default;
+$flex-gutter-lg: (
+    $space-base * 1.5) !default;
+$flex-gutter-xl: (
+    $space-base * 3) !default;
+
+$body-font-size: 15px !default;
+$body-line-height: 1.6 !default;
+
+$flex-gutter: (
+    'none': 0,
+    'xs': $flex-gutter-xs,
+    'sm': $flex-gutter-sm,
+    'md': $flex-gutter-md,
+    'lg': $flex-gutter-lg,
+    'xl': $flex-gutter-xl) !default;
+
+$sizes: (
+    'xs': 0,
+    'sm': ($breakpoint-xs + 1),
+    'md': ($breakpoint-sm + 1),
+    'lg': ($breakpoint-md + 1),
+    'xl': ($breakpoint-lg + 1)) !default;
+
+$breakpoint-xs-max: (
+    map.get($sizes, "sm") - 0.02) !default;
+$breakpoint-sm-min: map.get($sizes, "sm") !default;
+$breakpoint-sm-max: (
+    map.get($sizes, "md") - 0.02) !default;
+$breakpoint-md-min: map.get($sizes, "md") !default;
+$breakpoint-md-max: (
+    map.get($sizes, "lg") - 0.02) !default;
+$breakpoint-lg-min: map.get($sizes, "lg") !default;
+$breakpoint-lg-max: (
+    map.get($sizes, "xl") - 0.02) !default;
+$breakpoint-xl-min: map.get($sizes, "xl") !default;
+
+$h1: (
+    size: 3rem,
+    line-height: 3.5rem,
+    letter-spacing: -.02em,
+    weight: 700) !default;
+$h2: (
+    size: 2.25rem,
+    line-height: 2.75rem,
+    letter-spacing: -.01em,
+    weight: 600) !default;
+$h3: (
+    size: 1.875rem,
+    line-height: 2.25rem,
+    letter-spacing: -.01em,
+    weight: 600) !default;
+$h4: (
+    size: 1.5rem,
+    line-height: 2rem,
+    letter-spacing: -.005em,
+    weight: 600) !default;
+$h5: (
+    size: 1.25rem,
+    line-height: 1.75rem,
+    letter-spacing: 0,
+    weight: 500) !default;
+$h6: (
+    size: 1.125rem,
+    line-height: 1.5rem,
+    letter-spacing: 0,
+    weight: 500) !default;
+$subtitle1: (
+    size: 1rem,
+    line-height: 1.5rem,
+    letter-spacing: 0,
+    weight: 500) !default;
+$subtitle2: (
+    size: .875rem,
+    line-height: 1.25rem,
+    letter-spacing: 0,
+    weight: 500) !default;
+$body1: (
+    size: 1rem,
+    line-height: 1.5rem,
+    letter-spacing: 0,
+    weight: 400) !default;
+$body2: (
+    size: .875rem,
+    line-height: 1.25rem,
+    letter-spacing: 0,
+    weight: 400) !default;
+$overline: (
+    size: .75rem,
+    line-height: 1rem,
+    letter-spacing: .05em,
+    weight: 600) !default;
+$caption: (
+    size: .75rem,
+    line-height: 1rem,
+    letter-spacing: 0,
+    weight: 400) !default;
+
+$headings: (
+    'h1': $h1,
+    'h2': $h2,
+    'h3': $h3,
+    'h4': $h4,
+    'h5': $h5,
+    'h6': $h6,
+    'subtitle1': $subtitle1,
+    'subtitle2': $subtitle2,
+    'body1': $body1,
+    'body2': $body2,
+    'overline': $overline,
+    'caption': $caption) !default;
+
+$h-tags: (
+    h1: map.get($headings, "h1"),
+    h2: map.get($headings, "h2"),
+    h3: map.get($headings, "h3"),
+    h4: map.get($headings, "h4"),
+    h5: map.get($headings, "h5"),
+    h6: map.get($headings, "h6")) !default;
+
+$text-weights: (
+    thin: 100,
+    light: 300,
+    regular: 400,
+    medium: 500,
+    bold: 600,
+    bolder: 700) !default;
+
+$primary: #3b82f6 !default;
+$secondary: #64748b !default;
+$accent: #8b5cf6 !default;
+
+$dark-page: #0f172a !default;
+$dark: #1e293b !default;
+
+$positive: #10b981 !default;
+$negative: #ef4444 !default;
+$info: #06b6d4 !default;
+$warning: #f59e0b !default;
+
+$dimmed-background: rgba(0, 0, 0, .5) !default;
+$light-dimmed-background: rgba(255, 255, 255, .8) !default;
+
+$separator-color: #e2e8f0 !default;
+$separator-dark-color: #334155 !default;
+
+$red: #ef4444 !default;
+$red-1: #fef2f2 !default;
+$red-2: #fecaca !default;
+$red-3: #fca5a5 !default;
+$red-4: #f87171 !default;
+$red-5: #ef4444 !default;
+$red-6: #dc2626 !default;
+$red-7: #b91c1c !default;
+$red-8: #991b1b !default;
+$red-9: #7f1d1d !default;
+$red-10: #450a0a !default;
+$red-11: #fca5a5 !default;
+$red-12: #f87171 !default;
+$red-13: #ef4444 !default;
+$red-14: #dc2626 !default;
+
+$pink: #ec4899 !default;
+$pink-1: #fdf2f8 !default;
+$pink-2: #fce7f3 !default;
+$pink-3: #fbcfe8 !default;
+$pink-4: #f9a8d4 !default;
+$pink-5: #f472b6 !default;
+$pink-6: #ec4899 !default;
+$pink-7: #db2777 !default;
+$pink-8: #be185d !default;
+$pink-9: #9d174d !default;
+$pink-10: #831843 !default;
+$pink-11: #f9a8d4 !default;
+$pink-12: #f472b6 !default;
+$pink-13: #ec4899 !default;
+$pink-14: #db2777 !default;
+
+$purple: #8b5cf6 !default;
+$purple-1: #faf5ff !default;
+$purple-2: #f3e8ff !default;
+$purple-3: #e9d5ff !default;
+$purple-4: #d8b4fe !default;
+$purple-5: #c084fc !default;
+$purple-6: #a855f7 !default;
+$purple-7: #9333ea !default;
+$purple-8: #7c3aed !default;
+$purple-9: #6d28d9 !default;
+$purple-10: #5b21b6 !default;
+$purple-11: #d8b4fe !default;
+$purple-12: #c084fc !default;
+$purple-13: #8b5cf6 !default;
+$purple-14: #7c3aed !default;
+
+$deep-purple: #6366f1 !default;
+$deep-purple-1: #eef2ff !default;
+$deep-purple-2: #e0e7ff !default;
+$deep-purple-3: #c7d2fe !default;
+$deep-purple-4: #a5b4fc !default;
+$deep-purple-5: #818cf8 !default;
+$deep-purple-6: #6366f1 !default;
+$deep-purple-7: #4f46e5 !default;
+$deep-purple-8: #4338ca !default;
+$deep-purple-9: #3730a3 !default;
+$deep-purple-10: #312e81 !default;
+$deep-purple-11: #a5b4fc !default;
+$deep-purple-12: #818cf8 !default;
+$deep-purple-13: #6366f1 !default;
+$deep-purple-14: #4f46e5 !default;
+
+$indigo: #4f46e5 !default;
+$indigo-1: #eef2ff !default;
+$indigo-2: #e0e7ff !default;
+$indigo-3: #c7d2fe !default;
+$indigo-4: #a5b4fc !default;
+$indigo-5: #818cf8 !default;
+$indigo-6: #6366f1 !default;
+$indigo-7: #4f46e5 !default;
+$indigo-8: #4338ca !default;
+$indigo-9: #3730a3 !default;
+$indigo-10: #312e81 !default;
+$indigo-11: #a5b4fc !default;
+$indigo-12: #818cf8 !default;
+$indigo-13: #4f46e5 !default;
+$indigo-14: #3730a3 !default;
+
+$blue: #3b82f6 !default;
+$blue-1: #eff6ff !default;
+$blue-2: #dbeafe !default;
+$blue-3: #bfdbfe !default;
+$blue-4: #93c5fd !default;
+$blue-5: #60a5fa !default;
+$blue-6: #3b82f6 !default;
+$blue-7: #2563eb !default;
+$blue-8: #1d4ed8 !default;
+$blue-9: #1e40af !default;
+$blue-10: #1e3a8a !default;
+$blue-11: #93c5fd !default;
+$blue-12: #60a5fa !default;
+$blue-13: #3b82f6 !default;
+$blue-14: #2563eb !default;
+
+$light-blue: #06b6d4 !default;
+$light-blue-1: #ecfeff !default;
+$light-blue-2: #cffafe !default;
+$light-blue-3: #a5f3fc !default;
+$light-blue-4: #67e8f9 !default;
+$light-blue-5: #22d3ee !default;
+$light-blue-6: #06b6d4 !default;
+$light-blue-7: #0891b2 !default;
+$light-blue-8: #0e7490 !default;
+$light-blue-9: #155e75 !default;
+$light-blue-10: #164e63 !default;
+$light-blue-11: #67e8f9 !default;
+$light-blue-12: #22d3ee !default;
+$light-blue-13: #06b6d4 !default;
+$light-blue-14: #0891b2 !default;
+
+$cyan: #06b6d4 !default;
+$cyan-1: #ecfeff !default;
+$cyan-2: #cffafe !default;
+$cyan-3: #a5f3fc !default;
+$cyan-4: #67e8f9 !default;
+$cyan-5: #22d3ee !default;
+$cyan-6: #06b6d4 !default;
+$cyan-7: #0891b2 !default;
+$cyan-8: #0e7490 !default;
+$cyan-9: #155e75 !default;
+$cyan-10: #164e63 !default;
+$cyan-11: #67e8f9 !default;
+$cyan-12: #22d3ee !default;
+$cyan-13: #06b6d4 !default;
+$cyan-14: #0891b2 !default;
+
+$teal: #14b8a6 !default;
+$teal-1: #f0fdfa !default;
+$teal-2: #ccfbf1 !default;
+$teal-3: #99f6e4 !default;
+$teal-4: #5eead4 !default;
+$teal-5: #2dd4bf !default;
+$teal-6: #14b8a6 !default;
+$teal-7: #0d9488 !default;
+$teal-8: #0f766e !default;
+$teal-9: #115e59 !default;
+$teal-10: #134e4a !default;
+$teal-11: #5eead4 !default;
+$teal-12: #2dd4bf !default;
+$teal-13: #14b8a6 !default;
+$teal-14: #0d9488 !default;
+
+$green: #10b981 !default;
+$green-1: #ecfdf5 !default;
+$green-2: #d1fae5 !default;
+$green-3: #a7f3d0 !default;
+$green-4: #6ee7b7 !default;
+$green-5: #34d399 !default;
+$green-6: #10b981 !default;
+$green-7: #059669 !default;
+$green-8: #047857 !default;
+$green-9: #065f46 !default;
+$green-10: #064e3b !default;
+$green-11: #6ee7b7 !default;
+$green-12: #34d399 !default;
+$green-13: #10b981 !default;
+$green-14: #059669 !default;
+
+$light-green: #84cc16 !default;
+$light-green-1: #f7fee7 !default;
+$light-green-2: #ecfccb !default;
+$light-green-3: #d9f99d !default;
+$light-green-4: #bef264 !default;
+$light-green-5: #a3e635 !default;
+$light-green-6: #84cc16 !default;
+$light-green-7: #65a30d !default;
+$light-green-8: #4d7c0f !default;
+$light-green-9: #365314 !default;
+$light-green-10: #1a2e05 !default;
+$light-green-11: #bef264 !default;
+$light-green-12: #a3e635 !default;
+$light-green-13: #84cc16 !default;
+$light-green-14: #65a30d !default;
+
+$lime: #84cc16 !default;
+$lime-1: #f7fee7 !default;
+$lime-2: #ecfccb !default;
+$lime-3: #d9f99d !default;
+$lime-4: #bef264 !default;
+$lime-5: #a3e635 !default;
+$lime-6: #84cc16 !default;
+$lime-7: #65a30d !default;
+$lime-8: #4d7c0f !default;
+$lime-9: #365314 !default;
+$lime-10: #1a2e05 !default;
+$lime-11: #bef264 !default;
+$lime-12: #a3e635 !default;
+$lime-13: #84cc16 !default;
+$lime-14: #65a30d !default;
+
+$yellow: #eab308 !default;
+$yellow-1: #fefce8 !default;
+$yellow-2: #fef3c7 !default;
+$yellow-3: #fde68a !default;
+$yellow-4: #facc15 !default;
+$yellow-5: #eab308 !default;
+$yellow-6: #ca8a04 !default;
+$yellow-7: #a16207 !default;
+$yellow-8: #854d0e !default;
+$yellow-9: #713f12 !default;
+$yellow-10: #422006 !default;
+$yellow-11: #fde68a !default;
+$yellow-12: #facc15 !default;
+$yellow-13: #eab308 !default;
+$yellow-14: #ca8a04 !default;
+
+$amber: #f59e0b !default;
+$amber-1: #fffbeb !default;
+$amber-2: #fef3c7 !default;
+$amber-3: #fde68a !default;
+$amber-4: #fcd34d !default;
+$amber-5: #fbbf24 !default;
+$amber-6: #f59e0b !default;
+$amber-7: #d97706 !default;
+$amber-8: #b45309 !default;
+$amber-9: #92400e !default;
+$amber-10: #78350f !default;
+$amber-11: #fcd34d !default;
+$amber-12: #fbbf24 !default;
+$amber-13: #f59e0b !default;
+$amber-14: #d97706 !default;
+
+$orange: #f97316 !default;
+$orange-1: #fff7ed !default;
+$orange-2: #ffedd5 !default;
+$orange-3: #fed7aa !default;
+$orange-4: #fdba74 !default;
+$orange-5: #fb923c !default;
+$orange-6: #f97316 !default;
+$orange-7: #ea580c !default;
+$orange-8: #c2410c !default;
+$orange-9: #9a3412 !default;
+$orange-10: #7c2d12 !default;
+$orange-11: #fdba74 !default;
+$orange-12: #fb923c !default;
+$orange-13: #f97316 !default;
+$orange-14: #ea580c !default;
+
+$deep-orange: #f97316 !default;
+$deep-orange-1: #fff7ed !default;
+$deep-orange-2: #ffedd5 !default;
+$deep-orange-3: #fed7aa !default;
+$deep-orange-4: #fdba74 !default;
+$deep-orange-5: #fb923c !default;
+$deep-orange-6: #f97316 !default;
+$deep-orange-7: #ea580c !default;
+$deep-orange-8: #c2410c !default;
+$deep-orange-9: #9a3412 !default;
+$deep-orange-10: #7c2d12 !default;
+$deep-orange-11: #fdba74 !default;
+$deep-orange-12: #fb923c !default;
+$deep-orange-13: #f97316 !default;
+$deep-orange-14: #ea580c !default;
+
+$brown: #8b5a3c !default;
+$brown-1: #fdf8f6 !default;
+$brown-2: #f2e8e5 !default;
+$brown-3: #eaddd7 !default;
+$brown-4: #e0cfc5 !default;
+$brown-5: #d2bab0 !default;
+$brown-6: #bfa094 !default;
+$brown-7: #a18072 !default;
+$brown-8: #8b5a3c !default;
+$brown-9: #73462a !default;
+$brown-10: #5c3317 !default;
+$brown-11: #d2bab0 !default;
+$brown-12: #bfa094 !default;
+$brown-13: #8b5a3c !default;
+$brown-14: #5c3317 !default;
+
+$grey: #64748b !default;
+$grey-1: #f8fafc !default;
+$grey-2: #f1f5f9 !default;
+$grey-3: #e2e8f0 !default;
+$grey-4: #cbd5e1 !default;
+$grey-5: #94a3b8 !default;
+$grey-6: #64748b !default;
+$grey-7: #475569 !default;
+$grey-8: #334155 !default;
+$grey-9: #1e293b !default;
+$grey-10: #0f172a !default;
+$grey-11: #f1f5f9 !default;
+$grey-12: #e2e8f0 !default;
+$grey-13: #94a3b8 !default;
+$grey-14: #334155 !default;
+
+$blue-grey: #64748b !default;
+$blue-grey-1: #f8fafc !default;
+$blue-grey-2: #f1f5f9 !default;
+$blue-grey-3: #e2e8f0 !default;
+$blue-grey-4: #cbd5e1 !default;
+$blue-grey-5: #94a3b8 !default;
+$blue-grey-6: #64748b !default;
+$blue-grey-7: #475569 !default;
+$blue-grey-8: #334155 !default;
+$blue-grey-9: #1e293b !default;
+$blue-grey-10: #0f172a !default;
+$blue-grey-11: #f1f5f9 !default;
+$blue-grey-12: #e2e8f0 !default;
+$blue-grey-13: #94a3b8 !default;
+$blue-grey-14: #334155 !default;
+
+$ios-statusbar-height: 20px !default;
+
+$z-fab: 990 !default;
+$z-side: 1000 !default;
+$z-marginals: 2000 !default;
+$z-fixed-drawer: 3000 !default;
+$z-fullscreen: 6000 !default;
+$z-menu: 6000 !default;
+$z-top: 7000 !default;
+$z-tooltip: 9000 !default;
+$z-notify: 9500 !default;
+$z-max: 9998 !default;
+
+$shadow-color: #000 !default;
+$shadow-transition: box-shadow .2s ease-out !default;
+$inset-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05) !default;
+$inset-shadow-down: inset 0 -2px 4px 0 rgba(0, 0, 0, 0.05) !default;
+
+$elevation-umbra: rgba($shadow-color, .1) !default;
+$elevation-penumbra: rgba($shadow-color, .06) !default;
+$elevation-ambient: rgba($shadow-color, .05) !default;
+
+$shadow-0: none !default;
+$shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !default;
+$shadow-2: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06) !default;
+$shadow-3: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !default;
+$shadow-4: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !default;
+$shadow-5: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !default;
+$shadow-6: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-7: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-8: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-9: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-10: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-11: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-12: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-13: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-14: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-15: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-16: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-17: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-18: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-19: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-20: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-21: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-22: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-23: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-24: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+
+$shadows: (
+    $shadow-1,
+    $shadow-2,
+    $shadow-3,
+    $shadow-4,
+    $shadow-5,
+    $shadow-6,
+    $shadow-7,
+    $shadow-8,
+    $shadow-9,
+    $shadow-10,
+    $shadow-11,
+    $shadow-12,
+    $shadow-13,
+    $shadow-14,
+    $shadow-15,
+    $shadow-16,
+    $shadow-17,
+    $shadow-18,
+    $shadow-19,
+    $shadow-20,
+    $shadow-21,
+    $shadow-22,
+    $shadow-23,
+    $shadow-24
+);
+
+$shadow-up-0: none !default;
+$shadow-up-1: 0 -1px 2px 0 rgba(0, 0, 0, 0.05) !default;
+$shadow-up-2: 0 -1px 3px 0 rgba(0, 0, 0, 0.1), 0 -1px 2px 0 rgba(0, 0, 0, 0.06) !default;
+$shadow-up-3: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06) !default;
+$shadow-up-4: 0 -10px 15px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -2px rgba(0, 0, 0, 0.05) !default;
+$shadow-up-5: 0 -20px 25px -5px rgba(0, 0, 0, 0.1), 0 -10px 10px -5px rgba(0, 0, 0, 0.04) !default;
+$shadow-up-6: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-7: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-8: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-9: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-10: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-11: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-12: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-13: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-14: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-15: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-16: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-17: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-18: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-19: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-20: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-21: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-22: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-23: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+$shadow-up-24: 0 -25px 50px -12px rgba(0, 0, 0, 0.25) !default;
+
+$shadows-up: (
+    $shadow-up-1,
+    $shadow-up-2,
+    $shadow-up-3,
+    $shadow-up-4,
+    $shadow-up-5,
+    $shadow-up-6,
+    $shadow-up-7,
+    $shadow-up-8,
+    $shadow-up-9,
+    $shadow-up-10,
+    $shadow-up-11,
+    $shadow-up-12,
+    $shadow-up-13,
+    $shadow-up-14,
+    $shadow-up-15,
+    $shadow-up-16,
+    $shadow-up-17,
+    $shadow-up-18,
+    $shadow-up-19,
+    $shadow-up-20,
+    $shadow-up-21,
+    $shadow-up-22,
+    $shadow-up-23,
+    $shadow-up-24
+);
+
+$dark-shadow-color: #fff !default;
+$inset-dark-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.05) !default;
+$inset-dark-shadow-down: inset 0 -2px 4px 0 rgba(255, 255, 255, 0.05) !default;
+
+$elevation-dark-umbra: rgba($dark-shadow-color, .1) !default;
+$elevation-dark-penumbra: rgba($dark-shadow-color, .06) !default;
+$elevation-dark-ambient: rgba($dark-shadow-color, .05) !default;
+
+$dark-shadow-0: none !default;
+$dark-shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-2: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-3: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-4: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-5: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !default;
+$dark-shadow-6: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-7: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-8: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-9: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-10: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-11: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-12: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-13: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-14: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-15: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-16: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-17: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-18: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-19: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-20: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-21: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-22: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-23: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-24: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+
+$dark-shadows: (
+    $dark-shadow-1,
+    $dark-shadow-2,
+    $dark-shadow-3,
+    $dark-shadow-4,
+    $dark-shadow-5,
+    $dark-shadow-6,
+    $dark-shadow-7,
+    $dark-shadow-8,
+    $dark-shadow-9,
+    $dark-shadow-10,
+    $dark-shadow-11,
+    $dark-shadow-12,
+    $dark-shadow-13,
+    $dark-shadow-14,
+    $dark-shadow-15,
+    $dark-shadow-16,
+    $dark-shadow-17,
+    $dark-shadow-18,
+    $dark-shadow-19,
+    $dark-shadow-20,
+    $dark-shadow-21,
+    $dark-shadow-22,
+    $dark-shadow-23,
+    $dark-shadow-24
+);
+
+$dark-shadow-up-0: none !default;
+$dark-shadow-up-1: 0 -1px 2px 0 rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-up-2: 0 -1px 3px 0 rgba(0, 0, 0, 0.4), 0 -1px 2px 0 rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-up-3: 0 -4px 6px -1px rgba(0, 0, 0, 0.4), 0 -2px 4px -1px rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-up-4: 0 -10px 15px -3px rgba(0, 0, 0, 0.4), 0 -4px 6px -2px rgba(0, 0, 0, 0.3) !default;
+$dark-shadow-up-5: 0 -20px 25px -5px rgba(0, 0, 0, 0.4), 0 -10px 10px -5px rgba(0, 0, 0, 0.2) !default;
+$dark-shadow-up-6: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-7: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-8: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-9: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-10: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-11: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-12: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-13: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-14: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-15: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-16: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-17: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-18: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-19: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-20: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-21: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-22: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-23: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+$dark-shadow-up-24: 0 -25px 50px -12px rgba(0, 0, 0, 0.6) !default;
+
+$dark-shadows-up: (
+    $dark-shadow-up-1,
+    $dark-shadow-up-2,
+    $dark-shadow-up-3,
+    $dark-shadow-up-4,
+    $dark-shadow-up-5,
+    $dark-shadow-up-6,
+    $dark-shadow-up-7,
+    $dark-shadow-up-8,
+    $dark-shadow-up-9,
+    $dark-shadow-up-10,
+    $dark-shadow-up-11,
+    $dark-shadow-up-12,
+    $dark-shadow-up-13,
+    $dark-shadow-up-14,
+    $dark-shadow-up-15,
+    $dark-shadow-up-16,
+    $dark-shadow-up-17,
+    $dark-shadow-up-18,
+    $dark-shadow-up-19,
+    $dark-shadow-up-20,
+    $dark-shadow-up-21,
+    $dark-shadow-up-22,
+    $dark-shadow-up-23,
+    $dark-shadow-up-24
+);
+
+$generic-border-radius: 8px !default;
+$generic-hover-transition: .2s ease-out !default;
+$typography-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !default;
+$min-line-height: 1.5 !default;
+
+$avatar-font-size: 48px !default;
+$avatar-content-font-size: .5em !default;
+$avatar-content-line-height: .5em !default;
+
+$badge-font-size: 12px !default;
+$badge-line-height: 1 !default;
+$badge-min-height: $badge-font-size * $badge-line-height !default;
+
+$banner-avatar-font-size: 46px !default;
+$banner-avatar-icon-font-size: 40px !default;
+$banner-avatar-dense-font-size: 28px !default;
+
+$bar-inner-font-size: 16px !default;
+$bar-button-font-size: 11px !default;
+$bar-dense-font-size: 14px !default;
+$bar-dense-button-font-size: 8px !default;
+$bar-height: $bar-inner-font-size * 2 !default;
+$bar-dense-height: $bar-dense-font-size + 10px !default;
+
+$breadcrumbs-icon-font-size: 125% !default;
+
+$button-border-radius: 8px !default;
+$button-padding: 12px 24px !default;
+$button-dense-padding: 8px 16px !default;
+$button-fab-icon-font-size: 24px !default;
+$button-transition: $generic-hover-transition !default;
+$button-font-size: 15px !default;
+$button-line-height: 1.5 !default;
+$button-font-weight: 500 !default;
+$button-shadow: $shadow-1 !default;
+$button-shadow-active: $shadow-2 !default;
+$button-rounded-border-radius: 50px !default;
+$button-push-border-radius: 12px !default;
+
+$carousel-arrow-icon-font-size: 28px !default;
+
+$chat-message-name-font-size: small !default;
+$chat-message-stamp-font-size: $chat-message-name-font-size !default;
+$chat-message-label-font-size: $chat-message-name-font-size !default;
+$chat-message-received-color: #1e293b !default;
+$chat-message-received-bg: #f1f5f9 !default;
+$chat-message-sent-color: #ffffff !default;
+$chat-message-sent-bg: #3b82f6 !default;
+$chat-message-avatar-size: 48px !default;
+$chat-message-border-radius: 12px !default;
+$chat-message-distance: 8px !default;
+$chat-message-text-padding: 12px 16px !default;
+
+$checkbox-inner-font-size: 40px !default;
+
+$chip-height: 2em !default;
+$chip-font-size: 14px !default;
+$chip-avatar-font-size: $chip-height !default;
+$chip-dense-height: 1.5em !default;
+$chip-dense-avatar-font-size: $chip-dense-height !default;
+
+$color-picker-tune-tab-input-font-size: 11px !default;
+
+$date-header-subtitle-font-size: 14px !default;
+$date-header-subtitle-line-height: 1.75 !default;
+$date-header-subtitle-letter-spacing: .00938em !default;
+$date-header-title-label-font-size: 24px !default;
+$date-header-title-label-line-height: 1.2 !default;
+$date-header-title-label-letter-spacing: .00735em !default;
+$date-calendar-weekdays-inner-font-size: 12px !default;
+
+$dialog-title-font-size: 1.5rem !default;
+$dialog-title-line-height: 1.4 !default;
+$dialog-title-letter-spacing: -.01em !default;
+$dialog-progress-font-size: 4rem !default;
+
+$field-marginal-font-size: 24px !default;
+$field-marginal-avatar-font-size: 32px !default;
+$field-bottom-font-size: 12px !default;
+$field-bottom-line-height: 1 !default;
+$field-with-bottom-padding-bottom: $field-bottom-font-size * $field-bottom-line-height + 8px !default;
+$field-label-font-size: 16px !default;
+$field-label-line-height: 1.25 !default;
+$field-label-top: 18px !default;
+$field-label-letter-spacing: 0 !default;
+$field-dense-bottom-font-size: 11px !default;
+$field-dense-with-bottom-padding-bottom: $field-dense-bottom-font-size * $field-bottom-line-height + 8px !default;
+$field-dense-label-font-size: 14px !default;
+$field-dense-label-top: 10px !default;
+$field-dense-marginal-avatar-font-size: 24px !default;
+
+$item-base-color: $grey-5 !default;
+$item-section-side-icon-font-size: 24px !default;
+$item-section-side-avatar-font-size: 40px !default;
+$item-label-header-font-size: .875rem !default;
+$item-label-header-line-height: 1.25rem !default;
+$item-label-header-letter-spacing: 0 !default;
+
+$editor-border-color: $separator-color !default;
+$editor-border-dark-color: $separator-dark-color !default;
+$editor-content-padding: 10px !default;
+$editor-content-min-height: 10em !default;
+$editor-toolbar-padding: 4px !default;
+$editor-hr-color: $editor-border-color !default;
+$editor-hr-dark-color: $editor-border-dark-color !default;
+$editor-button-gutter: 4px !default;
+
+$knob-font-size: 48px !default;
+
+$radio-inner-font-size: 40px !default;
+
+$slide-item-active-text-font-size: 14px !default;
+$slide-item-active-icon-font-size: 1.714em !default;
+
+$slider-text-font-size: 12px !default;
+
+$stepper-title-font-size: 14px !default;
+$stepper-title-line-height: 1.285714 !default;
+$stepper-title-letter-spacing: 0 !default;
+$stepper-caption-font-size: 12px !default;
+$stepper-caption-line-height: 1.16667 !default;
+$stepper-dot-font-size: 14px !default;
+$stepper-tab-font-size: 14px !default;
+$stepper-dot-error-with-icon-font-size: 24px !default;
+
+$tabs-icon-font-size: 24px !default;
+$tabs-icon-font-width: $tabs-icon-font-size !default;
+$tabs-icon-font-height: $tabs-icon-font-size !default;
+$tabs-alert-icon-font-size: 18px !default;
+$tabs-arrow-font-size: 32px !default;
+
+$table-transition: $generic-hover-transition !default;
+$table-border-radius: $generic-border-radius !default;
+$table-box-shadow: $shadow-1 !default;
+$table-th-font-size: 12px !default;
+$table-tbody-td-font-size: 14px !default;
+$table-title-font-size: 20px !default;
+$table-bottom-font-size: 12px !default;
+$table-nodata-icon-font-size: 200% !default;
+$table-sort-icon-font-size: 120% !default;
+$table-grid-item-title-font-size: 12px !default;
+$table-grid-item-value-font-size: 13px !default;
+$table-dense-sort-icon-font-size: 110% !default;
+
+$table-border-color: $separator-color !default;
+$table-hover-background: rgba(59, 130, 246, .04) !default;
+$table-selected-background: rgba(59, 130, 246, .08) !default;
+
+$table-dark-border-color: $separator-dark-color !default;
+$table-dark-hover-background: rgba(59, 130, 246, .1) !default;
+$table-dark-selected-background: rgba(59, 130, 246, .15) !default;
+$table-box-shadow-dark: $dark-shadow-1 !default;
+
+$time-header-label-font-size: 28px !default;
+$time-clock-position-font-size: 12px !default;
+
+$timeline-subtitle-font-size: 12px !default;
+$timeline-subtitle-letter-spacing: 1px !default;
+$timeline-dot-icon-font-size: 16px !default;
+$timeline-comfortable-heading-font-size: 200% !default;
+
+$toolbar-min-height: 64px !default;
+$toolbar-padding: 0 16px !default;
+$toolbar-inset-size: 64px !default;
+$toolbar-title-font-size: 20px !default;
+$toolbar-title-font-weight: 600 !default;
+$toolbar-title-letter-spacing: -.01em !default;
+$toolbar-title-padding: 0 16px !default;
+
+$tree-icon-font-size: 21px !default;
+
+$layout-border: 1px solid $separator-color !default;
+$layout-shadow: $shadow-2 !default;
+$layout-shadow-dark: $dark-shadow-2 !default;
+
+$menu-background: #fff !default;
+$menu-box-shadow: $shadow-3 !default;
+$menu-box-shadow-dark: $dark-shadow-3 !default;
+$menu-max-width: 95vw !default;
+$menu-max-height: 65vh !default;
+
+$rating-grade-color: $yellow !default;
+$rating-shadow: $shadow-1 !default;
+
+$tooltip-color: #ffffff !default;
+$tooltip-background: $grey-8 !default;
+$tooltip-padding: 8px 12px !default;
+$tooltip-border-radius: $generic-border-radius !default;
+$tooltip-fontsize: 12px !default;
+$tooltip-mobile-padding: 12px 16px !default;
+$tooltip-mobile-fontsize: 14px !default;
+$tooltip-max-width: 95vw !default;
+$tooltip-max-height: 65vh !default;
+
+$uploader-title-font-size: 14px !default;
+$uploader-title-line-height: 1.285714 !default;
+$uploader-subtitle-font-size: 12px !default;
+$uploader-subtitle-line-height: 1.5 !default;
+
+$option-focus-transition: .2s ease-out !default;
+
+$input-font-size: 15px !default;
+$input-text-color: #1e293b !default;
+$input-label-color: #64748b !default;
+$input-autofill-color: inherit !default;
+
+$img-loading-font-size: 50px !default;
+$img-content-position: absolute !default;
+$img-content-padding: 16px !default;
+$img-content-color: #fff !default;
+$img-content-background: rgba(0, 0, 0, .6) !default;
+
+/* ===== MODERN INPUT STYLES ===== */
+
+.q-field {
+
+    &--standard,
+    &--outlined,
+    &--filled {
+        .q-field__control {
+
+            &:before,
+            &:after {
+                display: none !important;
+            }
+        }
+    }
+}
+
+.q-field__control {
+    border: 1px solid $separator-color !important;
+    border-radius: $generic-border-radius !important;
+    background: #ffffff !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    box-shadow: $shadow-1 !important;
+    transition: border-color $generic-hover-transition, box-shadow $generic-hover-transition !important;
+
+    &:hover {
+        border-color: $grey-4 !important;
+    }
+
+    &.q-field__control--focused {
+        border-color: $primary !important;
+        box-shadow: 0 0 0 3px rgba($primary, 0.1), $shadow-2 !important;
+    }
+}
+
+.q-field__control-container {
+    padding-top: 0 !important;
+
+    &:before,
+    &:after {
+        display: none !important;
+    }
+}
+
+.q-field__native {
+    padding: 0 map.get($space-sm, x) !important;
+    font-size: $input-font-size !important;
+    line-height: 40px !important;
+    height: 40px !important;
+    color: $input-text-color !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    min-height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+
+    &::placeholder {
+        color: $input-label-color !important;
+        opacity: 1 !important;
+        font-size: $input-font-size !important;
+    }
+
+    &:focus,
+    &:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+}
+
+.q-field:not(:has(.q-field__prepend)):not(:has(.q-field__append)):not(:has(textarea)) {
+    .q-field__native {
+        padding: 0 map.get($space-sm, x) + 2px !important;
+    }
+
+    .q-field__label {
+        left: map.get($space-sm, x) + 2px !important;
+        max-width: calc(100% - #{(map.get($space-sm, x) + 2px) * 2}) !important;
+    }
+}
+
+.q-field__label {
+    font-size: $input-font-size !important;
+    color: $input-label-color !important;
+    font-weight: 400 !important;
+    line-height: 40px !important;
+    letter-spacing: 0 !important;
+    left: map.get($space-sm, x) !important;
+    top: 0 !important;
+    transform: none !important;
+    transition: opacity $generic-hover-transition !important;
+    background: transparent !important;
+    padding: 0 !important;
+    max-width: calc(100% - #{map.get($space-sm, x) * 2}) !important;
+    pointer-events: none !important;
+
+    &.q-field__label--float {
+        opacity: 0 !important;
+    }
+}
+
+.q-field--focused .q-field__label,
+.q-field--float .q-field__label {
+    opacity: 0 !important;
+}
+
+.q-field--error {
+    .q-field__control {
+        border-color: $negative !important;
+        background: $red-1 !important;
+
+        &:hover {
+            border-color: $red-6 !important;
+        }
+
+        &.q-field__control--focused {
+            border-color: $negative !important;
+            box-shadow: 0 0 0 3px rgba($negative, 0.1), $shadow-2 !important;
+            background: #ffffff !important;
+        }
+    }
+
+    .q-field__native::placeholder {
+        color: $red-4 !important;
+    }
+}
+
+.q-field__bottom {
+    padding: map.get($space-xs, y) map.get($space-sm, x) 0 map.get($space-sm, x) !important;
+    font-size: $field-bottom-font-size !important;
+    line-height: $field-bottom-line-height !important;
+    min-height: auto !important;
+
+    .q-field__messages {
+        color: $grey-6 !important;
+    }
+
+    .q-field__error-message,
+    div[role="alert"],
+    .text-negative {
+        color: $negative !important;
+        font-weight: 500 !important;
+    }
+}
+
+.q-field .q-ripple {
+    display: none !important;
+}
+
+.q-field__prepend,
+.q-field__append {
+    color: $grey-6 !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+
+    .q-icon {
+        font-size: 18px !important;
+    }
+}
+
+.q-field__append {
+    padding: 0 map.get($space-sm, x) 0 6px !important;
+}
+
+.q-field__prepend {
+    padding: 0 6px 0 map.get($space-sm, x) !important;
+}
+
+textarea.q-field__native {
+    min-height: 80px !important;
+    resize: vertical !important;
+    padding: map.get($space-sm, y) map.get($space-sm, x) !important;
+    line-height: $min-line-height !important;
+    height: auto !important;
+}
+
+.q-field:has(textarea.q-field__native) {
+    .q-field__control {
+        height: auto !important;
+        min-height: 80px !important;
+    }
+
+    .q-field__label {
+        line-height: $min-line-height !important;
+        top: map.get($space-sm, x) !important;
+        left: map.get($space-sm, x) !important;
+    }
+}
+
+.q-select {
+    .q-field__control-container {
+        min-height: 40px !important;
+        height: 40px !important;
+    }
+
+    .q-field__native {
+        cursor: pointer !important;
+        height: 40px !important;
+        line-height: 40px !important;
+        padding: 0 map.get($space-sm, x) !important;
+
+        span,
+        .ellipsis {
+            color: $input-text-color !important;
+            font-size: $input-font-size !important;
+            line-height: 40px !important;
+        }
+    }
+
+    .q-select__focus-target {
+        height: 40px !important;
+        line-height: 40px !important;
+    }
+
+    .q-field__append {
+        height: 40px !important;
+
+        .q-icon {
+            transition: transform $generic-hover-transition !important;
+            font-size: 18px !important;
+        }
+    }
+
+    &.q-field--focused .q-field__append .q-icon {
+        transform: rotate(180deg) !important;
+    }
+
+    &:not(:has(.q-field__prepend)) .q-field__native {
+        padding: 0 map.get($space-sm, x) 0 map.get($space-sm, x) + 2px !important;
+    }
+
+    &.q-field--dense {
+        .q-field__control-container {
+            min-height: 32px !important;
+            height: 32px !important;
+        }
+
+        .q-field__native {
+            height: 32px !important;
+            line-height: 32px !important;
+            padding: 0 map.get($space-xs, x) !important;
+
+            span,
+            .ellipsis {
+                line-height: 32px !important;
+                font-size: 13px !important;
+            }
+        }
+
+        .q-select__focus-target {
+            height: 32px !important;
+            line-height: 32px !important;
+        }
+
+        .q-field__append {
+            height: 32px !important;
+
+            .q-icon {
+                font-size: 16px !important;
+            }
+        }
+
+        &:not(:has(.q-field__prepend)) .q-field__native {
+            padding: 0 map.get($space-xs, x) 0 map.get($space-sm, x) !important;
+        }
+    }
+}
+
+.q-field--type-password .q-field__append {
+    cursor: pointer !important;
+
+    .q-icon {
+        color: $grey-6 !important;
+        transition: color $generic-hover-transition !important;
+
+        &:hover {
+            color: $primary !important;
+        }
+    }
+}
+
+.q-field--dense {
+    .q-field__control {
+        min-height: 32px !important;
+        height: 32px !important;
+    }
+
+    .q-field__native {
+        padding: 0 map.get($space-xs, x) !important;
+        font-size: 13px !important;
+        line-height: 32px !important;
+        height: 32px !important;
+    }
+
+    .q-field__label {
+        font-size: 13px !important;
+        line-height: 32px !important;
+        left: map.get($space-xs, x) !important;
+        max-width: calc(100% - #{map.get($space-xs, x) * 2}) !important;
+    }
+
+    .q-field__prepend {
+        padding: 0 map.get($space-xs, y) 0 map.get($space-xs, x) !important;
+        height: 32px !important;
+
+        .q-icon {
+            font-size: 16px !important;
+        }
+    }
+
+    .q-field__append {
+        padding: 0 map.get($space-xs, x) 0 map.get($space-xs, y) !important;
+        height: 32px !important;
+
+        .q-icon {
+            font-size: 16px !important;
+        }
+    }
+
+    &:not(:has(.q-field__prepend)):not(:has(.q-field__append)) {
+        .q-field__native {
+            padding: 0 map.get($space-sm, x) !important;
+        }
+
+        .q-field__label {
+            left: map.get($space-sm, x) !important;
+            max-width: calc(100% - #{map.get($space-sm, x) * 2}) !important;
+        }
+    }
+}
+
+.q-field--rounded .q-field__control {
+    border-radius: $button-rounded-border-radius !important;
+}
+
+.q-field--square .q-field__control {
+    border-radius: 0 !important;
+}
+
+.q-field--disabled {
+    .q-field__control {
+        background: $grey-1 !important;
+        border-color: $separator-color !important;
+        cursor: not-allowed !important;
+    }
+
+    .q-field__native {
+        color: $input-label-color !important;
+        cursor: not-allowed !important;
+    }
+
+    .q-field__label {
+        color: $input-label-color !important;
+    }
+}
+
+.q-field--readonly {
+    .q-field__control {
+        background: $grey-1 !important;
+        border-color: $separator-color !important;
+    }
+
+    .q-field__native {
+        cursor: default !important;
+    }
+}
+
+.q-field--valid {
+    .q-field__control {
+        border-color: $positive !important;
+
+        &.q-field__control--focused {
+            box-shadow: 0 0 0 3px rgba($positive, 0.1) !important;
+        }
+    }
+
+    .q-field__label.q-field__label--float {
+        color: $positive !important;
+    }
+}
+
+.q-field--type-number .q-field__native {
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        margin: 0 !important;
+    }
+
+    &[type=number] {
+        -moz-appearance: textfield !important;
+        appearance: textfield !important;
+    }
+}
+
+.q-field--type-url .q-field__native {
+    &:valid {
+        border-color: $positive !important;
+    }
+
+    &:invalid {
+        border-color: $negative !important;
+    }
+}
+
+.q-field--type-email .q-field__native {
+    &:valid {
+        border-color: $positive !important;
+    }
+
+    &:invalid {
+        border-color: $negative !important;
+    }
+}
+
+.q-file {
+    .q-field__control {
+        cursor: pointer !important;
+    }
+
+    .q-field__native {
+        cursor: pointer !important;
+    }
+
+    .q-field__append .q-btn {
+        margin: map.get($space-xs, y) !important;
+        border-radius: $generic-border-radius !important;
+        font-size: 13px !important;
+        padding: 6px map.get($space-sm, x) !important;
+        min-height: auto !important;
+    }
+}
+
+.q-menu {
+    border-radius: $generic-border-radius !important;
+    box-shadow: $shadow-3 !important;
+    border: 1px solid $separator-color !important;
+    background: #ffffff !important;
+
+    .q-item {
+        padding: map.get($space-xs, y) map.get($space-sm, x) !important;
+        min-height: 32px !important;
+        font-size: $input-font-size !important;
+        color: $input-text-color !important;
+        transition: background-color $generic-hover-transition !important;
+
+        &:hover {
+            background-color: $grey-1 !important;
+        }
+
+        &.q-item--active {
+            background-color: rgba($primary, 0.1) !important;
+            color: $primary !important;
+        }
+
+        .q-item__section {
+            min-width: auto !important;
+        }
+    }
+
+    .q-separator {
+        background-color: $separator-color !important;
+    }
+}
+
+.q-chip {
+    border-radius: $generic-border-radius !important;
+    background: $grey-2 !important;
+    color: $input-text-color !important;
+    font-size: 13px !important;
+
+    .q-chip__content {
+        padding: map.get($space-xs, y) map.get($space-xs, x) !important;
+    }
+
+    .q-chip__icon {
+        color: $grey-6 !important;
+        font-size: 16px !important;
+
+        &:hover {
+            color: $input-text-color !important;
+        }
+    }
+}
+
+/* Dark mode support */
+.body--dark {
+    .q-field__control {
+        background: $dark !important;
+        border-color: $separator-dark-color !important;
+
+        &:hover {
+            border-color: $grey-7 !important;
+        }
+
+        &.q-field__control--focused {
+            border-color: $primary !important;
+            box-shadow: 0 0 0 3px rgba($primary, 0.2), $dark-shadow-2 !important;
+        }
+    }
+
+    .q-field__native {
+        color: $grey-2 !important;
+
+        &::placeholder {
+            color: $grey-6 !important;
+        }
+    }
+
+    .q-field__label {
+        background: $dark !important;
+        color: $grey-5 !important;
+
+        &.q-field__label--float {
+            color: $grey-5 !important;
+        }
+    }
+
+    .q-field--focused .q-field__label {
+        color: $primary !important;
+
+        &.q-field__label--float {
+            color: $primary !important;
+        }
+    }
+
+    .q-field--error .q-field__control {
+        border-color: $negative !important;
+
+        &:hover {
+            border-color: $red-6 !important;
+        }
+
+        &.q-field__control--focused {
+            border-color: $negative !important;
+            box-shadow: 0 0 0 3px rgba($negative, 0.2), $dark-shadow-2 !important;
+        }
+    }
+
+    .q-field__bottom {
+        .q-field__messages {
+            color: $grey-5 !important;
+        }
+
+        .q-field--error {
+            color: $negative !important;
+        }
+    }
+
+    .q-field--disabled {
+        .q-field__control {
+            background: $dark-page !important;
+            border-color: $separator-dark-color !important;
+        }
+
+        .q-field__native,
+        .q-field__label {
+            color: $grey-6 !important;
+        }
+    }
+
+    .q-field--readonly .q-field__control {
+        background: $dark-page !important;
+        border-color: $separator-dark-color !important;
+    }
+
+    .q-menu {
+        background: $dark !important;
+        border-color: $separator-dark-color !important;
+        box-shadow: $dark-shadow-3 !important;
+
+        .q-item {
+            color: $grey-2 !important;
+
+            &:hover {
+                background-color: $grey-9 !important;
+            }
+
+            &.q-item--active {
+                background-color: rgba($primary, 0.2) !important;
+                color: $primary !important;
+            }
+        }
+
+        .q-separator {
+            background-color: $separator-dark-color !important;
+        }
+    }
+
+    .q-chip {
+        background: $grey-8 !important;
+        color: $grey-2 !important;
+
+        .q-chip__icon {
+            color: $grey-5 !important;
+
+            &:hover {
+                color: $grey-2 !important;
+            }
+        }
+    }
+}
+
+.q-field,
+.q-field *,
+.q-field *:before,
+.q-field *:after {
+    box-sizing: border-box !important;
+}
+
+/* ===== TOGGLE ONLY ===== */
+
+/* ===== MODERN FORM CONTROLS ===== */
+
+/* Toggle Switch */
+.q-toggle {
+    height: 24px !important;
+    padding: 0 !important;
+
+    .q-toggle__inner {
+        min-width: 0px !important;
+        width: 48px !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin-right: map.get($space-xs, x);
+    }
+
+    .q-toggle__track {
+        height: 100% !important;
+        border-radius: 16px !important;
+        transition: background-color $generic-hover-transition, box-shadow $generic-hover-transition !important;
+    }
+
+    .q-toggle__thumb {
+        top: 1px !important;
+        left: 1px;
+        height: calc(100% - 2px) !important;
+        aspect-ratio: 1 / 1 !important;
+        width: auto;
+        transition: left $generic-hover-transition, box-shadow $generic-hover-transition !important;
+
+        .q-icon {
+            color: #000 !important;
+            opacity: 1 !important;
+        }
+    }
+
+    .q-toggle__inner--truthy {
+        .q-toggle__track {
+            opacity: 1 !important;
+        }
+
+        .q-toggle__thumb {
+            left: 25px !important;
+            color: #fff !important;
+
+            &::before,
+            &::after {
+                background-color: #fff !important;
+                color: #fff !important;
+            }
+
+            .q-icon {
+                color: #000 !important;
+            }
+        }
+    }
+
+    &:hover {
+        .q-toggle__thumb {
+            &::before {
+                transform: none !important;
+            }
+        }
+    }
+
+    &:focus-visible {
+        outline: none !important;
+
+        .q-toggle__track {
+            box-shadow: 0 0 0 3px rgba($primary, 0.15) !important;
+        }
+    }
+
+    &:active {
+        .q-toggle__thumb {
+            transform: scale(0.95) !important;
+        }
+    }
+}
+
+/* Checkbox */
+.q-checkbox {
+    height: 24px !important;
+    padding: 0 !important;
+
+    .q-checkbox__inner {
+        height: 100% !important;
+        width: 24px !important;
+        min-width: 0px !important;
+        margin-right: map.get($space-xs, x);
+        padding: 0 !important;
+
+        .q-checkbox__bg {
+            position: relative;
+            top: 0 !important;
+            left: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            border-radius: $generic-border-radius !important;
+            transition: border-color $generic-hover-transition, box-shadow $generic-hover-transition !important;
+
+            .q-checkbox__svg {
+                height: calc(100% - 4px) !important;
+                width: calc(100% - 4px) !important;
+                top: 2px !important;
+                left: 2px !important;
+            }
+        }
+    }
+
+    .q-checkbox__inner--truthy {
+        .q-checkbox__bg {
+            border-color: rgba(0, 0, 0, 0.24);
+        }
+    }
+
+    &:hover {
+        .q-checkbox__inner {
+            &::before {
+                transform: none !important;
+                display: none;
+            }
+        }
+    }
+
+    &:focus-visible {
+        outline: none !important;
+
+        .q-checkbox__inner .q-checkbox__bg {
+            box-shadow: 0 0 0 3px rgba($primary, 0.15) !important;
+        }
+    }
+
+    &:active {
+        .q-checkbox__inner {
+            transform: scale(0.95) !important;
+        }
+    }
+}
+
+/* Radio Button */
+.q-radio {
+    height: 24px !important;
+    padding: 0 !important;
+
+    .q-radio__inner {
+        height: 100% !important;
+        width: 24px !important;
+        min-width: 0px !important;
+        margin-right: map.get($space-xs, x);
+        padding: 0 !important;
+
+        .q-radio__bg {
+            top: 0 !important;
+            left: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            border-radius: 50% !important;
+            transition: border-color $generic-hover-transition, box-shadow $generic-hover-transition !important;
+
+            .q-radio__check {
+                height: calc(100% - 4px) !important;
+                width: calc(100% - 4px) !important;
+                top: 2px !important;
+                left: 2px !important;
+            }
+        }
+    }
+
+    .q-radio__inner--truthy {
+        .q-radio__bg {
+            border-color: rgba(0, 0, 0, 0.24);
+        }
+    }
+
+    &:hover {
+        .q-radio__inner {
+            &::before {
+                transform: none !important;
+                display: none;
+            }
+        }
+    }
+
+    &:focus-visible {
+        outline: none !important;
+
+        .q-radio__inner .q-radio__bg {
+            box-shadow: 0 0 0 3px rgba($primary, 0.15) !important;
+        }
+    }
+
+    &:active {
+        .q-radio__inner {
+            transform: scale(0.95) !important;
+        }
+    }
+}
+
+/* Label Styling */
+.q-toggle__label,
+.q-checkbox__label,
+.q-radio__label {
+    font-size: $input-font-size !important;
+    color: $input-text-color !important;
+    line-height: 1.4 !important;
+    cursor: pointer !important;
+}
+
+/* Remove Ripple Effects */
+.q-toggle .q-ripple,
+.q-checkbox .q-ripple,
+.q-radio .q-ripple {
+    display: none !important;
+}
+
+.q-option-group>div {
+
+    margin-top: 16px !important;
+
+}
+
+/* Dark Mode Support */
+.body--dark {
+
+    .q-toggle__label,
+    .q-checkbox__label,
+    .q-radio__label {
+        color: $grey-2 !important;
+    }
+
+    .q-toggle:focus-visible .q-toggle__track,
+    .q-checkbox:focus-visible .q-checkbox__inner .q-checkbox__bg,
+    .q-radio:focus-visible .q-radio__inner .q-radio__bg {
+        box-shadow: 0 0 0 3px rgba($primary, 0.25) !important;
+    }
+}
