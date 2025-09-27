@@ -228,7 +228,7 @@ const handleRevokeSession = async () => {
     // If we just revoked our current session, logout and redirect
     if (isCurrentSession) {
       authStore.clearAuthData()
-      router.push('/auth/login')
+      await router.push('/auth/login')
     }
   }
 }
@@ -236,12 +236,12 @@ const handleRevokeSession = async () => {
 const handleLogoutAll = async () => {
   await authStore.logoutAll()
   confirmLogoutAll.value = false
-  router.push('/auth/login')
+  await router.push('/auth/login')
 }
 
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
-    router.push('/auth/login')
+    await router.push('/auth/login')
     return
   }
 

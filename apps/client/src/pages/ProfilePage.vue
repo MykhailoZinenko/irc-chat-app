@@ -25,7 +25,7 @@
               <div class="col-12 col-md-8">
                 <div class="q-gutter-md">
                   <q-input
-                    v-model="authStore.user.firstName"
+                    v-model="authStore.user?.firstName"
                     label="First Name"
                     outlined
                     readonly
@@ -36,7 +36,7 @@
                   </q-input>
 
                   <q-input
-                    v-model="authStore.user.lastName"
+                    v-model="authStore.user?.lastName"
                     label="Last Name"
                     outlined
                     readonly
@@ -47,7 +47,7 @@
                   </q-input>
 
                   <q-input
-                    v-model="authStore.user.nickName"
+                    v-model="authStore.user?.nickName"
                     label="Nickname"
                     outlined
                     readonly
@@ -241,15 +241,15 @@ const confirmLogout = ref(false)
 const getInitials = () => {
   if (!authStore.user) return '??'
 
-  const firstName = authStore.user.firstName || ''
-  const lastName = authStore.user.lastName || ''
+  const firstName = authStore.user?.firstName || ''
+  const lastName = authStore.user?.lastName || ''
 
-  if (firstName && lastName) {
+  if (firstName && lastName && firstName.length > 0 && lastName.length > 0) {
     return `${firstName[0]}${lastName[0]}`.toUpperCase()
-  } else if (firstName) {
-    return firstName[0].toUpperCase()
-  } else if (authStore.user.nickName) {
-    return authStore.user.nickName[0].toUpperCase()
+  } else if (firstName && firstName.length > 0) {
+    return firstName.charAt(0).toUpperCase()
+  } else if (authStore.user?.nickName && authStore.user?.nickName.length > 0) {
+    return authStore.user?.nickName.charAt(0).toUpperCase()
   }
 
   return '??'
@@ -278,12 +278,12 @@ const getDaysActive = () => {
 const handleLogout = async () => {
   await authStore.logout()
   confirmLogout.value = false
-  router.push('/auth/login')
+  await router.push('/auth/login')
 }
 
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
-    router.push('/auth/login')
+    await router.push('/auth/login')
     return
   }
 

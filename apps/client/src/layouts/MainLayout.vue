@@ -136,11 +136,11 @@ const getInitials = () => {
   const firstName = authStore.user.firstName || ''
   const lastName = authStore.user.lastName || ''
 
-  if (firstName && lastName) {
+  if (firstName && lastName && firstName.length > 0 && lastName.length > 0) {
     return `${firstName[0]}${lastName[0]}`.toUpperCase()
-  } else if (firstName) {
+  } else if (firstName && firstName.length > 0) {
     return firstName[0].toUpperCase()
-  } else if (authStore.user?.nickName) {
+  } else if (authStore.user?.nickName && authStore.user.nickName.length > 0) {
     return authStore.user.nickName[0].toUpperCase()
   }
 
@@ -149,6 +149,6 @@ const getInitials = () => {
 
 const handleLogout = async () => {
   await authStore.logout();
-  router.push('/auth/login');
+  await router.push('/auth/login');
 }
 </script>

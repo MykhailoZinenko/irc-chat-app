@@ -8,7 +8,7 @@
 
       <q-card-section>
         <q-form @submit="handleSubmit" class="q-gutter-md">
-          <div class="row q-gutter-sm">
+          <div class="row" style="gap: 12px;">
             <q-input
               v-model="form.firstName"
               label="First Name (optional)"
@@ -151,15 +151,15 @@ const handleSubmit = async () => {
   errors.value = null
 
   const result = await authStore.register({
-    firstName: form.value.firstName || undefined,
-    lastName: form.value.lastName || undefined,
+    ...(form.value.firstName && { firstName: form.value.firstName }),
+    ...(form.value.lastName && { lastName: form.value.lastName }),
     nickName: form.value.nickName,
     email: form.value.email,
     password: form.value.password
   })
 
   if (result.success) {
-    router.push('/')
+    await router.push('/')
   } else {
     console.log(result)
     errors.value = result.errors || { general: 'Registration failed' }

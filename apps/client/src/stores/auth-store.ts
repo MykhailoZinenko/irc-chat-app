@@ -177,13 +177,13 @@ export const useAuthStore = defineStore('auth', {
 
         console.log(response);
         if (response.data.success && response.data.data) {
-          this.user = response.data.data as User;
+          this.user = response.data.data;
           return true;
         } else {
           this.clearAuthData();
           return false;
         }
-      } catch (error) {
+      } catch {
         this.clearAuthData();
         return false;
       }

@@ -42,7 +42,15 @@ export default defineConfigWithVueTs(
     },
   },
   // https://github.com/vuejs/eslint-config-typescript
-  vueTsConfigs.recommendedTypeChecked,
+  {
+    ...vueTsConfigs.recommendedTypeChecked,
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
 
   {
     languageOptions: {

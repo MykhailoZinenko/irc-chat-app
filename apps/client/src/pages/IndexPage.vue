@@ -194,17 +194,25 @@ const getInitials = () => {
   const firstName = authStore.user.firstName || ''
   const lastName = authStore.user.lastName || ''
 
-  if (firstName && lastName) {
+  if (firstName && lastName && firstName.length > 0 && lastName.length > 0) {
     return `${firstName[0]}${lastName[0]}`.toUpperCase()
-  } else if (firstName) {
-    return firstName[0].toUpperCase()
-  } else if (authStore.user?.nickName) {
-    return authStore.user.nickName[0].toUpperCase()
+  } else if (firstName && firstName.length > 0) {
+    return firstName.charAt(0).toUpperCase()
+  } else if (authStore.user?.nickName && authStore.user.nickName.length > 0) {
+    return authStore.user.nickName.charAt(0).toUpperCase()
   }
 
   return '??'
 }
 
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Tests the connection to the backend by sending a GET request to /api/test.
+ * If the request is successful, the response data is stored in backendData.
+ * If the request fails, an error message is stored in connectionError.
+ * The loading state is set to true while the request is being sent, and false after the request is finished.
+ */
+/*******  9acdfb09-d5f6-4901-a6fe-fcffde17a7c0  *******/
 const testConnection = async () => {
   loading.value = true
   connectionError.value = ''
@@ -220,7 +228,7 @@ const testConnection = async () => {
   }
 }
 
-onMounted(() => {
-  testConnection()
+onMounted(async () => {
+  await testConnection()
 })
 </script>
