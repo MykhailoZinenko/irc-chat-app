@@ -205,14 +205,6 @@ const getInitials = () => {
   return '??'
 }
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Tests the connection to the backend by sending a GET request to /api/test.
- * If the request is successful, the response data is stored in backendData.
- * If the request fails, an error message is stored in connectionError.
- * The loading state is set to true while the request is being sent, and false after the request is finished.
- */
-/*******  9acdfb09-d5f6-4901-a6fe-fcffde17a7c0  *******/
 const testConnection = async () => {
   loading.value = true
   connectionError.value = ''

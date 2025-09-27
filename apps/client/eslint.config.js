@@ -42,21 +42,16 @@ export default defineConfigWithVueTs(
     },
   },
   // https://github.com/vuejs/eslint-config-typescript
-  {
-    ...vueTsConfigs.recommendedTypeChecked,
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-  },
+  vueTsConfigs.recommendedTypeChecked,
 
   {
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
       globals: {
         ...globals.browser,
         ...globals.node, // SSR, Electron, config files
