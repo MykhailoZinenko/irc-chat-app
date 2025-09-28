@@ -183,8 +183,6 @@ export default class AuthController {
 
     const currentTokenId = auth.user?.currentAccessToken?.identifier
 
-    console.log(sessions, currentTokenId)
-
     return response.json({
       success: true,
       data: sessions.map((session) => ({
@@ -203,8 +201,6 @@ export default class AuthController {
     const user = auth.user!
     const sessionId = params.tokenId
 
-    console.log('Revoking session with ID:', sessionId, 'for user:', user.id)
-
     const session = await AccessToken.query()
       .where('id', sessionId)
       .where('tokenableId', user.id)
@@ -216,8 +212,6 @@ export default class AuthController {
         message: 'Session not found',
       })
     }
-
-    console.log('Found session:', session.id, 'hash:', session.hash)
 
     await AccessToken.query().where('id', session.id).where('tokenableId', user.id).delete()
 

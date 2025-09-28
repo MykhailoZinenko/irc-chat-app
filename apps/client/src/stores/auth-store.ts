@@ -78,8 +78,6 @@ export const useAuthStore = defineStore('auth', {
         const response = await api.post<AuthResponse>('/api/auth/register', data);
 
         if (response.data.success && response.data.data) {
-          console.log(response.data);
-
           this.user = response.data.data.user;
           this.token = response.data.data.token.token;
           localStorage.setItem('auth_token', this.token);
@@ -95,7 +93,6 @@ export const useAuthStore = defineStore('auth', {
           return { success: false, errors: response.data.errors };
         }
       } catch (error: any) {
-        console.log(error);
         const errors = error.response?.data?.errors || {
           general: error.response?.data?.message || 'Registration failed',
         };
@@ -175,7 +172,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await api.get<UserResponse>('/api/auth/me');
 
-        console.log(response);
         if (response.data.success && response.data.data) {
           this.user = response.data.data;
           return true;

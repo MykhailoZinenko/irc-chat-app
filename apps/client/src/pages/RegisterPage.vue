@@ -161,7 +161,6 @@ const handleSubmit = async () => {
   if (result.success) {
     await router.push('/')
   } else {
-    console.log(result)
     errors.value = result.errors || { general: 'Registration failed' }
   }
 }
