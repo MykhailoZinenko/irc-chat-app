@@ -9,6 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+import transmit from '@adonisjs/transmit/services/main'
 
 router.get('api/test', async () => {
   return {
@@ -30,6 +31,7 @@ router.get('api/test', async () => {
 const AuthController = () => import('#controllers/auth_controller')
 const UserController = () => import('#controllers/user_controller')
 const ContactController = () => import('#controllers/contact_controller')
+const ChatsController = () => import('#controllers/chats_controller')
 
 router
   .group(() => {
@@ -59,3 +61,19 @@ router
   })
   .prefix('api/contacts')
   .use(middleware.auth())
+
+router
+  .group(() => {
+    router.post('start/:userId', [ChatsController, 'startChat'])
+    router.get('/', [ChatsController, 'index'])
+    router.get(':id', [ChatsController, 'show'])
+    router.get(':id/messages', [ChatsController, 'messages'])
+    router.post(':id/messages', [ChatsController, 'sendMessage'])
+    router.put('messages/:messageId/delivered', [ChatsController, 'markAsDelivered'])
+    router.put('messages/:messageId/read', [ChatsController, 'markAsRead'])
+    router.get('messages/:messageId/status', [ChatsController, 'getMessageStatus'])
+  })
+  .prefix('api/chats')
+  .use(middleware.auth())
+
+transmit.registerRoutes()

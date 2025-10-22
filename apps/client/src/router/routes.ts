@@ -25,6 +25,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'profile/:id', component: () => import('pages/ProfilePage.vue') },
       { path: 'contacts', component: () => import('pages/ContactsPage.vue') },
       { path: 'sessions', component: () => import('pages/SessionsPage.vue') },
+      { path: 'chat/:id', component: () => import('pages/ChatPage.vue') },
     ],
   },
 

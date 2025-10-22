@@ -42,6 +42,7 @@
             icon="message"
             label="Message"
             class="action-button"
+            :loading="loadingStates.messaging"
             @click="handleMessage"
           />
 
@@ -189,6 +190,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store'
 import { useContactStore, type PublicUser } from 'src/stores/contact-store'
+import { useChatStore } from 'src/stores/chat-store'
 import { getInitials } from 'src/utils/user'
 
 interface Props {
@@ -203,9 +205,10 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter()
 const authStore = useAuthStore()
 const contactStore = useContactStore()
+const chatStore = useChatStore()
 
 const confirmLogout = ref(false)
-const loadingStates = ref({ adding: false, removing: false })
+const loadingStates = ref({ adding: false, removing: false, messaging: false })
 
 
 
@@ -251,8 +254,18 @@ const handleEdit = () => {
   console.log('Edit profile')
 }
 
-const handleMessage = () => {
-  console.log('Send message to', props.user?.nickName)
+const handleMessage = async () => {
+  if (!props.user) return
+
+  loadingStates.value.messaging = true
+  try {
+    const result = await chatStore.startChat(props.user.id)
+    if (result.success && result.chatId) {
+      await router.push(`/chat/${result.chatId}`)
+    }
+  } finally {
+    loadingStates.value.messaging = false
+  }
 }
 
 const handleBlockUser = () => {

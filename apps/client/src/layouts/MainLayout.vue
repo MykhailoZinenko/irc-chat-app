@@ -12,7 +12,7 @@
     <!-- Main Content Area -->
     <q-page-container class="main-content">
       <!-- Mobile Chat List -->
-      <ChatList v-if="$q.screen.lt.md && !isProfilePage" />
+      <ChatList v-if="$q.screen.lt.md && !isProfilePage && !isChatPage" />
 
       <!-- Router View for Desktop and Profile Pages -->
       <router-view v-else />
@@ -31,6 +31,7 @@ import ChatList from 'src/components/ChatList.vue'
 const route = useRoute()
 
 const isProfilePage = computed(() => route.path.startsWith('/profile'))
+const isChatPage = computed(() => route.path.startsWith('/chat/'))
 </script>
 
 <style scoped>

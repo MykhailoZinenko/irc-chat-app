@@ -137,11 +137,7 @@
 
       <!-- Chats (when not searching) -->
       <div v-else>
-        <div class="empty-state">
-          <q-icon name="chat_bubble_outline" size="50px" color="grey-4" />
-          <div class="text-grey-6 q-mt-sm">No chats yet</div>
-          <div class="text-grey-5 q-mt-xs">Search for users to start chatting</div>
-        </div>
+        <ChatList />
       </div>
     </div>
   </q-drawer>
@@ -153,6 +149,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store'
 import { useContactStore, type PublicUser } from 'src/stores/contact-store'
 import { getInitials } from 'src/utils/user'
+import ChatList from 'src/components/ChatList.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
