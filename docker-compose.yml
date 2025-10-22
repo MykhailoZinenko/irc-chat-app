@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: irc-postgres
+    environment:
+      POSTGRES_DB: irc_chat_app
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - irc-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: irc-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: root@example.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "8080:80"
+    networks:
+      - irc-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+
+networks:
+  irc-network:
+    driver: bridge
