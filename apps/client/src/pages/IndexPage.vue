@@ -54,11 +54,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import ChatSidebar from 'src/components/chat/ChatSidebar.vue'
-import ChatHeader from 'src/components/chat/ChatHeader.vue'
-import MessageList from 'src/components/chat/MessageList.vue'
-import MessageInput from 'src/components/chat/MessageInput.vue'
-import InfoPanel from 'src/components/chat/InfoPanel.vue'
+import ChatSidebar from '@/components/chat/ChatSidebar.vue'
+import ChatHeader from '@/components/chat/ChatHeader.vue'
+import MessageList from '@/components/chat/MessageList.vue'
+import MessageInput from '@/components/chat/MessageInput.vue'
+import InfoPanel from '@/components/chat/InfoPanel.vue'
 
 // Mock data - will be replaced with real data from stores later
 const chats = ref([

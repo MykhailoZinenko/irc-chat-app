@@ -1,0 +1,129 @@
+<template>``
+  <AuthPageLayout
+    title="Welcome Back"
+    subtitle="Sign in to continue to your account"
+    footer-text="Don't have an account?"
+    footer-link-text="Sign up"
+    footer-link-href="/register"
+  >
+    <div class="space-y-5">
+      <!-- Email Field -->
+      <InputField
+        v-model="email"
+        label="Email Address"
+        icon="mail"
+        type="email"
+        placeholder="your@email.com"
+        @enter="handleSubmit"
+      />
+
+      <!-- Password Field -->
+      <PasswordField
+        v-model="password"
+        label="Password"
+        placeholder="Enter your password"
+        @enter="handleSubmit"
+      />
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="flex items-center justify-between">
+        <label class="flex items-center cursor-pointer select-none">
+          <input
+            v-model="rememberMe"
+            type="checkbox"
+            class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          />
+          <span class="ml-2 text-sm text-gray-600">Remember me</span>
+        </label>
+        <router-link to="/forgot-password" class="text-blue-500 hover:text-blue-600 font-semibold transition-colors">
+          Forgot password?
+        </router-link>
+      </div>
+
+      <!-- Login Button -->
+      <PrimaryButton @click="handleSubmit">
+        Sign In
+      </PrimaryButton>
+    </div>
+
+    <!-- Social Login -->
+    <SocialLogin 
+      @google="handleGoogleLogin"
+      @facebook="handleFacebookLogin"
+    />
+  </AuthPageLayout>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import AuthPageLayout from '@/components/auth/AuthPageLayout.vue';
+import InputField from '@/components/auth/InputField.vue';
+import PasswordField from '@/components/auth/PasswordField.vue';
+import PrimaryButton from '@/components/auth/PrimaryButton.vue';
+import SocialLogin from '@/components/auth/SocialLogin.vue';
+
+const email = ref('');
+const password = ref('');
+const rememberMe = ref(false);
+
+const handleSubmit = () => {
+  console.log('Login:', { 
+    email: email.value, 
+    password: password.value, 
+    rememberMe: rememberMe.value 
+  });
+};
+
+const handleGoogleLogin = () => {
+  console.log('Google login');
+};
+
+const handleFacebookLogin = () => {
+  console.log('Facebook login');
+};
+</script>
+
+<style scoped>
+/* Tailwind-like utilities using standard CSS */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+
+.from-blue-50 {
+  --tw-gradient-from: #eff6ff;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 246, 255, 0));
+}
+
+.to-purple-50 {
+  --tw-gradient-to: #faf5ff;
+}
+
+.from-blue-500 {
+  --tw-gradient-from: #3b82f6;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0));
+}
+
+.to-purple-500 {
+  --tw-gradient-to: #a855f7;
+}
+
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+input:focus {
+  outline: none;
+}
+
+input[type="checkbox"] {
+  accent-color: #3b82f6;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+</style>
