@@ -4,16 +4,24 @@
   >
     <!-- Avatar for other users -->
     <div v-if="!message.own" class="w-8 h-8 flex-shrink-0">
-      <div v-if="showAvatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-lg">
+      <div 
+        v-if="showAvatar" 
+        @click="emit('userClick', message.sender)"
+        class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-lg cursor-pointer hover:opacity-80 transition-opacity"
+      >
         {{ message.avatar }}
       </div>
       <div v-else class="w-8 h-8" />
     </div>
 
     <div :class="['max-w-[85%] sm:max-w-md flex flex-col', message.own ? 'items-end' : 'items-start']">
-      <p v-if="!message.own && isFirstInGroup" class="text-xs font-semibold text-gray-700 mb-1 ml-3">
-        {{ message.sender }}
-      </p>
+    <p 
+      v-if="!message.own && isFirstInGroup" 
+      @click="emit('userClick', message.sender)"
+      class="text-xs font-semibold text-gray-700 mb-1 ml-3 cursor-pointer hover:text-blue-600 transition-colors"
+    >
+      {{ message.sender }}
+    </p>
 
       <div class="relative">
         <div
@@ -59,13 +67,15 @@
 import { type IMessage } from 'src/types/messages';
 import { computed } from 'vue'
 
-
 interface Props {
   message: IMessage
   previousMessage?: IMessage | null | undefined
 }
-
 const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  userClick: [userName: string]
+}>()
 
 const isFirstInGroup = computed(() => {
   if (!props.previousMessage) return true

@@ -17,8 +17,13 @@
         @click="sidebarOpen = false"
       />
 
-      <!-- Main Chat Area -->
-      <div class="flex-1 flex flex-col min-w-0">
+      <UserProfile
+        v-if="selectedUser"
+        :user="selectedUser"
+        @back="handleCloseProfile"
+      />
+      <!-- Main Chat Area (hidden when profile is shown) -->
+      <div v-else class="flex-1 flex flex-col min-w-0">
         <ChatHeader
           :chat="currentChat"
           @toggle-sidebar="sidebarOpen = !sidebarOpen"
@@ -29,6 +34,7 @@
           ref="messageListRef"  
           :messages="displayedMessages"
           @load-more="loadMoreMessages"
+          @user-click="handleUserClick"
         />
 
         <MessageInput
@@ -46,12 +52,21 @@
         @click="infoPanelOpen = false"
       />
 
-      <InfoPanel
-        :chat="currentChat"
-        :is-open="infoPanelOpen"
-        :members="groupMembers"
-        @close="infoPanelOpen = false"
-      />
+      <template v-if="!selectedUser">
+        <div
+          v-show="infoPanelOpen"
+          class="xl:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          @click="infoPanelOpen = false"
+        />
+
+        <InfoPanel
+          :chat="currentChat"
+          :is-open="infoPanelOpen"
+          :members="groupMembers"
+          @close="infoPanelOpen = false"
+          @user-click="handleUserClick"
+        />
+      </template>
     </div>
   </q-page>
 </template>
@@ -63,6 +78,7 @@ import ChatHeader from '@/components/chat/ChatHeader.vue'
 import MessageList from '@/components/chat/MessageList.vue'
 import MessageInput from '@/components/chat/MessageInput.vue'
 import InfoPanel from '@/components/chat/InfoPanel.vue'
+import UserProfile from '@/components/profile/UserProfile.vue'
 
 // Mock data - will be replaced with real data from stores later
 const chats = ref([
@@ -297,6 +313,7 @@ const selectedChatId = ref(0)
 const sidebarOpen = ref(false)
 const infoPanelOpen = ref(false)
 const messageListRef = ref<any>(null)
+const selectedUser = ref<any>(null)
 
 const currentChat = computed(() => {
   return chats.value.find((c) => c.id === selectedChatId.value)!
@@ -330,6 +347,26 @@ const handleSendMessage = (message: string) => {
   messageListRef.value?.scrollToBottom();
   loadedCount.value++
   messageListRef.value?.scrollToBottom()
+}
+
+const handleUserClick = (userName: string) => {
+  // Find user in group members or chats
+  const member = groupMembers.value.find(m => m.name === userName)
+  const chat = chats.value.find(c => c.name === userName)
+  
+  selectedUser.value = member || chat || {
+    name: userName,
+    avatar: '👤',
+    username: '@' + userName.toLowerCase().replace(' ', '_'),
+    bio: 'User'
+  }
+  // Close panels
+  infoPanelOpen.value = false
+  sidebarOpen.value = false
+}
+
+const handleCloseProfile = () => {
+  selectedUser.value = null
 }
 
 const handleAttach = () => {

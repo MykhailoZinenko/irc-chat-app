@@ -24,6 +24,7 @@
             :key="message.id"
             :message="message"
             :previous-message="index > 0 ? messages[index - 1] : undefined"
+            @user-click="(name) => emit('userClick', name)"
           />
         </div>
 
@@ -43,6 +44,7 @@ defineProps<Props>()
 
 const emit = defineEmits<{
   loadMore: [done: (stop?: boolean) => void]
+  userClick: [userName: string]
 }>()
 
 const noMoreMessages = ref(false)
