@@ -53,10 +53,16 @@
 
         <!-- Logout Button -->
         <div class="p-3 border-t border-gray-200">
-          <button class="w-full flex items-center gap-3 p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-            <q-icon name="logout" size="20px" />
+          <q-btn
+            flat
+            no-caps
+            class="w-full logout-btn"
+            padding="12px"
+            @click="$router.push('/login')"
+          >
+            <q-icon name="logout" size="20px" class="q-mr-sm" />
             <span class="font-medium">Logout</span>
-          </button>
+          </q-btn>
         </div>
       </div>
 
@@ -246,5 +252,14 @@ const handleSelectSection = (id: string) => {
   .burger-btn-responsive {
     display: none !important;
   }
+}
+
+.logout-btn {
+  color: #dc2626 !important;
+  justify-content: flex-start;
+}
+
+.logout-btn:hover {
+  background-color: #fef2f2 !important;
 }
 </style>

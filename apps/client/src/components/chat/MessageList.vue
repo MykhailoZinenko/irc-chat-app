@@ -13,7 +13,7 @@
           </div>
         </template>
         
-        <div class="messages-wrapper">
+        <div class="messages-wrapper p-3 sm:p-4 md:p-6">
           <!-- End of messages indicator -->
           <div v-if="noMoreMessages && messages.length > 0" class="text-center py-2 text-gray-500 text-sm">
             Beginning of conversation
@@ -92,5 +92,15 @@ defineExpose({
 <style scoped>
 .bg-gray-50 {
   background-color: #f9fafb;
+}
+
+.messages-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.text-gray-500 {
+  color: #6b7280;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="['flex gap-2', message.own ? 'justify-end' : 'justify-start', isFirstInGroup ? 'mt-4' : 'mt-1', hasReactions ? 'mb-2' : '']"
+    :class="['flex gap-2', message.own ? 'justify-end' : 'justify-start', isFirstInGroup ? 'mt-4' : 'mt-1', hasReactions ? 'mb-4' : '']"
   >
     <!-- Avatar for other users -->
     <div v-if="!message.own" class="w-8 h-8 flex-shrink-0">

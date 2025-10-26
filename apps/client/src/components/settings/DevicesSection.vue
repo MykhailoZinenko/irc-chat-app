@@ -31,9 +31,14 @@
                 <p class="text-xs text-gray-400 mt-1">2 hours ago • New York, US</p>
               </div>
             </div>
-            <button class="text-sm text-red-600 hover:text-red-700 font-medium">
-              Terminate
-            </button>
+            <q-btn
+              flat
+              no-caps
+              color="red"
+              label="Terminate"
+              size="sm"
+              class="font-medium"
+            />
           </div>
         </div>
       </div>
