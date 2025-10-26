@@ -22,6 +22,7 @@
               :unelevated="textSize === 'small'"
               :color="textSize === 'small' ? 'blue' : 'grey-7'"
               label="Small"
+              no-caps
               padding="8px 16px"
               class="text-sm"
               @click="textSize = 'small'"
@@ -31,6 +32,7 @@
               :unelevated="textSize === 'medium'"
               :color="textSize === 'medium' ? 'blue' : 'grey-7'"
               label="Medium"
+              no-caps
               padding="8px 16px"
               @click="textSize = 'medium'"
             />
@@ -39,6 +41,7 @@
               :unelevated="textSize === 'large'"
               :color="textSize === 'large' ? 'blue' : 'grey-7'"
               label="Large"
+              no-caps
               padding="8px 16px"
               class="text-lg"
               @click="textSize = 'large'"
