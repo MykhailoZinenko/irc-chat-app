@@ -1,4 +1,4 @@
-<template>``
+<template>
   <AuthPageLayout
     title="Welcome Back"
     subtitle="Sign in to continue to your account"
@@ -61,17 +61,22 @@ import InputField from '@/components/auth/InputField.vue';
 import PasswordField from '@/components/auth/PasswordField.vue';
 import PrimaryButton from '@/components/auth/PrimaryButton.vue';
 import SocialLogin from '@/components/auth/SocialLogin.vue';
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const email = ref('');
 const password = ref('');
 const rememberMe = ref(false);
 
+
 const handleSubmit = () => {
-  console.log('Login:', { 
-    email: email.value, 
-    password: password.value, 
-    rememberMe: rememberMe.value 
+  console.log('Login:', {
+    email: email.value,
+    password: password.value,
+    rememberMe: rememberMe.value
   });
+  void router.push('/')
 };
 
 const handleGoogleLogin = () => {

@@ -1,40 +1,90 @@
 <template>
-  <q-scroll-area class="flex-1 bg-gray-50">
-    <div class="p-3 sm:p-4 md:p-6 flex flex-col gap-1">
-      <MessageBubble
-        v-for="(message, index) in messages"
-        :key="message.id"
-        :message="message"
-        :previous-message="index > 0 ? messages[index - 1] : undefined"
-      />
-    </div>
+  <q-scroll-area ref="scrollAreaRef" class="flex-1 bg-gray-50">
+    <q-infinite-scroll 
+      ref="infiniteScrollRef"
+      reverse 
+      :offset="500" 
+      @load="onLoad"
+      :scroll-target="scrollTarget"
+      >
+        <template v-slot:loading>
+          <div class="row justify-center q-my-md">
+            <q-spinner-dots color="primary" size="40px" />
+          </div>
+        </template>
+        
+        <div class="messages-wrapper">
+          <!-- End of messages indicator -->
+          <div v-if="noMoreMessages && messages.length > 0" class="text-center py-2 text-gray-500 text-sm">
+            Beginning of conversation
+          </div>
+
+          <MessageBubble
+            v-for="(message, index) in messages"
+            :key="message.id"
+            :message="message"
+            :previous-message="index > 0 ? messages[index - 1] : undefined"
+          />
+        </div>
+
+    </q-infinite-scroll>
   </q-scroll-area>
 </template>
 
 <script setup lang="ts">
+import { type IMessage } from 'src/types/messages';
 import MessageBubble from './MessageBubble.vue'
-
-interface Reaction {
-  emoji: string
-  count: number
-}
-
-interface Message {
-  id: number
-  sender: string
-  avatar: string
-  text: string
-  time: string
-  own: boolean
-  read: boolean
-  reactions?: Reaction[]
-}
+import { onMounted, ref } from 'vue';
 
 interface Props {
-  messages: Message[]
+  messages: IMessage[]
+}
+defineProps<Props>()
+
+const emit = defineEmits<{
+  loadMore: [done: (stop?: boolean) => void]
+}>()
+
+const noMoreMessages = ref(false)
+const scrollAreaRef = ref<any>(null)
+const infiniteScrollRef = ref<any>(null)
+const scrollTarget = ref<HTMLElement | undefined>(undefined)
+
+const onLoad = (index: number, done: (stop?: boolean) => void) => {
+  console.log("OnLoad:"+index);
+  emit('loadMore', (stop?: boolean) => {
+    if (stop) {
+      noMoreMessages.value = true
+      done(true)
+    } else {
+      done()
+    }
+  })
 }
 
-defineProps<Props>()
+onMounted(() => {
+  const scrollArea = scrollAreaRef.value
+  if (scrollArea) {
+    scrollTarget.value = scrollArea.getScrollTarget()
+  }
+})
+
+const newChat = () => {
+  scrollToBottom();
+  infiniteScrollRef.value?.reset()
+  infiniteScrollRef.value?.resume()
+  noMoreMessages.value = false;
+}
+const scrollToBottom = () => {
+  setTimeout(() => {
+    scrollAreaRef.value?.setScrollPosition('vertical', 999999, 300)
+  }, 100)
+}
+
+defineExpose({
+  scrollToBottom,
+  newChat
+})
 </script>
 
 <style scoped>
