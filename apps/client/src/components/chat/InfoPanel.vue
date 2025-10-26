@@ -96,7 +96,8 @@
             <div
               v-for="(member, idx) in displayMembers"
               :key="idx"
-              class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors"
+              @click="$emit('userClick', member.name)"
+              class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
             >
               <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl">
                 {{ member.avatar }}
@@ -195,6 +196,7 @@ const props = defineProps<Props>()
 
 defineEmits<{
   close: []
+  userClick: [userName: string]
 }>()
 
 const panelTitle = computed(() => {

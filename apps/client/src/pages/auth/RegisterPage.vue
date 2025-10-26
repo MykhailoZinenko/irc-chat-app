@@ -76,6 +76,9 @@ import InputField from '@/components/auth/InputField.vue';
 import PasswordField from '@/components/auth/PasswordField.vue';
 import PrimaryButton from '@/components/auth/PrimaryButton.vue';
 import SocialLogin from '@/components/auth/SocialLogin.vue';
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const fullName = ref('');
 const email = ref('');
@@ -97,6 +100,7 @@ const handleSubmit = () => {
     email: email.value, 
     password: password.value
   });
+  void router.push('/login')
 };
 
 const handleGoogleLogin = () => {

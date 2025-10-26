@@ -93,7 +93,7 @@
               dense
               icon="arrow_back"
               color="grey-7"
-              @click="$router.push('/')"
+              @click="$router.push('/chat')"
             />
             <div>
               <h2 class="font-semibold text-gray-800 text-base leading-5">
@@ -119,13 +119,13 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import ProfileSection from 'src/components/settings/ProfileSection.vue'
-import AccountSection from 'src/components/settings/AccountSection.vue'
-import PrivacySection from 'src/components/settings/PrivacySection.vue'
-import NotificationsSection from 'src/components/settings/NotificationsSection.vue'
-import AppearanceSection from 'src/components/settings/AppearanceSection.vue'
-import DevicesSection from 'src/components/settings/DevicesSection.vue'
-import HelpSection from 'src/components/settings/HelpSection.vue'
+import ProfileSection from '@/components/settings/ProfileSection.vue'
+import AccountSection from '@/components/settings/AccountSection.vue'
+import PrivacySection from '@/components/settings/PrivacySection.vue'
+import NotificationsSection from '@/components/settings/NotificationsSection.vue'
+import AppearanceSection from '@/components/settings/AppearanceSection.vue'
+import DevicesSection from '@/components/settings/DevicesSection.vue'
+import HelpSection from '@/components/settings/HelpSection.vue'
 
 const sidebarOpen = ref(false)
 const selectedSection = ref('profile')

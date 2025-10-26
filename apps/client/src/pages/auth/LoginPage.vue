@@ -76,7 +76,7 @@ const handleSubmit = () => {
     password: password.value,
     rememberMe: rememberMe.value
   });
-  void router.push('/')
+  void router.push('/chat')
 };
 
 const handleGoogleLogin = () => {
