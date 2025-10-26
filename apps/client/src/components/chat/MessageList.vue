@@ -1,6 +1,7 @@
 <template>
   <q-scroll-area ref="scrollAreaRef" class="flex-1 bg-gray-50">
     <q-infinite-scroll 
+      ref="infiniteScrollRef"
       reverse 
       :offset="500" 
       @load="onLoad"
@@ -40,23 +41,13 @@ interface Props {
 }
 defineProps<Props>()
 
-
 const emit = defineEmits<{
   loadMore: [done: (stop?: boolean) => void]
 }>()
 
-const scrollToBottom = () => {
-  setTimeout(() => {
-    scrollAreaRef.value?.setScrollPosition('vertical', 999999, 300)
-  }, 100)
-}
-
-defineExpose({
-  scrollToBottom
-})
-
 const noMoreMessages = ref(false)
 const scrollAreaRef = ref<any>(null)
+const infiniteScrollRef = ref<any>(null)
 const scrollTarget = ref<HTMLElement | undefined>(undefined)
 
 const onLoad = (index: number, done: (stop?: boolean) => void) => {
@@ -76,6 +67,23 @@ onMounted(() => {
   if (scrollArea) {
     scrollTarget.value = scrollArea.getScrollTarget()
   }
+})
+
+const newChat = () => {
+  scrollToBottom();
+  infiniteScrollRef.value?.reset()
+  infiniteScrollRef.value?.resume()
+  noMoreMessages.value = false;
+}
+const scrollToBottom = () => {
+  setTimeout(() => {
+    scrollAreaRef.value?.setScrollPosition('vertical', 999999, 300)
+  }, 100)
+}
+
+defineExpose({
+  scrollToBottom,
+  newChat
 })
 </script>
 
