@@ -87,7 +87,7 @@
               dense
               icon="arrow_back"
               color="grey-7"
-              @click="$router.push('/')"
+              @click="$router.push('/chat')"
             />
             <div>
               <h2 class="font-semibold text-gray-800 text-base leading-5">
