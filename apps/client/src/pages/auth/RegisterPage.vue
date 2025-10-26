@@ -6,7 +6,7 @@
     footer-link-text="Sign in"
     footer-link-href="/login"
   >
-    <div class="space-y-4">
+    <div class="space-y-5">
       <!-- Full Name Field -->
       <InputField
         v-model="fullName"

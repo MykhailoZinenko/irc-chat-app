@@ -56,27 +56,13 @@
 </template>
 
 <script setup lang="ts">
+import { type IMessage } from 'src/types/messages';
 import { computed } from 'vue'
 
-interface Reaction {
-  emoji: string
-  count: number
-}
-
-interface Message {
-  id: number
-  sender: string
-  avatar: string
-  text: string
-  time: string
-  own: boolean
-  read: boolean
-  reactions?: Reaction[]
-}
 
 interface Props {
-  message: Message
-  previousMessage?: Message | null | undefined
+  message: IMessage
+  previousMessage?: IMessage | null | undefined
 }
 
 const props = defineProps<Props>()
