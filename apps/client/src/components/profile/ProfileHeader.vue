@@ -8,8 +8,8 @@
         <q-icon name="arrow_back" size="20px" class="text-gray-600" />
       </button>
       <div>
-        <h2 class="font-semibold text-gray-800">{{ title }}</h2>
-        <p class="text-xs text-gray-500">{{ subtitle }}</p>
+        <h2 class="font-semibold text-gray-800 truncate text-base leading-6">{{ title }}</h2>
+        <p class="text-sm text-gray-500 truncate leading-tight">{{ subtitle }}</p>
       </div>
     </div>
     <button 
