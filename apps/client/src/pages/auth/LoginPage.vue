@@ -9,7 +9,7 @@
     <div class="space-y-5">
       <!-- Email Field -->
       <InputField
-        v-model="email"
+        v-model="form.email"
         label="Email Address"
         icon="mail"
         type="email"
@@ -19,7 +19,7 @@
 
       <!-- Password Field -->
       <PasswordField
-        v-model="password"
+        v-model="form.password"
         label="Password"
         placeholder="Enter your password"
         @enter="handleSubmit"
@@ -62,21 +62,27 @@ import PasswordField from '@/components/auth/PasswordField.vue';
 import PrimaryButton from '@/components/auth/PrimaryButton.vue';
 import SocialLogin from '@/components/auth/SocialLogin.vue';
 import { useRouter } from 'vue-router'
+import { useAuthStore } from 'src/stores/auth-store';
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-const email = ref('');
-const password = ref('');
+const form = ref({
+  email: '',
+  password: ''
+})
 const rememberMe = ref(false);
 
 
-const handleSubmit = () => {
-  console.log('Login:', {
-    email: email.value,
-    password: password.value,
-    rememberMe: rememberMe.value
-  });
-  void router.push('/chat')
+const handleSubmit = async () => {
+  const result = await authStore.login(form.value.email, form.value.password)
+
+  if (result.success) {
+    console.log('Login successful')
+      void router.push('/chat')
+  } else {
+    console.log('Login failed:', result.message)
+  }
 };
 
 const handleGoogleLogin = () => {

@@ -9,16 +9,24 @@
     <div class="space-y-5">
       <!-- Full Name Field -->
       <InputField
-        v-model="fullName"
+        v-model="form.fullName"
         label="Full Name"
         icon="person"
         type="text"
         placeholder="John Doe"
       />
 
+      <InputField
+        v-model="form.nickName"
+        label="Nickname"
+        icon="person"
+        type="text"
+        placeholder="johndoe"
+      />
+
       <!-- Email Field -->
       <InputField
-        v-model="email"
+        v-model="form.email"
         label="Email Address"
         icon="mail"
         type="email"
@@ -28,7 +36,7 @@
       <!-- Password Field -->
       <div>
         <PasswordField
-          v-model="password"
+          v-model="form.password"
           label="Password"
           placeholder="Create a password"
         />
@@ -40,6 +48,7 @@
         v-model="confirmPassword"
         label="Confirm Password"
         placeholder="Confirm your password"
+        
         @enter="handleSubmit"
       />
 
@@ -77,17 +86,23 @@ import PasswordField from '@/components/auth/PasswordField.vue';
 import PrimaryButton from '@/components/auth/PrimaryButton.vue';
 import SocialLogin from '@/components/auth/SocialLogin.vue';
 import { useRouter } from 'vue-router'
+import { useAuthStore } from 'src/stores/auth-store';
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-const fullName = ref('');
-const email = ref('');
-const password = ref('');
+const form = ref({
+  fullName: '',
+  nickName: '',
+  email: '',
+  password: ''
+})
+
 const confirmPassword = ref('');
 const agreeToTerms = ref(false);
 
-const handleSubmit = () => {
-  if (password.value !== confirmPassword.value) {
+const handleSubmit = async () => {
+  if (form.value.password !== confirmPassword.value) {
     alert('Passwords do not match!');
     return;
   }
@@ -95,12 +110,23 @@ const handleSubmit = () => {
     alert('Please agree to the terms and conditions');
     return;
   }
-  console.log('Register:', { 
-    fullName: fullName.value,
-    email: email.value, 
-    password: password.value
-  });
-  void router.push('/login')
+
+  const [firstName, lastName] = form.value.fullName.split(' ');
+
+  const result = await authStore.register({
+    firstName: firstName!,
+    lastName: lastName!,
+    nickName: form.value.nickName,
+    email: form.value.email,
+    password: form.value.password
+  })
+
+  if (result.success) {
+    console.log('Registration successful')
+    void router.push('/login')
+  } else {
+    console.log('Registration failed:', result.errors || "Unknown error")
+  }
 };
 
 const handleGoogleLogin = () => {

@@ -3,10 +3,6 @@ import type { RouteRecordRaw } from 'vue-router';
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/login'
-  },
-  {
-    path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: 'chat', component: () => import('pages/IndexPage.vue') },
@@ -14,7 +10,7 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/',
+    path: '/auth',
     component: () => import('layouts/AuthLayout.vue'),
     children: [
       { path: 'login', component: () => import('pages/auth/LoginPage.vue') },

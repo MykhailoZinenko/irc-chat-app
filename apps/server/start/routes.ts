@@ -28,8 +28,6 @@ router.get('api/test', async () => {
 })
 
 const AuthController = () => import('#controllers/auth_controller')
-const UserController = () => import('#controllers/user_controller')
-const ContactController = () => import('#controllers/contact_controller')
 
 router
   .group(() => {
@@ -42,20 +40,3 @@ router
     router.get('me', [AuthController, 'me']).use(middleware.auth())
   })
   .prefix('api/auth')
-
-router
-  .group(() => {
-    router.get('search', [UserController, 'search'])
-    router.get(':id/profile', [UserController, 'profile'])
-  })
-  .prefix('api/users')
-  .use(middleware.auth())
-
-router
-  .group(() => {
-    router.get('/', [ContactController, 'index'])
-    router.post('/:userId', [ContactController, 'store'])
-    router.delete('/:userId', [ContactController, 'destroy'])
-  })
-  .prefix('api/contacts')
-  .use(middleware.auth())
