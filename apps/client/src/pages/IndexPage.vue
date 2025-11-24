@@ -8,6 +8,7 @@
         :is-open="sidebarOpen"
         @select-chat="handleSelectChat"
         @close="sidebarOpen = false"
+        @create-channel="handleCreateChannel"
       />
 
       <!-- Overlay for mobile when sidebar is open -->
@@ -24,24 +25,35 @@
       />
       <!-- Main Chat Area (hidden when profile is shown) -->
       <div v-else class="flex-1 flex flex-col min-w-0">
-        <ChatHeader
-          :chat="currentChat"
-          @toggle-sidebar="sidebarOpen = !sidebarOpen"
-          @toggle-info="infoPanelOpen = !infoPanelOpen"
-        />
+        <template v-if="currentChat">
+          <ChatHeader
+            :chat="currentChat"
+            @toggle-sidebar="sidebarOpen = !sidebarOpen"
+            @toggle-info="infoPanelOpen = !infoPanelOpen"
+          />
 
-        <MessageList 
-          ref="messageListRef"  
-          :messages="displayedMessages"
-          @load-more="loadMoreMessages"
-          @user-click="handleUserClick"
-        />
+          <MessageList
+            ref="messageListRef"
+            :messages="displayedMessages"
+            @load-more="loadMoreMessages"
+            @user-click="handleUserClick"
+          />
 
-        <MessageInput
-          @send="handleSendMessage"
-          @attach="handleAttach"
-          @emoji="handleEmoji"
-        />
+          <MessageInput
+            @send="handleSendMessage"
+            @attach="handleAttach"
+            @emoji="handleEmoji"
+          />
+        </template>
+
+        <!-- Empty state when no channels -->
+        <div v-else class="flex-1 flex items-center justify-center">
+          <div class="text-center">
+            <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
+            <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
+            <p class="text-body2 text-grey-6">Create a channel to start chatting</p>
+          </div>
+        </div>
       </div>
 
       <!-- Info Panel -->
@@ -52,7 +64,7 @@
         @click="infoPanelOpen = false"
       />
 
-      <template v-if="!selectedUser">
+      <template v-if="!selectedUser && currentChat">
         <div
           v-show="infoPanelOpen"
           class="xl:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -72,74 +84,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import ChatSidebar from '@/components/chat/ChatSidebar.vue'
 import ChatHeader from '@/components/chat/ChatHeader.vue'
 import MessageList from '@/components/chat/MessageList.vue'
 import MessageInput from '@/components/chat/MessageInput.vue'
 import InfoPanel from '@/components/chat/InfoPanel.vue'
 import UserProfile from '@/components/profile/UserProfile.vue'
+import { useChannelStore } from '@/stores/channel-store'
+import { DateTime } from 'luxon'
 
-// Mock data - will be replaced with real data from stores later
-const chats = ref([
-  {
-    id: 0,
-    name: 'Project Team',
-    type: 'group' as const,
-    avatar: '👥',
-    lastMessage: 'On to the next sprint.',
-    time: '2:30 PM',
-    unread: 2,
-    memberCount: 15,
-    description: 'Project coordination and updates'
-  },
-  {
-    id: 1,
-    name: 'Alice Johnson',
-    type: '1-on-1' as const,
-    avatar: '👩',
-    lastMessage: 'I\'ll share them soon 😊',
-    time: '1:45 PM',
-    unread: 0,
-    username: '@alice_j',
-    phone: '+1 234 567 8900',
-    bio: 'Product Designer | Coffee lover ☕'
-  },
-  {
-    id: 2,
-    name: 'Tech News',
-    type: 'channel' as const,
-    avatar: '📱',
-    lastMessage: 'Cloud computing trends 2025',
-    time: '12:20 PM',
-    unread: 5,
-    subscriberCount: 1247,
-    description: 'Latest tech news and updates from the industry'
-  },
-  {
-    id: 3,
-    name: 'Bob Smith',
-    type: '1-on-1' as const,
-    avatar: '👨',
-    lastMessage: 'Thanks for your help',
-    time: 'Yesterday',
-    unread: 0,
-    username: '@bobsmith',
-    phone: '+1 234 567 8901',
-    bio: 'Software Engineer'
-  },
-  {
-    id: 4,
-    name: 'Design Team',
-    type: 'group' as const,
-    avatar: '🎨',
-    lastMessage: 'New mockups ready',
-    time: 'Yesterday',
-    unread: 1,
-    memberCount: 8,
-    description: 'Design team collaboration'
-  }
-])
+const channelStore = useChannelStore()
+
+// Convert channels to chat list format
+const chats = computed(() => {
+  return channelStore.channels.map((channel) => {
+    // Get emoji based on channel type
+    const avatar = channel.type === 'public' ? '📢' : '🔒'
+
+    // Format last activity time
+    let time = 'No activity'
+    if (channel.lastActivityAt) {
+      const lastActivity = DateTime.fromISO(channel.lastActivityAt)
+      const now = DateTime.now()
+      const diff = now.diff(lastActivity, ['days', 'hours', 'minutes']).toObject()
+
+      if (diff.days && diff.days >= 1) {
+        time = `${Math.floor(diff.days)} day${Math.floor(diff.days) > 1 ? 's' : ''} ago`
+      } else if (diff.hours && diff.hours >= 1) {
+        time = `${Math.floor(diff.hours)}h ago`
+      } else if (diff.minutes && diff.minutes >= 1) {
+        time = `${Math.floor(diff.minutes)}m ago`
+      } else {
+        time = 'Just now'
+      }
+    }
+
+    return {
+      id: channel.id,
+      name: channel.name,
+      type: channel.type === 'private' ? 'group' as const : 'channel' as const,
+      avatar,
+      lastMessage: channel.description || 'No description',
+      time,
+      unread: 0,
+      description: channel.description,
+      memberCount: 1, // Will be updated when we fetch channel details
+      subscriberCount: 1 // Will be updated when we fetch channel details
+    }
+  })
+})
 
 const allChatsMessages = ref([
   {
@@ -309,15 +303,23 @@ const groupMembers = ref([
   { name: 'Emma Davis', avatar: '👧', role: 'member', status: 'offline' }
 ])
 
-const selectedChatId = ref(0)
+const selectedChatId = ref<number | null>(null)
 const sidebarOpen = ref(false)
 const infoPanelOpen = ref(false)
 const messageListRef = ref<any>(null)
 const selectedUser = ref<any>(null)
 
 const currentChat = computed(() => {
-  return chats.value.find((c) => c.id === selectedChatId.value)!
+  if (selectedChatId.value === null) return null
+  return chats.value.find((c) => c.id === selectedChatId.value)
 })
+
+// Auto-select first channel when channels are loaded
+watch(() => chats.value, (newChats) => {
+  if (newChats.length > 0 && selectedChatId.value === null) {
+    selectedChatId.value = newChats[0].id
+  }
+}, { immediate: true })
 
 const loadMoreMessages = (done: (stop?: boolean) => void) => {
   // Simulate API delay
@@ -378,6 +380,18 @@ const handleEmoji = () => {
   console.log('Open emoji picker')
   // Will be implemented with real logic later
 }
+
+const handleCreateChannel = async (data: { type: 'private' | 'public'; name: string; description: string }) => {
+  const result = await channelStore.createChannel(data)
+  if (result.success && result.channel) {
+    // Select the newly created channel
+    selectedChatId.value = result.channel.id
+  }
+}
+
+onMounted(() => {
+  void channelStore.fetchChannels()
+})
 </script>
 
 <style scoped>

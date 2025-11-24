@@ -9,6 +9,7 @@
     <div class="bg-white border-b border-gray-200 px-4 flex items-center justify-between h-16">
       <h1 class="text-xl font-semibold text-gray-800">Messages</h1>
       <div class="flex items-center gap-2">
+        <q-btn flat round dense icon="add" color="grey-7" @click="showCreateChannelDialog" />
         <q-btn flat round dense icon="settings" color="grey-7" @click="$router.push('/settings')" />
         <q-btn
           flat
@@ -88,6 +89,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useQuasar } from 'quasar'
+import CreateChannelDialog from './CreateChannelDialog.vue'
 
 interface Chat {
   id: number
@@ -101,7 +104,7 @@ interface Chat {
 
 interface Props {
   chats: Chat[]
-  selectedChatId: number
+  selectedChatId: number | null
   isOpen: boolean
 }
 
@@ -110,13 +113,23 @@ defineProps<Props>()
 const emit = defineEmits<{
   'select-chat': [chatId: number]
   close: []
+  'create-channel': [data: { type: 'private' | 'public'; name: string; description: string }]
 }>()
 
+const $q = useQuasar()
 const searchQuery = ref('')
 
 const handleChatClick = (chatId: number) => {
   emit('select-chat', chatId)
   emit('close')
+}
+
+const showCreateChannelDialog = () => {
+  $q.dialog({
+    component: CreateChannelDialog
+  }).onOk((data: { type: 'private' | 'public'; name: string; description: string }) => {
+    emit('create-channel', data)
+  })
 }
 </script>
 
