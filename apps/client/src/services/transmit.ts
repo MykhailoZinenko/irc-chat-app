@@ -1,10 +1,10 @@
 import { Transmit } from '@adonisjs/transmit-client'
 
 type MessageHandler = (message: any) => void
-type Subscription = ReturnType<ReturnType<typeof Transmit>['subscription']>
+type Subscription = ReturnType<InstanceType<typeof Transmit>['subscription']>
 
 class TransmitService {
-  private client: ReturnType<typeof Transmit> | null = null
+  private client: InstanceType<typeof Transmit> | null = null
   private subscriptions: Map<string, Subscription> = new Map()
   private handlers: Map<string, MessageHandler[]> = new Map()
 
@@ -29,7 +29,7 @@ class TransmitService {
       subscription = client.subscription(channelName)
       this.subscriptions.set(channelName, subscription)
 
-      subscription.create()
+      void subscription.create()
 
       subscription.onMessage((message) => {
         const handlers = this.handlers.get(channelName) || []
@@ -68,7 +68,7 @@ class TransmitService {
 
     const subscription = this.subscriptions.get(channelName)
     if (subscription) {
-      subscription.delete()
+      void subscription.delete()
       this.subscriptions.delete(channelName)
     }
   }
@@ -78,7 +78,7 @@ class TransmitService {
    */
   unsubscribeAll() {
     this.subscriptions.forEach((subscription) => {
-      subscription.delete()
+      void subscription.delete()
     })
     this.subscriptions.clear()
     this.handlers.clear()
