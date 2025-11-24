@@ -8,7 +8,10 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import transmit from '@adonisjs/transmit/services/main'
 import { middleware } from './kernel.js'
+
+transmit.registerRoutes()
 
 router.get('api/test', async () => {
   return {
@@ -29,7 +32,8 @@ router.get('api/test', async () => {
 
 const AuthController = () => import('#controllers/auth_controller')
 const UserController = () => import('#controllers/user_controller')
-const ContactController = () => import('#controllers/contact_controller')
+const ChannelsController = () => import('#controllers/channels_controller')
+const SearchController = () => import('#controllers/search_controller')
 
 router
   .group(() => {
@@ -45,17 +49,32 @@ router
 
 router
   .group(() => {
-    router.get('search', [UserController, 'search'])
     router.get(':id/profile', [UserController, 'profile'])
+    router.get(':id/common-channels', [UserController, 'commonChannels'])
+    router.get(':id/channels', [UserController, 'userChannels'])
+    router.get(':id/invitations', [UserController, 'userInvitations'])
+    router.get('invitations', [UserController, 'myInvitations'])
+    router.put('profile', [UserController, 'updateProfile'])
+    router.put('password', [UserController, 'updatePassword'])
+    router.delete('account', [UserController, 'deleteAccount'])
   })
   .prefix('api/users')
   .use(middleware.auth())
 
 router
   .group(() => {
-    router.get('/', [ContactController, 'index'])
-    router.post('/:userId', [ContactController, 'store'])
-    router.delete('/:userId', [ContactController, 'destroy'])
+    router.get('/', [ChannelsController, 'index'])
+    router.post('/', [ChannelsController, 'create'])
+    router.get(':id', [ChannelsController, 'show'])
+    router.put(':id', [ChannelsController, 'update'])
+    router.delete(':id', [ChannelsController, 'destroy'])
+    router.post(':id/join', [ChannelsController, 'join'])
+    router.post(':id/leave', [ChannelsController, 'leave'])
+    router.post(':id/invite', [ChannelsController, 'invite'])
+    router.post('invitations/:invitationId/accept', [ChannelsController, 'acceptInvitation'])
+    router.post('invitations/:invitationId/decline', [ChannelsController, 'declineInvitation'])
   })
-  .prefix('api/contacts')
+  .prefix('api/channels')
   .use(middleware.auth())
+
+router.get('api/search', [SearchController, 'global']).use(middleware.auth())

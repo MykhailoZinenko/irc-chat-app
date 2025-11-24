@@ -3,6 +3,11 @@ node_modules
 build
 tmp
 
+# Compiled JS files (TypeScript source is the source of truth)
+**/*.js
+**/*.js.map
+!eslint.config.js
+
 # Secrets
 .env
 .env.local

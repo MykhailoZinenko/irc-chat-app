@@ -14,40 +14,39 @@
         />
       </div>
       <div>
-        <h3 class="text-xl font-semibold text-gray-800">John Doe</h3>
-        <p class="text-gray-500">@johndoe</p>
-        <p class="text-sm text-gray-400 mt-1">Online</p>
+        <h3 class="text-xl font-semibold text-gray-800">{{ displayName }}</h3>
+        <p class="text-gray-500">@{{ displayUsername }}</p>
       </div>
     </div>
     <!-- Profile Fields -->
     <div class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
         <q-input
-          v-model="fullName"
+          v-model="firstName"
           outlined
           class="custom-input"
+          placeholder="John"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
         <q-input
-          v-model="username"
+          v-model="lastName"
           outlined
           class="custom-input"
+          placeholder="Doe"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Nickname</label>
+        <q-input
+          v-model="nickName"
+          outlined
+          class="custom-input"
+          placeholder="johndoe"
         />
         <p class="text-xs text-gray-500 mt-1">Your unique username for the platform</p>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-        <q-input
-          v-model="bio"
-          outlined
-          type="textarea"
-          :rows="3"
-          class="custom-input"
-        />
-        <p class="text-xs text-gray-500 mt-1">Any details about yourself</p>
       </div>
     </div>
     <q-btn
@@ -56,14 +55,87 @@
       label="Save Changes"
       class="w-full"
       padding="12px"
+      :loading="isLoading"
+      @click="handleSaveProfile"
     />
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
-const fullName = ref('John Doe')
-const username = ref('johndoe')
-const bio = ref('Product designer | Coffee enthusiast ☕')
+import { ref, onMounted, computed } from 'vue'
+import { useAuthStore } from 'src/stores/auth-store'
+import { Notify } from 'quasar'
+
+const authStore = useAuthStore()
+
+const firstName = ref('')
+const lastName = ref('')
+const nickName = ref('')
+const isLoading = ref(false)
+
+const displayName = computed(() => {
+  return authStore.user?.fullName || authStore.user?.nickName || 'User'
+})
+
+const displayUsername = computed(() => {
+  return authStore.user?.nickName || 'username'
+})
+
+onMounted(async () => {
+  if (!authStore.user) {
+    await authStore.fetchUser()
+  }
+
+  if (authStore.user) {
+    firstName.value = authStore.user.firstName || ''
+    lastName.value = authStore.user.lastName || ''
+    nickName.value = authStore.user.nickName || ''
+  }
+})
+
+const handleSaveProfile = async () => {
+  if (!nickName.value.trim()) {
+    Notify.create({
+      type: 'negative',
+      message: 'Nickname is required'
+    })
+    return
+  }
+
+  isLoading.value = true
+  try {
+    const updateData: {
+      firstName?: string
+      lastName?: string
+      nickName: string
+    } = {
+      nickName: nickName.value.trim()
+    }
+
+    if (firstName.value.trim()) {
+      updateData.firstName = firstName.value.trim()
+    }
+
+    if (lastName.value.trim()) {
+      updateData.lastName = lastName.value.trim()
+    }
+
+    const result = await authStore.updateProfile(updateData)
+
+    if (result.success) {
+      Notify.create({
+        type: 'positive',
+        message: 'Profile updated successfully'
+      })
+    }
+  } catch (error: any) {
+    Notify.create({
+      type: 'negative',
+      message: error.response?.data?.message || 'Failed to update profile'
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 <style scoped>
 .space-y-6 > * + * {

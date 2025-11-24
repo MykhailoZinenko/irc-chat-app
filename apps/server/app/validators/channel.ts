@@ -1,0 +1,1 @@
+// Channel validators - placeholder for future validation schemas

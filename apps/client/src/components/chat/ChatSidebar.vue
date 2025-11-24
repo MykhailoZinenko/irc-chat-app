@@ -9,6 +9,7 @@
     <div class="bg-white border-b border-gray-200 px-4 flex items-center justify-between h-16">
       <h1 class="text-xl font-semibold text-gray-800">Messages</h1>
       <div class="flex items-center gap-2">
+        <q-btn flat round dense icon="add" color="grey-7" @click="showCreateChannelDialog" />
         <q-btn flat round dense icon="settings" color="grey-7" @click="$router.push('/settings')" />
         <q-btn
           flat
@@ -28,18 +29,112 @@
         v-model="searchQuery"
         outlined
         dense
-        placeholder="Search conversations..."
+        placeholder="Search channels, users..."
         bg-color="grey-1"
         class="search-input"
+        @update:model-value="handleSearchInput"
       >
         <template #prepend>
           <q-icon name="search" size="18px" color="grey-6" />
         </template>
+        <template v-if="searchQuery" #append>
+          <q-icon
+            name="close"
+            size="18px"
+            color="grey-6"
+            class="cursor-pointer"
+            @click="clearSearch"
+          />
+        </template>
       </q-input>
+
+      <!-- Search Results Dropdown -->
+      <div
+        v-if="showSearchResults"
+        class="absolute left-3 right-3 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+      >
+        <div v-if="searchStore.loading" class="p-4 text-center text-gray-500">
+          <q-spinner size="24px" color="primary" />
+        </div>
+
+        <div v-else-if="hasResults">
+          <!-- User Channels -->
+          <div v-if="searchStore.userChannels.length > 0">
+            <div class="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+              Your Channels
+            </div>
+            <div
+              v-for="channel in searchStore.userChannels"
+              :key="`user-channel-${channel.id}`"
+              class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+              @click="selectResult(channel)"
+            >
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-lg">
+                {{ channel.type === 'public' ? '📢' : '🔒' }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-gray-800 truncate">{{ channel.name }}</div>
+                <div class="text-sm text-gray-500 truncate">{{ channel.description || 'No description' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Public Channels -->
+          <div v-if="searchStore.publicChannels.length > 0">
+            <div class="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+              Public Channels
+            </div>
+            <div
+              v-for="channel in searchStore.publicChannels"
+              :key="`public-channel-${channel.id}`"
+              class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+              @click="selectResult(channel)"
+            >
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-lg">
+                📢
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-gray-800 truncate">{{ channel.name }}</div>
+                <div class="text-sm text-gray-500 truncate">{{ channel.description || 'No description' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Users -->
+          <div v-if="searchStore.users.length > 0">
+            <div class="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+              Users
+            </div>
+            <div
+              v-for="user in searchStore.users"
+              :key="`user-${user.id}`"
+              class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+              @click="selectResult(user)"
+            >
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-lg">
+                👤
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-gray-800 truncate">{{ user.nickName }}</div>
+                <div class="text-sm text-gray-500 truncate">
+                  {{ [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="p-4 text-center text-gray-500">
+          No results found
+        </div>
+      </div>
     </div>
 
     <!-- Chat List -->
     <q-scroll-area class="flex-1">
+      <!-- Invitations Button -->
+      <slot name="invitations-button" />
+
       <div
         v-for="chat in chats"
         :key="chat.id"
@@ -87,7 +182,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useQuasar } from 'quasar'
+import CreateChannelDialog from './CreateChannelDialog.vue'
+import { useSearchStore, type SearchResult } from '@/stores/search-store'
 
 interface Chat {
   id: number
@@ -101,7 +199,7 @@ interface Chat {
 
 interface Props {
   chats: Chat[]
-  selectedChatId: number
+  selectedChatId: number | null
   isOpen: boolean
 }
 
@@ -109,14 +207,72 @@ defineProps<Props>()
 
 const emit = defineEmits<{
   'select-chat': [chatId: number]
+  'select-user': [userId: number]
   close: []
+  'create-channel': [data: { type: 'private' | 'public'; name: string; description: string }]
 }>()
 
+const $q = useQuasar()
+const searchStore = useSearchStore()
 const searchQuery = ref('')
+let searchTimeout: NodeJS.Timeout | null = null
+
+const showSearchResults = computed(() => {
+  return searchQuery.value.length > 0
+})
+
+const hasResults = computed(() => {
+  return (
+    searchStore.userChannels.length > 0 ||
+    searchStore.publicChannels.length > 0 ||
+    searchStore.users.length > 0
+  )
+})
+
+const handleSearchInput = (value: string | number | null) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  const stringValue = String(value || '')
+  if (!stringValue.trim()) {
+    searchStore.clearResults()
+    return
+  }
+
+  // Debounce search by 300ms
+  searchTimeout = setTimeout(() => {
+    void searchStore.search(stringValue)
+  }, 300)
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  searchStore.clearResults()
+}
+
+const selectResult = (result: SearchResult) => {
+  if (result.resultType === 'user') {
+    emit('select-user', result.id)
+  } else {
+    // For channels, select the chat
+    emit('select-chat', result.id)
+  }
+  clearSearch()
+  emit('close')
+}
 
 const handleChatClick = (chatId: number) => {
   emit('select-chat', chatId)
   emit('close')
+}
+
+const showCreateChannelDialog = () => {
+  $q.dialog({
+    component: CreateChannelDialog
+  }).onOk((data: { type: 'private' | 'public'; name: string; description: string }) => {
+    emit('create-channel', data)
+  })
 }
 </script>
 

@@ -9,16 +9,24 @@
     <div class="space-y-5">
       <!-- Full Name Field -->
       <InputField
-        v-model="fullName"
+        v-model="form.fullName"
         label="Full Name"
         icon="person"
         type="text"
         placeholder="John Doe"
       />
 
+      <InputField
+        v-model="form.nickName"
+        label="Nickname"
+        icon="person"
+        type="text"
+        placeholder="johndoe"
+      />
+
       <!-- Email Field -->
       <InputField
-        v-model="email"
+        v-model="form.email"
         label="Email Address"
         icon="mail"
         type="email"
@@ -28,7 +36,7 @@
       <!-- Password Field -->
       <div>
         <PasswordField
-          v-model="password"
+          v-model="form.password"
           label="Password"
           placeholder="Create a password"
         />
@@ -40,20 +48,23 @@
         v-model="confirmPassword"
         label="Confirm Password"
         placeholder="Confirm your password"
+        
         @enter="handleSubmit"
       />
 
       <!-- Terms & Conditions -->
-      <label class="flex items-start cursor-pointer select-none">
-        <input
-          v-model="agreeToTerms"
-          type="checkbox"
-          class="w-4 h-4 mt-0.5 text-blue-500 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-        />
-        <span class="ml-2 text-sm text-gray-600">
-          I agree to the <router-link to="/terms-and-conditions" class="text-blue-500 hover:text-blue-600">Terms & Conditions</router-link>
-        </span>
-      </label>
+      <q-checkbox
+        v-model="agreeToTerms"
+        dense
+        color="blue"
+        class="text-sm text-gray-600"
+      >
+        <template v-slot:default>
+          <span class="text-sm text-gray-600">
+            I agree to the <router-link to="/terms-and-conditions" class="text-blue-500 hover:text-blue-600">Terms & Conditions</router-link>
+          </span>
+        </template>
+      </q-checkbox>
 
       <!-- Register Button -->
       <PrimaryButton @click="handleSubmit" :disabled="!agreeToTerms">
@@ -77,30 +88,55 @@ import PasswordField from '@/components/auth/PasswordField.vue';
 import PrimaryButton from '@/components/auth/PrimaryButton.vue';
 import SocialLogin from '@/components/auth/SocialLogin.vue';
 import { useRouter } from 'vue-router'
+import { useAuthStore } from 'src/stores/auth-store';
+import { Notify } from 'quasar';
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-const fullName = ref('');
-const email = ref('');
-const password = ref('');
+const form = ref({
+  fullName: '',
+  nickName: '',
+  email: '',
+  password: ''
+})
+
 const confirmPassword = ref('');
 const agreeToTerms = ref(false);
 
-const handleSubmit = () => {
-  if (password.value !== confirmPassword.value) {
-    alert('Passwords do not match!');
+const handleSubmit = async () => {
+  if (form.value.password !== confirmPassword.value) {
+    Notify.create({
+      type: 'negative',
+      message: 'Passwords do not match!'
+    });
     return;
   }
   if (!agreeToTerms.value) {
-    alert('Please agree to the terms and conditions');
+    Notify.create({
+      type: 'negative',
+      message: 'Please agree to the terms and conditions'
+    });
     return;
   }
-  console.log('Register:', { 
-    fullName: fullName.value,
-    email: email.value, 
-    password: password.value
-  });
-  void router.push('/login')
+
+  const [firstName, ...lastNameParts] = form.value.fullName.split(' ');
+  const lastName = lastNameParts.join(' ');
+
+  const result = await authStore.register({
+    firstName: firstName || '',
+    lastName: lastName || '',
+    nickName: form.value.nickName,
+    email: form.value.email,
+    password: form.value.password
+  })
+
+  if (result.success) {
+    void router.push('/chat')
+  } else {
+    // Errors are already shown by the auth store
+    console.log('Registration failed:', result.errors || "Unknown error")
+  }
 };
 
 const handleGoogleLogin = () => {

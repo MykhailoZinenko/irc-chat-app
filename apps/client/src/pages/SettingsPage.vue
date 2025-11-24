@@ -58,7 +58,7 @@
             no-caps
             class="w-full logout-btn"
             padding="12px"
-            @click="$router.push('/login')"
+            @click="handleLogout"
           >
             <q-icon name="logout" size="20px" class="q-mr-sm" />
             <span class="font-medium">Logout</span>
@@ -119,6 +119,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from 'src/stores/auth-store'
 import ProfileSection from '@/components/settings/ProfileSection.vue'
 import AccountSection from '@/components/settings/AccountSection.vue'
 import PrivacySection from '@/components/settings/PrivacySection.vue'
@@ -127,6 +129,8 @@ import AppearanceSection from '@/components/settings/AppearanceSection.vue'
 import DevicesSection from '@/components/settings/DevicesSection.vue'
 import HelpSection from '@/components/settings/HelpSection.vue'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const sidebarOpen = ref(false)
 const selectedSection = ref('profile')
 
@@ -160,6 +164,11 @@ const renderSection = computed(() => {
 const handleSelectSection = (id: string) => {
   selectedSection.value = id
   sidebarOpen.value = false
+}
+
+const handleLogout = async () => {
+  await authStore.logout()
+  void router.push('/login')
 }
 </script>
 
