@@ -1,135 +1,142 @@
-# Turborepo starter
+# IRC Chat Application
 
-This Turborepo starter is maintained by the Turborepo core team.
+A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (frontend), featuring channel-based communication, real-time updates via WebSocket, and comprehensive user management.
 
-## Using this example
+## Requirements Checklist
 
-Run the following command:
+### 1. Registrácia, Prihlásenie a odhlásenie používateľa
+- Registration
+  - [x] Logic - Full validation, uniqueness checks, password hashing, session management
+  - [x] Visual - Complete registration page with form validation
+- Login
+  - [x] Logic - Credential verification, token generation, device tracking
+  - [x] Visual - Complete login page with form validation
+- Logout
+  - [x] Logic - Single session + multi-device logout
+  - [x] Visual - Logout button in UI
 
-```sh
-npx create-turbo@latest
-```
+### 2. Používateľ vidí zoznam kanálov, v ktorých je členom
+- Channels List
+  - [x] Logic - Returns user's channels with role and member count
+  - [x] Visual - Sidebar with channel list, search functionality
+- Create channel
+  - [x] Logic - Private/public channel creation with admin assignment
+  - [x] Visual - Create channel dialog with type selection
+- Leave channel
+  - [x] Logic - Member removal, auto-deletion if last admin leaves
+  - [x] Visual - Leave button in channel info panel
+- Delete channel if admin
+  - [x] Logic - Admin-only deletion with cascade cleanup
+  - [x] Visual - Delete button visible to admins only
+- Invite to channel
+  - [x] Logic - Admin-only invitations with real-time notifications
+  - [x] Visual - Invite user dialog with channel selection
+- Two types of channels (Private and Public Channel)
+  - [x] Logic - Database enum type with proper validation
+  - [x] Visual - Type indicators (🔒 private, 📢 public)
+- Admin is Channel creator
+  - [x] Logic - Creator automatically assigned admin role
+  - [x] Visual - Admin badge displayed in member list
+- Delete channel after 30 days of inactivity
+  - [ ] Logic - **MISSING: No scheduled job implementation**
+  - [ ] Visual - **MISSING: No UI indicator for inactive channels**
 
-## What's inside?
+### 3. Používateľ odosiela správy a príkazy cez "príkazový riadok", ktorý je "fixným" prvkom aplikácie. Používateľ môže odoslať správu v kanáli, ktorého je členom
+- Chat Input always on screen
+  - [x] Logic - Fixed positioning maintained
+  - [x] Visual - Fixed message input at bottom of chat view
+- Send messages with Input
+  - [ ] Logic - **MISSING: No message API endpoints**
+  - [x] Visual - Send button functional (logs to console only)
+- Send commands with Input
+  - [ ] Logic - **MISSING: No command parsing system**
+  - [ ] Visual - **MISSING: No command detection or feedback**
 
-This Turborepo includes the following packages/apps:
+### 4. Vytvorenie komunikačného kanála (channel) cez príkazový riadok
+- Create channel with **/join [ChannelName]**
+  - [x] Logic - Join endpoint exists (`POST /api/channels/:id/join`)
+  - [ ] Visual - **MISSING: No command parser to detect /join**
+- Invite to Private channel only by admin with **/invite [Username]**
+  - [x] Logic - Invite endpoint exists, admin-only enforced
+  - [ ] Visual - **MISSING: No command parser to detect /invite**
+- Kick to Private channel only by admin with **/revoke [Username]**
+  - [ ] Logic - **MISSING: No revoke/kick endpoint**
+  - [ ] Visual - **MISSING: No command parser**
+- Join to Public channel with **/join [ChannelName]**. If channel doesn't exist create one
+  - [x] Logic - Join endpoint exists for public channels
+  - [ ] Visual - **MISSING: Need command parser + auto-create logic**
+- Ban to Public channel with **/kick [Username]**. Need to have 3 user vote or 1 admin vote
+  - [ ] Logic - **MISSING: No kick/ban system or voting mechanism**
+  - [ ] Visual - **MISSING: No UI for kick votes**
+- Invite back after ban in Public channels with **/invite [Username]**
+  - [ ] Logic - **MISSING: No ban tracking system**
+  - [ ] Visual - **MISSING: No UI to reinvite banned users**
+- Username and ChannelName are unique
+  - [x] Logic - Database unique constraints + validation
+  - [x] Visual - Error messages shown for duplicates
+- Delete channel only by admin with **/quit**
+  - [x] Logic - Delete endpoint exists, admin-only
+  - [ ] Visual - **MISSING: No /quit command parser**
 
-### Apps and Packages
+### 5. Používateľ môže zrušiť svoje členstvo v kanáli príkazom /cancel, ak tak spraví správca kanála, kanál zaniká
+- Leave channel with **/cancel** command
+  - [x] Logic - Leave endpoint exists
+  - [ ] Visual - **MISSING: No /cancel command parser**
+- If admin leaves channel, it deletes
+  - [x] Logic - Auto-deletion when last admin leaves
+  - [x] Visual - Confirmation shown before leaving
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### 6. Správu v kanáli je možné adresovať konkrétnemu používateľovi cez príkaz @nickname
+- Message can be addressed to user with **@[Username]**
+  - [ ] Logic - **MISSING: No @mention parsing or storage**
+  - [ ] Visual - **MISSING: No @mention autocomplete**
+- Addressed message will be highlighted for user
+  - [ ] Logic - **MISSING: No mention notification system**
+  - [ ] Visual - **MISSING: No special styling for mentions**
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### 7. Používateľ si môže pozrieť kompletnú históriu správ
+- Load messages with Infinite Scroll
+  - [ ] Logic - **MISSING: No message history API**
+  - [x] Visual - Infinite scroll component exists (uses mock data)
 
-### Utilities
+### 8. Používateľ je informovaný o každej novej správe prostredníctvom notifikácie
+- Notification will send only if app not visible (use Quasar App Visibility)
+  - [ ] Logic - **MISSING: No visibility detection**
+  - [ ] Visual - **MISSING: No browser Notification API integration**
+- Notification contains sender and part of message
+  - [x] Logic - WebSocket events include sender info (for invitations)
+  - [ ] Visual - **MISSING: Desktop notifications not implemented**
+- Setup to send only addressed messages
+  - [ ] Logic - **MISSING: No settings integration**
+  - [x] Visual - Settings UI exists but not functional
 
-This Turborepo has some additional tools already setup for you:
+---
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+## Implementation Summary
 
-### Build
+### ✅ Fully Implemented (14/27 features - 52%)
+- User registration, login, logout
+- Channel list display
+- Channel creation (private/public)
+- Channel deletion (admin only)
+- User invitations with real-time updates
+- Leave channel functionality
+- Admin role system
+- Unique constraints for usernames and channel names
 
-To build all apps and packages, run the following command:
+### ⚠️ Partially Implemented (4/27 features - 15%)
+- Chat input UI (no backend connection)
+- Message history UI (mock data only)
+- Real-time notifications (WebSocket only, no desktop)
+- Channel join (API exists, no command parser)
 
-```
-cd my-turborepo
+### ❌ Not Implemented (9/27 features - 33%)
+- Message sending backend
+- Command parsing system (/join, /quit, /invite, /cancel, /kick, /revoke)
+- @mention system
+- Desktop notifications with visibility detection
+- 30-day automatic channel deletion
+- Kick/ban voting system
+- Ban tracking and reinvitation
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+---
