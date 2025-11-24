@@ -51,7 +51,9 @@ router
   .group(() => {
     router.get(':id/profile', [UserController, 'profile'])
     router.get(':id/common-channels', [UserController, 'commonChannels'])
+    router.get(':id/channels', [UserController, 'userChannels'])
     router.get(':id/invitations', [UserController, 'userInvitations'])
+    router.get('invitations', [UserController, 'myInvitations'])
     router.put('profile', [UserController, 'updateProfile'])
     router.put('password', [UserController, 'updatePassword'])
     router.delete('account', [UserController, 'deleteAccount'])
@@ -69,6 +71,8 @@ router
     router.post(':id/join', [ChannelsController, 'join'])
     router.post(':id/leave', [ChannelsController, 'leave'])
     router.post(':id/invite', [ChannelsController, 'invite'])
+    router.post('invitations/:invitationId/accept', [ChannelsController, 'acceptInvitation'])
+    router.post('invitations/:invitationId/decline', [ChannelsController, 'declineInvitation'])
   })
   .prefix('api/channels')
   .use(middleware.auth())

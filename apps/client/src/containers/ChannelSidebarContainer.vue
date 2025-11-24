@@ -7,20 +7,34 @@
     @select-user="handleSelectUser"
     @close="selectionStore.sidebarOpen = false"
     @create-channel="handleCreateChannel"
-  />
+  >
+    <template #invitations-button>
+      <InvitationsButton
+        :invitations="invitationStore.invitations"
+        @click="handleInvitationsClick"
+      />
+    </template>
+  </ChatSidebar>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { DateTime } from 'luxon'
 import ChatSidebar from '@/components/chat/ChatSidebar.vue'
+import InvitationsButton from '@/components/invitations/InvitationsButton.vue'
 import { useChannelStore } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useSearchStore } from '@/stores/search-store'
+import { useInvitationStore } from '@/stores/invitation-store'
 
 const channelStore = useChannelStore()
 const selectionStore = useSelectionStore()
 const searchStore = useSearchStore()
+const invitationStore = useInvitationStore()
+
+onMounted(() => {
+  void invitationStore.fetchInvitations()
+})
 
 const formattedChats = computed(() => {
   return channelStore.channels.map((channel) => {
@@ -92,5 +106,10 @@ const handleCreateChannel = async (data: { type: 'private' | 'public'; name: str
   if (result.success && result.channel) {
     selectionStore.selectChannel(result.channel.id)
   }
+}
+
+const handleInvitationsClick = () => {
+  selectionStore.selectInvitations()
+  selectionStore.sidebarOpen = false
 }
 </script>

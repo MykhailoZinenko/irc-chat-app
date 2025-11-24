@@ -132,6 +132,9 @@
 
     <!-- Chat List -->
     <q-scroll-area class="flex-1">
+      <!-- Invitations Button -->
+      <slot name="invitations-button" />
+
       <div
         v-for="chat in chats"
         :key="chat.id"

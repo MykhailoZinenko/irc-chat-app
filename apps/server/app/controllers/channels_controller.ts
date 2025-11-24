@@ -28,6 +28,10 @@ const inviteSchema = vine.compile(
   })
 )
 
+const invitationIdParamsSchema = vine.object({
+  invitationId: vine.number(),
+})
+
 const channelIdParamsSchema = vine.object({
   id: vine.number(),
 })
@@ -314,6 +318,16 @@ export default class ChannelsController {
       },
     })
 
+    // Broadcast user_joined_channel to user's own channel (for profile watchers)
+    transmit.broadcast(`users/${user.id}`, {
+      type: 'user_joined_channel',
+      data: {
+        userId: user.id,
+        channelId,
+        channelName: channel.name,
+      },
+    })
+
     return response.json({
       success: true,
       message: 'Joined channel successfully',
@@ -387,6 +401,16 @@ export default class ChannelsController {
         channelId,
         userId: user.id,
         memberCount: remainingMembers.length,
+      },
+    })
+
+    // Broadcast user_left_channel to user's own channel (for profile watchers)
+    transmit.broadcast(`users/${user.id}`, {
+      type: 'user_left_channel',
+      data: {
+        userId: user.id,
+        channelId,
+        channelName: channel.name,
       },
     })
 
@@ -464,7 +488,7 @@ export default class ChannelsController {
       })
     }
 
-    await Invitation.create({
+    const invitation = await Invitation.create({
       channelId: channel.id,
       invitedUserId: data.userId,
       invitedBy: user.id,
@@ -472,9 +496,207 @@ export default class ChannelsController {
       expiresAt: DateTime.now().plus({ days: 7 }),
     })
 
+    // Broadcast invitation_received to invited user
+    transmit.broadcast(`users/${data.userId}`, {
+      type: 'invitation_received',
+      data: {
+        invitationId: invitation.id,
+        channelId: channel.id,
+        channelName: channel.name,
+        channelType: channel.type,
+        channelDescription: channel.description,
+        inviterId: user.id,
+        inviterNickName: user.nickName,
+        inviterFirstName: user.firstName,
+        inviterLastName: user.lastName,
+        inviterEmail: user.email,
+        createdAt: invitation.createdAt,
+        expiresAt: invitation.expiresAt,
+      },
+    })
+
     return response.json({
       success: true,
       message: 'Invitation sent successfully',
+    })
+  }
+
+  /**
+   * Accept invitation
+   */
+  async acceptInvitation({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    const { invitationId } = await vine.validate({
+      schema: invitationIdParamsSchema,
+      data: params,
+    })
+
+    const invitation = await Invitation.query()
+      .where('id', invitationId)
+      .where('invited_user_id', user.id)
+      .where('status', 'pending')
+      .preload('channel')
+      .preload('inviter')
+      .first()
+
+    if (!invitation) {
+      return response.status(404).json({
+        success: false,
+        message: 'Invitation not found or already processed',
+      })
+    }
+
+    // Check if user is already a member
+    const existingParticipant = await ChannelParticipant.query()
+      .where('channel_id', invitation.channelId)
+      .where('user_id', user.id)
+      .whereNull('left_at')
+      .first()
+
+    if (existingParticipant) {
+      invitation.status = 'accepted'
+      invitation.respondedAt = DateTime.now()
+      await invitation.save()
+
+      return response.status(422).json({
+        success: false,
+        message: 'You are already a member of this channel',
+      })
+    }
+
+    // Check if user previously left and rejoin them
+    const previousParticipant = await ChannelParticipant.query()
+      .where('channel_id', invitation.channelId)
+      .where('user_id', user.id)
+      .whereNotNull('left_at')
+      .first()
+
+    if (previousParticipant) {
+      previousParticipant.leftAt = null
+      previousParticipant.joinedAt = DateTime.now()
+      previousParticipant.addedBy = invitation.invitedBy
+      await previousParticipant.save()
+    } else {
+      await ChannelParticipant.create({
+        channelId: invitation.channelId,
+        userId: user.id,
+        role: 'member',
+        addedBy: invitation.invitedBy,
+        joinedAt: DateTime.now(),
+      })
+    }
+
+    // Update invitation status
+    invitation.status = 'accepted'
+    invitation.respondedAt = DateTime.now()
+    await invitation.save()
+
+    // Get updated member count and participant with role
+    const memberCount = await ChannelParticipant.query()
+      .where('channel_id', invitation.channelId)
+      .whereNull('left_at')
+      .count('* as total')
+
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', invitation.channelId)
+      .where('user_id', user.id)
+      .whereNull('left_at')
+      .first()
+
+    // Broadcast member_joined to channel members
+    transmit.broadcast(`channels/${invitation.channelId}`, {
+      type: 'member_joined',
+      data: {
+        channelId: invitation.channelId,
+        user: {
+          id: user.id,
+          nickName: user.nickName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          status: user.status,
+        },
+        role: participant?.role || 'member',
+        memberCount: memberCount[0].$extras.total,
+      },
+    })
+
+    // Broadcast user_joined_channel to user's own channel (for profile watchers)
+    transmit.broadcast(`users/${user.id}`, {
+      type: 'user_joined_channel',
+      data: {
+        userId: user.id,
+        channelId: invitation.channelId,
+        channelName: invitation.channel.name,
+      },
+    })
+
+    // Broadcast invitation_accepted to inviter
+    transmit.broadcast(`users/${invitation.invitedBy}`, {
+      type: 'invitation_accepted',
+      data: {
+        invitationId: invitation.id,
+        channelId: invitation.channelId,
+        channelName: invitation.channel.name,
+        userId: user.id,
+        userNickName: user.nickName,
+        userFirstName: user.firstName,
+        userLastName: user.lastName,
+      },
+    })
+
+    return response.json({
+      success: true,
+      message: 'Invitation accepted successfully',
+    })
+  }
+
+  /**
+   * Decline invitation
+   */
+  async declineInvitation({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    const { invitationId } = await vine.validate({
+      schema: invitationIdParamsSchema,
+      data: params,
+    })
+
+    const invitation = await Invitation.query()
+      .where('id', invitationId)
+      .where('invited_user_id', user.id)
+      .where('status', 'pending')
+      .preload('channel')
+      .first()
+
+    if (!invitation) {
+      return response.status(404).json({
+        success: false,
+        message: 'Invitation not found or already processed',
+      })
+    }
+
+    // Update invitation status
+    invitation.status = 'rejected'
+    invitation.respondedAt = DateTime.now()
+    await invitation.save()
+
+    // Broadcast invitation_declined to inviter
+    transmit.broadcast(`users/${invitation.invitedBy}`, {
+      type: 'invitation_declined',
+      data: {
+        invitationId: invitation.id,
+        channelId: invitation.channelId,
+        channelName: invitation.channel.name,
+        userId: user.id,
+        userNickName: user.nickName,
+        userFirstName: user.firstName,
+        userLastName: user.lastName,
+      },
+    })
+
+    return response.json({
+      success: true,
+      message: 'Invitation declined',
     })
   }
 }

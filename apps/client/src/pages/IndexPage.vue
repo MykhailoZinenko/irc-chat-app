@@ -39,7 +39,9 @@
 import { computed, onMounted } from 'vue'
 import { useChannelStore } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
+import { useAuthStore } from '@/stores/auth-store'
 import { useChannelEvents } from '@/composables/useChannelEvents'
+import { useUserEvents } from '@/composables/useUserEvents'
 import ChannelSidebarContainer from '@/containers/ChannelSidebarContainer.vue'
 import ChatViewContainer from '@/containers/ChatViewContainer.vue'
 import InfoPanel from '@/components/chat/InfoPanel.vue'
@@ -47,7 +49,13 @@ import UserProfile from '@/components/profile/UserProfile.vue'
 
 const channelStore = useChannelStore()
 const selectionStore = useSelectionStore()
+const authStore = useAuthStore()
 const channelEvents = useChannelEvents()
+
+// Subscribe to user events for real-time invitation updates
+if (authStore.user) {
+  useUserEvents(authStore.user.id)
+}
 
 const currentChannel = computed(() => {
   if (!selectionStore.selectedChannelId) return null

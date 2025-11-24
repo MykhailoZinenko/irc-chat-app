@@ -130,13 +130,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileActionButton from '@/components/profile/ProfileActionButton.vue'
 import ProfileSection from '@/components/profile/ProfileSection.vue'
 import InviteUserDialog from '@/components/dialogs/InviteUserDialog.vue'
 import { api } from 'src/boot/axios'
 import { DateTime } from 'luxon'
+import { useChannelStore } from '@/stores/channel-store'
+import { useUserEvents } from '@/composables/useUserEvents'
+
+const channelStore = useChannelStore()
+
+// Subscribe to user events for real-time updates
+const { subscribeToUserEvents, unsubscribeFromUserEvents } = useUserEvents(undefined, {
+  onUserJoinedChannel: (data) => {
+    console.log('[UserProfile] User joined channel:', data)
+    void fetchCommonChannels()
+  },
+  onUserLeftChannel: (data) => {
+    console.log('[UserProfile] User left channel:', data)
+    void fetchCommonChannels()
+  },
+})
 
 interface UserProfile {
   id: number
@@ -202,9 +218,40 @@ const fetchUserProfile = async () => {
   }
 }
 
+const fetchCommonChannels = async () => {
+  try {
+    const response = await api.get<{
+      success: boolean
+      data: { channels: any[] }
+    }>(`/api/users/${props.userId}/common-channels`)
+
+    if (response.data.success) {
+      commonChannels.value = response.data.data.channels
+    }
+  } catch (error) {
+    console.error('Failed to fetch common channels:', error)
+  }
+}
+
 onMounted(() => {
   void fetchUserProfile()
+  subscribeToUserEvents(props.userId)
 })
+
+onUnmounted(() => {
+  unsubscribeFromUserEvents()
+})
+
+// Refetch when userId changes (when viewing different user's profile)
+watch(
+  () => props.userId,
+  (newUserId) => {
+    void fetchUserProfile()
+    // Resubscribe to new user's events
+    unsubscribeFromUserEvents()
+    subscribeToUserEvents(newUserId)
+  }
+)
 
 const handleMore = () => {
   console.log('More options clicked')

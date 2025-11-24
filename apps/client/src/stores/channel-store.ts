@@ -86,6 +86,16 @@ export const useChannelStore = defineStore('channel', () => {
           userRole: response.data.data.userRole,
         };
         currentChannelMembers.value = response.data.data.members;
+
+        // Update member count in channel list - create new object for reactivity
+        const channelIndex = channels.value.findIndex((c) => c.id === channelId);
+        if (channelIndex !== -1) {
+          channels.value[channelIndex] = {
+            ...channels.value[channelIndex],
+            memberCount: response.data.data.channel.memberCount,
+          };
+        }
+
         return {
           success: true,
           data: currentChannelDetails.value,
@@ -110,15 +120,21 @@ export const useChannelStore = defineStore('channel', () => {
     // Ensure channelId is a number
     channelId = Number(channelId);
 
-    // Update in channels list
+    // Update in channels list - create new object for reactivity
     const channelIndex = channels.value.findIndex((c) => c.id === channelId);
     if (channelIndex !== -1) {
-      channels.value[channelIndex].memberCount = newCount;
+      channels.value[channelIndex] = {
+        ...channels.value[channelIndex],
+        memberCount: newCount,
+      };
     }
 
     // Update in current channel details if it's the same channel
     if (currentChannelDetails.value?.id === channelId) {
-      currentChannelDetails.value.memberCount = newCount;
+      currentChannelDetails.value = {
+        ...currentChannelDetails.value,
+        memberCount: newCount,
+      };
     }
   };
 

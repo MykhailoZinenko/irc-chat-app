@@ -85,6 +85,63 @@ class TransmitService {
   }
 
   /**
+   * Subscribe to user events
+   */
+  subscribeToUser(userId: number, handler: MessageHandler) {
+    const channelName = `users/${userId}`
+    const client = this.initialize()
+
+    let subscription = this.subscriptions.get(channelName)
+
+    if (!subscription) {
+      subscription = client.subscription(channelName)
+      this.subscriptions.set(channelName, subscription)
+
+      void subscription.create()
+
+      subscription.onMessage((message) => {
+        const handlers = this.handlers.get(channelName) || []
+        handlers.forEach((h) => h(message))
+      })
+    }
+
+    const handlers = this.handlers.get(channelName) || []
+    handlers.push(handler)
+    this.handlers.set(channelName, handlers)
+
+    return {
+      unsubscribe: () => this.unsubscribeFromUser(userId, handler),
+    }
+  }
+
+  /**
+   * Unsubscribe from user events
+   */
+  unsubscribeFromUser(userId: number, handler?: MessageHandler) {
+    const channelName = `users/${userId}`
+
+    if (handler) {
+      const handlers = this.handlers.get(channelName) || []
+      const filtered = handlers.filter((h) => h !== handler)
+
+      if (filtered.length > 0) {
+        this.handlers.set(channelName, filtered)
+        return
+      } else {
+        this.handlers.delete(channelName)
+      }
+    } else {
+      this.handlers.delete(channelName)
+    }
+
+    const subscription = this.subscriptions.get(channelName)
+    if (subscription) {
+      void subscription.delete()
+      this.subscriptions.delete(channelName)
+    }
+  }
+
+  /**
    * Get list of active subscriptions
    */
   getActiveSubscriptions() {

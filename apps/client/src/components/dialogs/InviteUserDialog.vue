@@ -79,8 +79,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useChannelStore } from '@/stores/channel-store'
+import { useUserEvents } from '@/composables/useUserEvents'
 import { api } from 'src/boot/axios'
 import { Notify } from 'quasar'
 
@@ -100,6 +101,23 @@ const selectedChannels = ref(new Set<number>())
 const loading = ref(false)
 const sending = ref(false)
 const pendingInvitations = ref<Array<{ id: number; channelId: number }>>([])
+const userChannelIds = ref<number[]>([])
+
+// Set up real-time updates for user channel changes
+const { subscribeToUserEvents, unsubscribeFromUserEvents } = useUserEvents(undefined, {
+  onUserJoinedChannel: (data) => {
+    console.log('[InviteUserDialog] User joined channel:', data)
+    // Add channel to user's channel list to remove from invitable
+    if (!userChannelIds.value.includes(data.channelId)) {
+      userChannelIds.value.push(data.channelId)
+    }
+  },
+  onUserLeftChannel: (data) => {
+    console.log('[InviteUserDialog] User left channel:', data)
+    // Remove channel from user's channel list to add back to invitable
+    userChannelIds.value = userChannelIds.value.filter((id) => id !== data.channelId)
+  },
+})
 
 interface PendingInvitation {
   id: number
@@ -118,7 +136,13 @@ const filteredChannels = computed(() => {
   // Filter channels where user can invite:
   // - Private channels: only if user is admin
   // - Public channels: only if user is admin
+  // - Exclude channels where user is already a member
   const invitableChannels = channelStore.channels.filter((c) => {
+    // Exclude if user is already a member
+    if (userChannelIds.value.includes(c.id)) {
+      return false
+    }
+
     if (c.type === 'private') {
       return c.role === 'admin'
     }
@@ -186,23 +210,59 @@ const handleClose = () => {
   emit('update:modelValue', false)
 }
 
+const fetchUserData = async () => {
+  try {
+    await Promise.all([
+      api.get<{ success: boolean; data: { invitations: PendingInvitation[] } }>(
+        `/api/users/${props.userId}/invitations`
+      ).then((response) => {
+        if (response.data.success) {
+          pendingInvitations.value = response.data.data.invitations
+        }
+      }),
+      api.get<{ success: boolean; data: { channelIds: number[] } }>(
+        `/api/users/${props.userId}/channels`
+      ).then((response) => {
+        if (response.data.success) {
+          userChannelIds.value = response.data.data.channelIds
+        }
+      })
+    ])
+  } catch (error) {
+    console.error('Failed to fetch user data:', error)
+  }
+}
+
 watch(isOpen, async (newValue) => {
   if (newValue) {
     loading.value = true
     try {
       await Promise.all([
         channelStore.fetchChannels(),
-        api.get<{ success: boolean; data: { invitations: PendingInvitation[] } }>(
-          `/api/users/${props.userId}/invitations`
-        ).then((response) => {
-          if (response.data.success) {
-            pendingInvitations.value = response.data.data.invitations
-          }
-        })
+        fetchUserData()
       ])
+      // Subscribe to user events when dialog opens
+      subscribeToUserEvents(props.userId)
     } finally {
       loading.value = false
     }
+  } else {
+    // Unsubscribe when dialog closes
+    unsubscribeFromUserEvents()
   }
+})
+
+// Also watch userId changes in case dialog stays open but userId changes
+watch(() => props.userId, (newUserId, oldUserId) => {
+  if (isOpen.value && newUserId !== oldUserId) {
+    unsubscribeFromUserEvents()
+    void fetchUserData()
+    subscribeToUserEvents(newUserId)
+  }
+})
+
+// Clean up on component unmount
+onUnmounted(() => {
+  unsubscribeFromUserEvents()
 })
 </script>

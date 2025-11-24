@@ -8,6 +8,7 @@ import { ref } from 'vue'
 export const useSelectionStore = defineStore('selection', () => {
   const selectedChannelId = ref<number | null>(null)
   const selectedUserId = ref<number | null>(null)
+  const showInvitations = ref(false)
   const sidebarOpen = ref(false)
   const infoPanelOpen = ref(false)
 
@@ -18,6 +19,7 @@ export const useSelectionStore = defineStore('selection', () => {
     console.log('[SelectionStore] Selecting channel:', channelId, preview ? '(preview)' : '')
     selectedChannelId.value = channelId
     selectedUserId.value = null
+    showInvitations.value = false
 
     // Store preview data if provided
     if (preview) {
@@ -30,11 +32,21 @@ export const useSelectionStore = defineStore('selection', () => {
   const selectUser = (userId: number) => {
     console.log('[SelectionStore] Selecting user:', userId)
     selectedUserId.value = userId
+    showInvitations.value = false
+  }
+
+  const selectInvitations = () => {
+    console.log('[SelectionStore] Selecting invitations view')
+    selectedChannelId.value = null
+    selectedUserId.value = null
+    showInvitations.value = true
+    previewChannel.value = null
   }
 
   const clearSelection = () => {
     selectedChannelId.value = null
     selectedUserId.value = null
+    showInvitations.value = false
     previewChannel.value = null
   }
 
@@ -49,11 +61,13 @@ export const useSelectionStore = defineStore('selection', () => {
   return {
     selectedChannelId,
     selectedUserId,
+    showInvitations,
     sidebarOpen,
     infoPanelOpen,
     previewChannel,
     selectChannel,
     selectUser,
+    selectInvitations,
     clearSelection,
     toggleSidebar,
     toggleInfoPanel,

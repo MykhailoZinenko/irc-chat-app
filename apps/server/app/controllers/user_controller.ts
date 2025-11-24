@@ -233,7 +233,38 @@ export default class UserController {
   }
 
   /**
-   * Get pending invitations for a specific user
+   * Get user's channel memberships (for invite dialog filtering)
+   */
+  async userChannels({ auth, params, response }: HttpContext) {
+    const authUser = auth.user!
+    const { id: userId } = await vine.validate({
+      schema: userIdParamsSchema,
+      data: params,
+    })
+
+    const targetUser = await User.find(userId)
+    if (!targetUser) {
+      return response.status(404).json({
+        success: false,
+        message: 'User not found',
+      })
+    }
+
+    // Get all channels where target user is a member
+    const participants = await ChannelParticipant.query()
+      .where('user_id', userId)
+      .whereNull('left_at')
+
+    const channelIds = participants.map((p) => p.channelId)
+
+    return response.json({
+      success: true,
+      data: { channelIds },
+    })
+  }
+
+  /**
+   * Get pending invitations for a specific user (for invite dialog)
    */
   async userInvitations({ auth, params, response }: HttpContext) {
     const authUser = auth.user!
@@ -279,6 +310,44 @@ export default class UserController {
           id: inv.id,
           channelId: inv.channelId,
           channelName: inv.channel.name,
+          createdAt: inv.createdAt,
+          expiresAt: inv.expiresAt,
+        })),
+      },
+    })
+  }
+
+  /**
+   * Get current user's received pending invitations
+   */
+  async myInvitations({ auth, response }: HttpContext) {
+    const user = auth.user!
+
+    const invitations = await Invitation.query()
+      .where('invited_user_id', user.id)
+      .where('status', 'pending')
+      .preload('channel')
+      .preload('inviter')
+
+    return response.json({
+      success: true,
+      data: {
+        invitations: invitations.map((inv) => ({
+          id: inv.id,
+          channelId: inv.channelId,
+          channel: {
+            id: inv.channel.id,
+            name: inv.channel.name,
+            type: inv.channel.type,
+            description: inv.channel.description,
+          },
+          inviter: {
+            id: inv.inviter.id,
+            nickName: inv.inviter.nickName,
+            firstName: inv.inviter.firstName,
+            lastName: inv.inviter.lastName,
+            email: inv.inviter.email,
+          },
           createdAt: inv.createdAt,
           expiresAt: inv.expiresAt,
         })),
