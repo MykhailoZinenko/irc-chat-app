@@ -103,7 +103,7 @@
                     color="yellow-8"
                   />
                 </div>
-                <span class="text-xs text-gray-500">{{ admin.status }}</span>
+                <span class="text-xs text-gray-500">{{ admin.email }}</span>
               </div>
             </div>
           </div>
@@ -131,7 +131,7 @@
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-medium text-gray-800">{{ member.nickName || member.firstName || 'User' }}</span>
                 </div>
-                <span class="text-xs text-gray-500">{{ member.status }}</span>
+                <span class="text-xs text-gray-500">{{ member.email }}</span>
               </div>
             </div>
           </div>
@@ -186,7 +186,6 @@ interface Member {
   firstName: string | null
   lastName: string | null
   email: string
-  status: string
   role: 'member' | 'admin'
   joinedAt: string
 }
@@ -199,7 +198,7 @@ interface Chat {
   username?: string
   phone?: string
   bio?: string
-  description?: string
+  description?: string | null
   memberCount?: number
   subscriberCount?: number
 }
@@ -220,8 +219,8 @@ defineEmits<{
 
 const getInitials = (name: string) => {
   if (!name) return '?'
-  const parts = name.split(' ')
-  if (parts.length >= 2) {
+  const parts = name.split(' ').filter(Boolean)
+  if (parts.length >= 2 && parts[0]?.[0] && parts[1]?.[0]) {
     return (parts[0][0] + parts[1][0]).toUpperCase()
   }
   return name.slice(0, 2).toUpperCase()

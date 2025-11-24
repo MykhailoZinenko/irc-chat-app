@@ -139,7 +139,6 @@ export default class ChannelsController {
       firstName: p.user.firstName,
       lastName: p.user.lastName,
       email: p.user.email,
-      status: p.user.status,
       role: p.role,
       joinedAt: p.joinedAt,
     }))
@@ -311,7 +310,6 @@ export default class ChannelsController {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          status: user.status,
         },
         role: participant?.role || 'member',
         memberCount: memberCount[0].$extras.total,
@@ -510,8 +508,8 @@ export default class ChannelsController {
         inviterFirstName: user.firstName,
         inviterLastName: user.lastName,
         inviterEmail: user.email,
-        createdAt: invitation.createdAt,
-        expiresAt: invitation.expiresAt,
+        createdAt: invitation.createdAt.toISO(),
+        expiresAt: invitation.expiresAt?.toISO() || null,
       },
     })
 
@@ -614,7 +612,6 @@ export default class ChannelsController {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          status: user.status,
         },
         role: participant?.role || 'member',
         memberCount: memberCount[0].$extras.total,

@@ -137,10 +137,7 @@ import ProfileSection from '@/components/profile/ProfileSection.vue'
 import InviteUserDialog from '@/components/dialogs/InviteUserDialog.vue'
 import { api } from 'src/boot/axios'
 import { DateTime } from 'luxon'
-import { useChannelStore } from '@/stores/channel-store'
 import { useUserEvents } from '@/composables/useUserEvents'
-
-const channelStore = useChannelStore()
 
 // Subscribe to user events for real-time updates
 const { subscribeToUserEvents, unsubscribeFromUserEvents } = useUserEvents(undefined, {

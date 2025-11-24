@@ -229,19 +229,20 @@ const hasResults = computed(() => {
   )
 })
 
-const handleSearchInput = (value: string) => {
+const handleSearchInput = (value: string | number | null) => {
   if (searchTimeout) {
     clearTimeout(searchTimeout)
   }
 
-  if (!value.trim()) {
+  const stringValue = String(value || '')
+  if (!stringValue.trim()) {
     searchStore.clearResults()
     return
   }
 
   // Debounce search by 300ms
   searchTimeout = setTimeout(() => {
-    void searchStore.search(value)
+    void searchStore.search(stringValue)
   }, 300)
 }
 

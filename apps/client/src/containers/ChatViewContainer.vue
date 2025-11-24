@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import MessageList from '@/components/chat/MessageList.vue'
 import MessageInput from '@/components/chat/MessageInput.vue'
 import ChannelHeaderContainer from './ChannelHeaderContainer.vue'
@@ -145,8 +145,20 @@ const handleSendMessage = (message: string) => {
   console.log('Send message:', message)
 }
 
-const handleUserClick = (userId: number) => {
-  selectionStore.selectUser(userId)
+const handleUserClick = (userNameOrId: string | number) => {
+  // TODO: When messages include userId, use that instead of userName
+  // For now, we need to look up the user by name from members
+  if (typeof userNameOrId === 'number') {
+    selectionStore.selectUser(userNameOrId)
+  } else {
+    // Find user by name in current channel members
+    const member = channelStore.currentChannelMembers.find(
+      (m) => m.nickName === userNameOrId || `${m.firstName} ${m.lastName}` === userNameOrId
+    )
+    if (member) {
+      selectionStore.selectUser(member.id)
+    }
+  }
 }
 
 const handleAttach = () => {

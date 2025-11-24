@@ -1,6 +1,5 @@
 import { computed } from 'vue'
 import { useChannelStore } from '@/stores/channel-store'
-import { useRoute } from 'vue-router'
 
 /**
  * Composable for accessing current channel data
@@ -8,7 +7,6 @@ import { useRoute } from 'vue-router'
  */
 export const useCurrentChannel = () => {
   const channelStore = useChannelStore()
-  const route = useRoute()
 
   // Get current channel ID from route or selection
   const currentChannelId = computed(() => {

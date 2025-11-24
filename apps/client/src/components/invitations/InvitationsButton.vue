@@ -95,6 +95,7 @@ const getInitials = (inviter: Inviter) => {
 const getInvitationText = () => {
   if (props.invitations.length === 1) {
     const inv = props.invitations[0]
+    if (!inv) return 'New invitation'
     const name = inv.inviter.firstName || inv.inviter.nickName
     return `${name} invited you to ${inv.channel.name}`
   }

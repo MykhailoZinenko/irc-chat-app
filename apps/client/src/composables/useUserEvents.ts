@@ -1,7 +1,6 @@
 import { onMounted, onUnmounted } from 'vue'
 import { transmitService } from '@/services/transmit'
 import { useInvitationStore } from '@/stores/invitation-store'
-import { useChannelStore } from '@/stores/channel-store'
 import { Notify } from 'quasar'
 import type { Invitation } from '@/stores/invitation-store'
 
@@ -53,7 +52,6 @@ interface UserEventsCallbacks {
 
 export function useUserEvents(userId?: number, callbacks?: UserEventsCallbacks) {
   const invitationStore = useInvitationStore()
-  const channelStore = useChannelStore()
 
   let unsubscribeFn: (() => void) | null = null
 

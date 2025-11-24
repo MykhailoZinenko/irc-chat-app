@@ -23,7 +23,7 @@
       />
 
       <InfoPanel
-        v-if="currentChannel && !selectionStore.selectedUserId"
+        v-if="currentChannel && !selectionStore.selectedUserId && currentChatData"
         :chat="currentChatData"
         :is-open="selectionStore.infoPanelOpen"
         :members="channelStore.currentChannelMembers"
@@ -98,7 +98,10 @@ const handleLeaveChannel = async () => {
     await channelStore.fetchChannels()
 
     if (channelStore.channels.length > 0) {
-      selectionStore.selectChannel(channelStore.channels[0].id)
+      const firstChannel = channelStore.channels[0]
+      if (firstChannel) {
+        selectionStore.selectChannel(firstChannel.id)
+      }
     }
   }
 }
@@ -107,7 +110,10 @@ onMounted(async () => {
   await channelStore.fetchChannels()
 
   if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
-    selectionStore.selectChannel(channelStore.channels[0].id)
+    const firstChannel = channelStore.channels[0]
+    if (firstChannel) {
+      selectionStore.selectChannel(firstChannel.id)
+    }
   }
 })
 </script>

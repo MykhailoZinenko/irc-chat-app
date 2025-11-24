@@ -58,7 +58,7 @@ import { useDialogPluginComponent } from 'quasar'
 import DialogInputField from './DialogInputField.vue'
 
 // Declare dialog emits so listeners don't fall through to QDialog and double-trigger hide
-const _emit = defineEmits([...useDialogPluginComponent.emits])
+defineEmits([...useDialogPluginComponent.emits])
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
 const channelName = ref('')

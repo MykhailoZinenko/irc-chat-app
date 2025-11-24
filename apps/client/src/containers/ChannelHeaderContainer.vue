@@ -1,6 +1,6 @@
 <template>
   <ChatHeader
-    v-if="currentChannel"
+    v-if="currentChannel && chatData"
     :chat="chatData"
     @toggle-sidebar="selectionStore.toggleSidebar()"
     @toggle-info="selectionStore.toggleInfoPanel()"

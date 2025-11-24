@@ -1,1 +1,1 @@
-import vine from '@vinejs/vine'
+// Channel validators - placeholder for future validation schemas

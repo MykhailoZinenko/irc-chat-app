@@ -9,7 +9,6 @@ export interface ChannelMember {
   firstName: string | null;
   lastName: string | null;
   email: string;
-  status: string;
   role: 'member' | 'admin';
   joinedAt: string;
 }
@@ -39,7 +38,7 @@ export interface ChannelDetails {
     firstName: string | null;
     lastName: string | null;
   };
-  userRole?: 'member' | 'admin';
+  userRole?: 'member' | 'admin' | undefined;
 }
 
 interface CreateChannelData {
@@ -90,8 +89,9 @@ export const useChannelStore = defineStore('channel', () => {
         // Update member count in channel list - create new object for reactivity
         const channelIndex = channels.value.findIndex((c) => c.id === channelId);
         if (channelIndex !== -1) {
+          const existingChannel = channels.value[channelIndex]!;
           channels.value[channelIndex] = {
-            ...channels.value[channelIndex],
+            ...existingChannel,
             memberCount: response.data.data.channel.memberCount,
           };
         }
@@ -123,8 +123,9 @@ export const useChannelStore = defineStore('channel', () => {
     // Update in channels list - create new object for reactivity
     const channelIndex = channels.value.findIndex((c) => c.id === channelId);
     if (channelIndex !== -1) {
+      const existingChannel = channels.value[channelIndex]!;
       channels.value[channelIndex] = {
-        ...channels.value[channelIndex],
+        ...existingChannel,
         memberCount: newCount,
       };
     }

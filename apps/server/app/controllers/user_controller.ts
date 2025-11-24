@@ -235,8 +235,7 @@ export default class UserController {
   /**
    * Get user's channel memberships (for invite dialog filtering)
    */
-  async userChannels({ auth, params, response }: HttpContext) {
-    const authUser = auth.user!
+  async userChannels({ params, response }: HttpContext) {
     const { id: userId } = await vine.validate({
       schema: userIdParamsSchema,
       data: params,

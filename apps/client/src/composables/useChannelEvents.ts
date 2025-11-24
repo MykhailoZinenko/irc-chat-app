@@ -4,9 +4,9 @@ import { transmitService } from '@/services/transmit';
 import { useChannelStore, type ChannelMember } from '@/stores/channel-store';
 
 export interface ChannelEventHandlers {
-  onMemberJoined?: (data: any) => void;
-  onMemberLeft?: (data: any) => void;
-  onChannelDeleted?: (data: any) => void;
+  onMemberJoined?: (data: any) => void | Promise<void>;
+  onMemberLeft?: (data: any) => void | Promise<void>;
+  onChannelDeleted?: (data: any) => void | Promise<void>;
 }
 
 export const useChannelEvents = () => {
@@ -25,17 +25,17 @@ export const useChannelEvents = () => {
       switch (type) {
         case 'member_joined':
           handleMemberJoined(data);
-          handlers.onMemberJoined?.(data);
+          void handlers.onMemberJoined?.(data);
           break;
 
         case 'member_left':
           handleMemberLeft(data);
-          handlers.onMemberLeft?.(data);
+          void handlers.onMemberLeft?.(data);
           break;
 
         case 'channel_deleted':
-          handleChannelDeleted(data);
-          handlers.onChannelDeleted?.(data);
+          void handleChannelDeleted(data);
+          void handlers.onChannelDeleted?.(data);
           break;
       }
     };
@@ -80,7 +80,6 @@ export const useChannelEvents = () => {
         firstName: data.user.firstName,
         lastName: data.user.lastName,
         email: data.user.email,
-        status: data.user.status,
         role: data.role || 'member',
         joinedAt: new Date().toISOString(),
       };
