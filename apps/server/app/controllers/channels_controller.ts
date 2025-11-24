@@ -422,10 +422,11 @@ export default class ChannelsController {
 
     const channel = await Channel.findOrFail(channelId)
 
-    if (channel.type === 'public' && participant.role !== 'admin') {
+    // Only admins can invite users to any channel (both private and public)
+    if (participant.role !== 'admin') {
       return response.status(403).json({
         success: false,
-        message: 'Only admins can invite users to public channels',
+        message: 'Only admins can invite users to channels',
       })
     }
 

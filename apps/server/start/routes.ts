@@ -50,6 +50,8 @@ router
 router
   .group(() => {
     router.get(':id/profile', [UserController, 'profile'])
+    router.get(':id/common-channels', [UserController, 'commonChannels'])
+    router.get(':id/invitations', [UserController, 'userInvitations'])
     router.put('profile', [UserController, 'updateProfile'])
     router.put('password', [UserController, 'updatePassword'])
     router.delete('account', [UserController, 'deleteAccount'])

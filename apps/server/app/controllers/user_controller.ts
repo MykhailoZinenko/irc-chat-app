@@ -2,6 +2,8 @@ import { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 import User from '#models/user'
 import hash from '@adonisjs/core/services/hash'
+import ChannelParticipant from '#models/channel_participant'
+import Invitation from '#models/invitation'
 
 const updateProfileSchema = vine.compile(
   vine.object({
@@ -176,5 +178,111 @@ export default class UserController {
         errors: error.messages || error.message,
       })
     }
+  }
+
+  /**
+   * Get common channels between authenticated user and another user
+   */
+  async commonChannels({ auth, params, response }: HttpContext) {
+    const authUser = auth.user!
+    const { id: userId } = await vine.validate({
+      schema: userIdParamsSchema,
+      data: params,
+    })
+
+    if (authUser.id === userId) {
+      return response.status(400).json({
+        success: false,
+        message: 'Cannot get common channels with yourself',
+      })
+    }
+
+    const targetUser = await User.find(userId)
+    if (!targetUser) {
+      return response.status(404).json({
+        success: false,
+        message: 'User not found',
+      })
+    }
+
+    // Get channels where both users are active members
+    const authUserParticipants = await ChannelParticipant.query()
+      .where('user_id', authUser.id)
+      .whereNull('left_at')
+      .preload('channel')
+
+    const targetUserParticipants = await ChannelParticipant.query()
+      .where('user_id', userId)
+      .whereNull('left_at')
+
+    const targetUserChannelIds = targetUserParticipants.map((p) => p.channelId)
+
+    const commonChannels = authUserParticipants
+      .filter((p) => targetUserChannelIds.includes(p.channelId))
+      .map((p) => ({
+        id: p.channel.id,
+        type: p.channel.type,
+        name: p.channel.name,
+        description: p.channel.description,
+      }))
+
+    return response.json({
+      success: true,
+      data: { channels: commonChannels },
+    })
+  }
+
+  /**
+   * Get pending invitations for a specific user
+   */
+  async userInvitations({ auth, params, response }: HttpContext) {
+    const authUser = auth.user!
+    const { id: userId } = await vine.validate({
+      schema: userIdParamsSchema,
+      data: params,
+    })
+
+    const targetUser = await User.find(userId)
+    if (!targetUser) {
+      return response.status(404).json({
+        success: false,
+        message: 'User not found',
+      })
+    }
+
+    // Get all channels where auth user is admin
+    const adminParticipants = await ChannelParticipant.query()
+      .where('user_id', authUser.id)
+      .where('role', 'admin')
+      .whereNull('left_at')
+
+    const adminChannelIds = adminParticipants.map((p) => p.channelId)
+
+    if (adminChannelIds.length === 0) {
+      return response.json({
+        success: true,
+        data: { invitations: [] },
+      })
+    }
+
+    // Get pending invitations for target user in channels where auth user is admin
+    const invitations = await Invitation.query()
+      .where('invited_user_id', userId)
+      .where('status', 'pending')
+      .whereIn('channel_id', adminChannelIds)
+      .preload('channel')
+
+    return response.json({
+      success: true,
+      data: {
+        invitations: invitations.map((inv) => ({
+          id: inv.id,
+          channelId: inv.channelId,
+          channelName: inv.channel.name,
+          createdAt: inv.createdAt,
+          expiresAt: inv.expiresAt,
+        })),
+      },
+    })
   }
 }

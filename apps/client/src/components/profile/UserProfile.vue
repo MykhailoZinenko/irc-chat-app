@@ -177,13 +177,23 @@ const joinDate = computed(() => {
 const fetchUserProfile = async () => {
   loading.value = true
   try {
-    const response = await api.get<{
-      success: boolean
-      data: UserProfile
-    }>(`/api/users/${props.userId}/profile`)
+    const [profileResponse, channelsResponse] = await Promise.all([
+      api.get<{
+        success: boolean
+        data: UserProfile
+      }>(`/api/users/${props.userId}/profile`),
+      api.get<{
+        success: boolean
+        data: { channels: any[] }
+      }>(`/api/users/${props.userId}/common-channels`)
+    ])
 
-    if (response.data.success) {
-      userProfile.value = response.data.data
+    if (profileResponse.data.success) {
+      userProfile.value = profileResponse.data.data
+    }
+
+    if (channelsResponse.data.success) {
+      commonChannels.value = channelsResponse.data.data.channels
     }
   } catch (error) {
     console.error('Failed to fetch user profile:', error)

@@ -35,12 +35,14 @@
             clickable
             v-ripple
             @click="toggleChannel(channel.id)"
+            :disable="channelHasPendingInvitation(channel.id)"
           >
             <q-item-section avatar>
               <q-checkbox
                 :model-value="selectedChannels.has(channel.id)"
                 @update:model-value="toggleChannel(channel.id)"
                 color="primary"
+                :disable="channelHasPendingInvitation(channel.id)"
               />
             </q-item-section>
 
@@ -50,7 +52,12 @@
 
             <q-item-section>
               <q-item-label>{{ channel.name }}</q-item-label>
-              <q-item-label caption>{{ channel.memberCount }} members</q-item-label>
+              <q-item-label caption>
+                <span v-if="channelHasPendingInvitation(channel.id)" class="text-orange-600">
+                  Invitation pending
+                </span>
+                <span v-else>{{ channel.memberCount }} members</span>
+              </q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -92,6 +99,15 @@ const searchQuery = ref('')
 const selectedChannels = ref(new Set<number>())
 const loading = ref(false)
 const sending = ref(false)
+const pendingInvitations = ref<Array<{ id: number; channelId: number }>>([])
+
+interface PendingInvitation {
+  id: number
+  channelId: number
+  channelName: string
+  createdAt: string
+  expiresAt: string | null
+}
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -99,14 +115,36 @@ const isOpen = computed({
 })
 
 const filteredChannels = computed(() => {
+  // Filter channels where user can invite:
+  // - Private channels: only if user is admin
+  // - Public channels: only if user is admin
+  const invitableChannels = channelStore.channels.filter((c) => {
+    if (c.type === 'private') {
+      return c.role === 'admin'
+    }
+    if (c.type === 'public') {
+      return c.role === 'admin'
+    }
+    return false
+  })
+
   if (!searchQuery.value) {
-    return channelStore.channels
+    return invitableChannels
   }
+
   const query = searchQuery.value.toLowerCase()
-  return channelStore.channels.filter((c) => c.name.toLowerCase().includes(query))
+  return invitableChannels.filter((c) => c.name.toLowerCase().includes(query))
 })
 
+const channelHasPendingInvitation = (channelId: number) => {
+  return pendingInvitations.value.some((inv) => inv.channelId === channelId)
+}
+
 const toggleChannel = (channelId: number) => {
+  if (channelHasPendingInvitation(channelId)) {
+    return
+  }
+
   if (selectedChannels.value.has(channelId)) {
     selectedChannels.value.delete(channelId)
   } else {
@@ -148,12 +186,23 @@ const handleClose = () => {
   emit('update:modelValue', false)
 }
 
-watch(isOpen, (newValue) => {
+watch(isOpen, async (newValue) => {
   if (newValue) {
     loading.value = true
-    channelStore.fetchChannels().finally(() => {
+    try {
+      await Promise.all([
+        channelStore.fetchChannels(),
+        api.get<{ success: boolean; data: { invitations: PendingInvitation[] } }>(
+          `/api/users/${props.userId}/invitations`
+        ).then((response) => {
+          if (response.data.success) {
+            pendingInvitations.value = response.data.data.invitations
+          }
+        })
+      ])
+    } finally {
       loading.value = false
-    })
+    }
   }
 })
 </script>
