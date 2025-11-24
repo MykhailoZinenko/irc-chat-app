@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Chat from './chat.js'
+import Channel from './channel.js'
 import User from './user.js'
 
 export default class Message extends BaseModel {
@@ -9,7 +9,7 @@ export default class Message extends BaseModel {
   declare id: number
 
   @column()
-  declare chatId: number
+  declare channelId: number
 
   @column()
   declare senderId: number
@@ -39,8 +39,8 @@ export default class Message extends BaseModel {
   declare createdAt: DateTime
 
   // Relationships
-  @belongsTo(() => Chat)
-  declare chat: BelongsTo<typeof Chat>
+  @belongsTo(() => Channel)
+  declare channel: BelongsTo<typeof Channel>
 
   @belongsTo(() => User, {
     foreignKey: 'senderId',

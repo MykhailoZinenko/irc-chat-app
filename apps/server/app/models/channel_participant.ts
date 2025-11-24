@@ -1,17 +1,17 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Chat from './chat.js'
+import Channel from './channel.js'
 import User from './user.js'
 
 export type ParticipantRole = 'member' | 'admin'
 
-export default class ChatParticipant extends BaseModel {
+export default class ChannelParticipant extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
   @column()
-  declare chatId: number
+  declare channelId: number
 
   @column()
   declare userId: number
@@ -29,8 +29,8 @@ export default class ChatParticipant extends BaseModel {
   declare leftAt: DateTime | null
 
   // Relationships
-  @belongsTo(() => Chat)
-  declare chat: BelongsTo<typeof Chat>
+  @belongsTo(() => Channel)
+  declare channel: BelongsTo<typeof Channel>
 
   @belongsTo(() => User, {
     foreignKey: 'userId',

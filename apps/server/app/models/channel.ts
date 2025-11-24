@@ -2,17 +2,17 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
-import ChatParticipant from './chat_participant.js'
+import ChannelParticipant from './channel_participant.js'
 import Message from './message.js'
 
-export type ChatType = 'private' | 'public'
+export type ChannelType = 'private' | 'public'
 
-export default class Chat extends BaseModel {
+export default class Channel extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
   @column()
-  declare type: ChatType
+  declare type: ChannelType
 
   @column()
   declare name: string
@@ -38,8 +38,8 @@ export default class Chat extends BaseModel {
   })
   declare creator: BelongsTo<typeof User>
 
-  @hasMany(() => ChatParticipant)
-  declare participants: HasMany<typeof ChatParticipant>
+  @hasMany(() => ChannelParticipant)
+  declare participants: HasMany<typeof ChannelParticipant>
 
   @hasMany(() => Message)
   declare messages: HasMany<typeof Message>

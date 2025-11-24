@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Chat from '#models/chat'
-import ChatParticipant from '#models/chat_participant'
+import Channel from '#models/channel'
+import ChannelParticipant from '#models/channel_participant'
 import User from '#models/user'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
@@ -33,23 +33,23 @@ export default class ChannelController {
   async index({ auth, response }: HttpContext) {
     const user = auth.user!
 
-    const participants = await ChatParticipant.query()
+    const participants = await ChannelParticipant.query()
       .where('user_id', user.id)
       .whereNull('left_at')
-      .preload('chat', (query) => {
+      .preload('channel', (query) => {
         query.preload('creator')
       })
 
     const channels = participants.map((p) => ({
-      id: p.chat.id,
-      type: p.chat.type,
-      name: p.chat.name,
-      description: p.chat.description,
-      createdBy: p.chat.createdBy,
-      creator: p.chat.creator,
+      id: p.channel.id,
+      type: p.channel.type,
+      name: p.channel.name,
+      description: p.channel.description,
+      createdBy: p.channel.createdBy,
+      creator: p.channel.creator,
       role: p.role,
       joinedAt: p.joinedAt,
-      lastActivityAt: p.chat.lastActivityAt,
+      lastActivityAt: p.channel.lastActivityAt,
     }))
 
     return response.json({
@@ -65,7 +65,7 @@ export default class ChannelController {
     const user = auth.user!
     const data = await request.validateUsing(createChannelSchema)
 
-    const chat = await Chat.create({
+    const channel = await Channel.create({
       type: data.type,
       name: data.name,
       description: data.description || null,
@@ -73,19 +73,19 @@ export default class ChannelController {
       lastActivityAt: DateTime.now(),
     })
 
-    await ChatParticipant.create({
-      chatId: chat.id,
+    await ChannelParticipant.create({
+      channelId: channel.id,
       userId: user.id,
       role: 'admin',
       addedBy: null,
       joinedAt: DateTime.now(),
     })
 
-    await chat.load('creator')
+    await channel.load('creator')
 
     return response.status(201).json({
       success: true,
-      data: { channel: chat },
+      data: { channel },
     })
   }
 
@@ -96,8 +96,8 @@ export default class ChannelController {
     const user = auth.user!
     const channelId = params.id
 
-    const participant = await ChatParticipant.query()
-      .where('chat_id', channelId)
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
       .where('user_id', user.id)
       .whereNull('left_at')
       .first()
@@ -109,7 +109,7 @@ export default class ChannelController {
       })
     }
 
-    const chat = await Chat.query()
+    const channel = await Channel.query()
       .where('id', channelId)
       .preload('creator')
       .preload('participants', (query) => {
@@ -119,7 +119,7 @@ export default class ChannelController {
 
     return response.json({
       success: true,
-      data: { channel: chat, userRole: participant.role },
+      data: { channel, userRole: participant.role },
     })
   }
 
@@ -131,8 +131,8 @@ export default class ChannelController {
     const channelId = params.id
     const data = await request.validateUsing(updateChannelSchema)
 
-    const participant = await ChatParticipant.query()
-      .where('chat_id', channelId)
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
       .where('user_id', user.id)
       .whereNull('left_at')
       .first()
@@ -144,17 +144,17 @@ export default class ChannelController {
       })
     }
 
-    const chat = await Chat.findOrFail(channelId)
+    const channel = await Channel.findOrFail(channelId)
 
-    if (data.name) chat.name = data.name
-    if (data.description !== undefined) chat.description = data.description || null
+    if (data.name) channel.name = data.name
+    if (data.description !== undefined) channel.description = data.description || null
 
-    await chat.save()
-    await chat.load('creator')
+    await channel.save()
+    await channel.load('creator')
 
     return response.json({
       success: true,
-      data: { channel: chat },
+      data: { channel },
     })
   }
 
@@ -165,8 +165,8 @@ export default class ChannelController {
     const user = auth.user!
     const channelId = params.id
 
-    const participant = await ChatParticipant.query()
-      .where('chat_id', channelId)
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
       .where('user_id', user.id)
       .whereNull('left_at')
       .first()
@@ -178,8 +178,8 @@ export default class ChannelController {
       })
     }
 
-    const chat = await Chat.findOrFail(channelId)
-    await chat.delete()
+    const channel = await Channel.findOrFail(channelId)
+    await channel.delete()
 
     return response.json({
       success: true,
@@ -194,17 +194,17 @@ export default class ChannelController {
     const user = auth.user!
     const channelId = params.id
 
-    const chat = await Chat.findOrFail(channelId)
+    const channel = await Channel.findOrFail(channelId)
 
-    if (chat.type !== 'public') {
+    if (channel.type !== 'public') {
       return response.status(403).json({
         success: false,
         message: 'This is a private channel. You need an invitation to join.',
       })
     }
 
-    const existingParticipant = await ChatParticipant.query()
-      .where('chat_id', channelId)
+    const existingParticipant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
       .where('user_id', user.id)
       .whereNull('left_at')
       .first()
@@ -216,8 +216,8 @@ export default class ChannelController {
       })
     }
 
-    await ChatParticipant.create({
-      chatId: chat.id,
+    await ChannelParticipant.create({
+      channelId: channel.id,
       userId: user.id,
       role: 'member',
       addedBy: null,
@@ -237,8 +237,8 @@ export default class ChannelController {
     const user = auth.user!
     const channelId = params.id
 
-    const participant = await ChatParticipant.query()
-      .where('chat_id', channelId)
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
       .where('user_id', user.id)
       .whereNull('left_at')
       .first()
@@ -267,8 +267,8 @@ export default class ChannelController {
     const channelId = params.id
     const data = await request.validateUsing(inviteSchema)
 
-    const participant = await ChatParticipant.query()
-      .where('chat_id', channelId)
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
       .where('user_id', user.id)
       .whereNull('left_at')
       .first()
@@ -280,9 +280,9 @@ export default class ChannelController {
       })
     }
 
-    const chat = await Chat.findOrFail(channelId)
+    const channel = await Channel.findOrFail(channelId)
 
-    if (chat.type === 'public' && participant.role !== 'admin') {
+    if (channel.type === 'public' && participant.role !== 'admin') {
       return response.status(403).json({
         success: false,
         message: 'Only admins can invite users to public channels',
@@ -297,8 +297,8 @@ export default class ChannelController {
       })
     }
 
-    const existingParticipant = await ChatParticipant.query()
-      .where('chat_id', channelId)
+    const existingParticipant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
       .where('user_id', data.userId)
       .whereNull('left_at')
       .first()
@@ -310,8 +310,8 @@ export default class ChannelController {
       })
     }
 
-    await ChatParticipant.create({
-      chatId: chat.id,
+    await ChannelParticipant.create({
+      channelId: channel.id,
       userId: data.userId,
       role: 'member',
       addedBy: user.id,
