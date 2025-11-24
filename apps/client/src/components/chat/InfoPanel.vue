@@ -137,29 +137,6 @@
           </div>
         </div>
 
-        <!-- Shared Media -->
-        <div class="p-4 border-b border-gray-200">
-          <div class="flex items-center justify-between mb-3">
-            <p class="text-sm font-semibold text-gray-800">
-              {{ chat.type === 'channel' ? 'Recent Posts' : 'Shared Media' }}
-            </p>
-            <span class="text-sm text-gray-500">{{ mediaCount }}</span>
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <div
-              v-for="i in 6"
-              :key="i"
-              class="aspect-square bg-gray-200 rounded-lg flex items-center justify-center"
-            >
-              <q-icon
-                :name="chat.type === 'channel' ? 'description' : 'image'"
-                size="20px"
-                color="grey-5"
-              />
-            </div>
-          </div>
-        </div>
-
         <!-- Danger Zone -->
         <div class="p-4">
           <q-btn
@@ -250,12 +227,6 @@ const statusText = computed(() => {
   return ''
 })
 
-const mediaCount = computed(() => {
-  if (props.chat.type === '1-on-1') return '124'
-  if (props.chat.type === 'group') return '342'
-  if (props.chat.type === 'channel') return '89'
-  return '0'
-})
 </script>
 
 <style scoped>

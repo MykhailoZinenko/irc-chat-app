@@ -1,14 +1,5 @@
 <template>
   <div class="input-container">
-    <q-btn
-      round
-      flat
-      icon="attach_file"
-      color="grey-6"
-      class="attach-btn"
-      @click="$emit('attach')"
-    />
-
     <q-input
       v-model="inputMessage"
       outlined
@@ -44,7 +35,6 @@ import { ref } from 'vue'
 
 const emit = defineEmits<{
   send: [message: string]
-  attach: []
   emoji: []
 }>()
 
