@@ -53,16 +53,18 @@
       />
 
       <!-- Terms & Conditions -->
-      <label class="flex items-start cursor-pointer select-none">
-        <input
-          v-model="agreeToTerms"
-          type="checkbox"
-          class="w-4 h-4 mt-0.5 text-blue-500 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-        />
-        <span class="ml-2 text-sm text-gray-600">
-          I agree to the <router-link to="/terms-and-conditions" class="text-blue-500 hover:text-blue-600">Terms & Conditions</router-link>
-        </span>
-      </label>
+      <q-checkbox
+        v-model="agreeToTerms"
+        dense
+        color="blue"
+        class="text-sm text-gray-600"
+      >
+        <template v-slot:default>
+          <span class="text-sm text-gray-600">
+            I agree to the <router-link to="/terms-and-conditions" class="text-blue-500 hover:text-blue-600">Terms & Conditions</router-link>
+          </span>
+        </template>
+      </q-checkbox>
 
       <!-- Register Button -->
       <PrimaryButton @click="handleSubmit" :disabled="!agreeToTerms">
@@ -87,6 +89,7 @@ import PrimaryButton from '@/components/auth/PrimaryButton.vue';
 import SocialLogin from '@/components/auth/SocialLogin.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store';
+import { Notify } from 'quasar';
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -103,28 +106,35 @@ const agreeToTerms = ref(false);
 
 const handleSubmit = async () => {
   if (form.value.password !== confirmPassword.value) {
-    alert('Passwords do not match!');
+    Notify.create({
+      type: 'negative',
+      message: 'Passwords do not match!'
+    });
     return;
   }
   if (!agreeToTerms.value) {
-    alert('Please agree to the terms and conditions');
+    Notify.create({
+      type: 'negative',
+      message: 'Please agree to the terms and conditions'
+    });
     return;
   }
 
-  const [firstName, lastName] = form.value.fullName.split(' ');
+  const [firstName, ...lastNameParts] = form.value.fullName.split(' ');
+  const lastName = lastNameParts.join(' ');
 
   const result = await authStore.register({
-    firstName: firstName!,
-    lastName: lastName!,
+    firstName: firstName || '',
+    lastName: lastName || '',
     nickName: form.value.nickName,
     email: form.value.email,
     password: form.value.password
   })
 
   if (result.success) {
-    console.log('Registration successful')
-    void router.push('/login')
+    void router.push('/chat')
   } else {
+    // Errors are already shown by the auth store
     console.log('Registration failed:', result.errors || "Unknown error")
   }
 };

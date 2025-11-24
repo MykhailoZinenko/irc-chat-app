@@ -3,30 +3,27 @@
     <label class="block text-sm font-medium text-gray-700 mb-2">
       {{ label }}
     </label>
-    <div class="relative">
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+    <q-input
+      :model-value="modelValue"
+      @update:model-value="handleUpdate"
+      :type="showPassword ? 'text' : 'password'"
+      :placeholder="placeholder || ''"
+      @keypress.enter="$emit('enter')"
+      outlined
+      class="auth-input"
+    >
+      <template v-slot:prepend>
         <q-icon name="lock" size="20px" class="text-gray-400" />
-      </div>
-      <input
-        :value="modelValue"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-        :type="showPassword ? 'text' : 'password'"
-        :placeholder="placeholder || ''"
-        @keypress.enter="$emit('enter')"
-        class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-      />
-      <button
-        type="button"
-        @mousedown.prevent
-        @click="showPassword = !showPassword"
-        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <q-icon 
-          :name="showPassword ? 'visibility_off' : 'visibility'" 
-          size="20px" 
+      </template>
+      <template v-slot:append>
+        <q-icon
+          :name="showPassword ? 'visibility_off' : 'visibility'"
+          size="20px"
+          class="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+          @click="showPassword = !showPassword"
         />
-      </button>
-    </div>
+      </template>
+    </q-input>
   </div>
 </template>
 
@@ -39,16 +36,35 @@ defineProps<{
   placeholder?: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: string];
   'enter': [];
 }>();
 
 const showPassword = ref(false);
+
+const handleUpdate = (value: string | number | null) => {
+  emit('update:modelValue', String(value || ''));
+};
 </script>
 
 <style scoped>
-input:focus {
-  outline: none;
+:deep(.auth-input .q-field__control) {
+  height: 48px;
+  padding-left: 4px;
+  border-radius: 8px;
+}
+
+:deep(.auth-input .q-field__control:before) {
+  border-color: #d1d5db;
+}
+
+:deep(.auth-input.q-field--focused .q-field__control:before),
+:deep(.auth-input.q-field--focused .q-field__control:after) {
+  border-color: #3b82f6;
+}
+
+:deep(.auth-input .q-field__control:after) {
+  transition: all 0.3s;
 }
 </style>

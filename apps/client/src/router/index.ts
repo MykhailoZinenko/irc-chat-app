@@ -46,17 +46,17 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     // Check if route requires authentication
     if (to.meta?.requiresAuth) {
       if (!authStore.isAuthenticated) {
-        next('/auth/login');
+        next('/login');
         return;
       }
     }
 
     // Redirect authenticated users away from auth pages
     if (
-      (to.path.startsWith('/auth') || to.path === '/login' || to.path === '/register') &&
+      (to.path === '/login' || to.path === '/register' || to.path === '/forgot-password') &&
       authStore.isAuthenticated
     ) {
-      next('/');
+      next('/chat');
       return;
     }
 

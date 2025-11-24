@@ -3,39 +3,60 @@
     <label class="block text-sm font-medium text-gray-700 mb-2">
       {{ label }}
     </label>
-    <div class="relative">
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+    <q-input
+      :model-value="modelValue"
+      @update:model-value="handleUpdate"
+      :type="type || 'text'"
+      :placeholder="placeholder || ''"
+      @keypress.enter="$emit('enter')"
+      outlined
+      class="auth-input"
+    >
+      <template v-slot:prepend>
         <q-icon :name="icon" size="20px" class="text-gray-400" />
-      </div>
-      <input
-        :value="modelValue"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-        :type="type || 'text'"
-        :placeholder="placeholder || ''"
-        @keypress.enter="$emit('enter')"
-        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-      />
-    </div>
+      </template>
+    </q-input>
   </div>
 </template>
 
 <script setup lang="ts">
+type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'file' | 'textarea';
+
 defineProps<{
   modelValue: string;
   label: string;
   icon: string;
-  type?: string;
+  type?: InputType;
   placeholder?: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: string];
   'enter': [];
 }>();
+
+const handleUpdate = (value: string | number | null) => {
+  emit('update:modelValue', String(value || ''));
+};
 </script>
 
 <style scoped>
-input:focus {
-  outline: none;
+:deep(.auth-input .q-field__control) {
+  height: 48px;
+  padding-left: 4px;
+  border-radius: 8px;
+}
+
+:deep(.auth-input .q-field__control:before) {
+  border-color: #d1d5db;
+}
+
+:deep(.auth-input.q-field--focused .q-field__control:before),
+:deep(.auth-input.q-field--focused .q-field__control:after) {
+  border-color: #3b82f6;
+}
+
+:deep(.auth-input .q-field__control:after) {
+  transition: all 0.3s;
 }
 </style>

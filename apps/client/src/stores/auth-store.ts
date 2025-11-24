@@ -244,6 +244,59 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     },
+
+    async updateProfile(data: {
+      firstName?: string;
+      lastName?: string;
+      nickName?: string;
+      email?: string;
+    }) {
+      const response = await api.put<AuthResponse>('/api/users/profile', data);
+
+      if (response.data.success && response.data.data) {
+        this.user = response.data.data.user;
+        return { success: true };
+      } else {
+        return { success: false, errors: response.data.errors };
+      }
+    },
+
+    async updatePassword(data: { currentPassword: string; newPassword: string }) {
+      const response = await api.put<{ success: boolean; message: string }>(
+        '/api/users/password',
+        data
+      );
+
+      if (response.data.success) {
+        Notify.create({
+          type: 'positive',
+          message: response.data.message,
+        });
+        return { success: true };
+      } else {
+        return { success: false, message: response.data.message };
+      }
+    },
+
+    async deleteAccount(password: string) {
+      const response = await api.delete<{ success: boolean; message: string }>(
+        '/api/users/account',
+        {
+          data: { password },
+        }
+      );
+
+      if (response.data.success) {
+        this.clearAuthData();
+        Notify.create({
+          type: 'positive',
+          message: response.data.message,
+        });
+        return { success: true };
+      } else {
+        return { success: false, message: response.data.message };
+      }
+    },
   },
 });
 

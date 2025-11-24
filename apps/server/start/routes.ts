@@ -28,6 +28,7 @@ router.get('api/test', async () => {
 })
 
 const AuthController = () => import('#controllers/auth_controller')
+const UserController = () => import('#controllers/user_controller')
 
 router
   .group(() => {
@@ -40,3 +41,14 @@ router
     router.get('me', [AuthController, 'me']).use(middleware.auth())
   })
   .prefix('api/auth')
+
+router
+  .group(() => {
+    router.get('search', [UserController, 'search'])
+    router.get(':id/profile', [UserController, 'profile'])
+    router.put('profile', [UserController, 'updateProfile'])
+    router.put('password', [UserController, 'updatePassword'])
+    router.delete('account', [UserController, 'deleteAccount'])
+  })
+  .prefix('api/users')
+  .use(middleware.auth())
