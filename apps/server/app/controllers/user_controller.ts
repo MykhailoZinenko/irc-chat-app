@@ -27,40 +27,6 @@ const deleteAccountSchema = vine.compile(
 
 export default class UserController {
   /**
-   * Search users by nickname or email
-   */
-  async search({ request, response }: HttpContext) {
-    const query = request.input('q', '')
-
-    if (!query || query.length < 2) {
-      return response.json({
-        success: true,
-        data: [],
-      })
-    }
-
-    const users = await User.query()
-      .where('nickName', 'ILIKE', `%${query}%`)
-      .orWhere('email', 'ILIKE', `%${query}%`)
-      .orWhere('firstName', 'ILIKE', `%${query}%`)
-      .orWhere('lastName', 'ILIKE', `%${query}%`)
-      .limit(10)
-      .select('id', 'firstName', 'lastName', 'nickName', 'email')
-
-    return response.json({
-      success: true,
-      data: users.map((user) => ({
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        nickName: user.nickName,
-        email: user.email,
-        fullName: user.fullName,
-      })),
-    })
-  }
-
-  /**
    * Get user profile by ID
    */
   async profile({ params, response }: HttpContext) {

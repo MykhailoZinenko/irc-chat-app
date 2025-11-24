@@ -7,6 +7,7 @@
         :selected-chat-id="selectedChatId"
         :is-open="sidebarOpen"
         @select-chat="handleSelectChat"
+        @select-user="handleUserClick"
         @close="sidebarOpen = false"
         @create-channel="handleCreateChannel"
       />
@@ -19,8 +20,8 @@
       />
 
       <UserProfile
-        v-if="selectedUser"
-        :user="selectedUser"
+        v-if="selectedUserId"
+        :userId="selectedUserId"
         @back="handleCloseProfile"
       />
       <!-- Main Chat Area (hidden when profile is shown) -->
@@ -47,7 +48,19 @@
         </template>
 
         <!-- Empty state when no channels -->
-        <div v-else class="flex-1 flex items-center justify-center">
+        <div v-else class="flex-1 flex flex-col items-center justify-center">
+          <!-- Mobile menu button for empty state -->
+          <div class="lg:hidden absolute top-4 left-4">
+            <q-btn
+              flat
+              round
+              dense
+              icon="menu"
+              color="grey-7"
+              @click="sidebarOpen = true"
+            />
+          </div>
+
           <div class="text-center">
             <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
             <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
@@ -64,7 +77,7 @@
         @click="infoPanelOpen = false"
       />
 
-      <template v-if="!selectedUser && currentChat">
+      <template v-if="!selectedUserId && currentChat">
         <div
           v-show="infoPanelOpen"
           class="xl:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -307,7 +320,7 @@ const selectedChatId = ref<number | null>(null)
 const sidebarOpen = ref(false)
 const infoPanelOpen = ref(false)
 const messageListRef = ref<any>(null)
-const selectedUser = ref<any>(null)
+const selectedUserId = ref<number | null>(null)
 
 const currentChat = computed(() => {
   if (selectedChatId.value === null) return null
@@ -351,24 +364,15 @@ const handleSendMessage = (message: string) => {
   messageListRef.value?.scrollToBottom()
 }
 
-const handleUserClick = (userName: string) => {
-  // Find user in group members or chats
-  const member = groupMembers.value.find(m => m.name === userName)
-  const chat = chats.value.find(c => c.name === userName)
-  
-  selectedUser.value = member || chat || {
-    name: userName,
-    avatar: '👤',
-    username: '@' + userName.toLowerCase().replace(' ', '_'),
-    bio: 'User'
-  }
+const handleUserClick = (userId: number) => {
+  selectedUserId.value = userId
   // Close panels
   infoPanelOpen.value = false
   sidebarOpen.value = false
 }
 
 const handleCloseProfile = () => {
-  selectedUser.value = null
+  selectedUserId.value = null
 }
 
 const handleAttach = () => {

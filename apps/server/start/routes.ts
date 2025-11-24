@@ -30,6 +30,7 @@ router.get('api/test', async () => {
 const AuthController = () => import('#controllers/auth_controller')
 const UserController = () => import('#controllers/user_controller')
 const ChannelController = () => import('#controllers/channel_controller')
+const SearchController = () => import('#controllers/search_controller')
 
 router
   .group(() => {
@@ -45,7 +46,6 @@ router
 
 router
   .group(() => {
-    router.get('search', [UserController, 'search'])
     router.get(':id/profile', [UserController, 'profile'])
     router.put('profile', [UserController, 'updateProfile'])
     router.put('password', [UserController, 'updatePassword'])
@@ -67,3 +67,5 @@ router
   })
   .prefix('api/channels')
   .use(middleware.auth())
+
+router.get('api/search', [SearchController, 'global']).use(middleware.auth())
