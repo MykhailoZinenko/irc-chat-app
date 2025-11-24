@@ -93,7 +93,28 @@ export default class UserController {
       if (data.nickName) user.nickName = data.nickName
       if (data.email) user.email = data.email
 
-      await user.save()
+      try {
+        await user.save()
+      } catch (error) {
+        // Handle unique constraint violation at database level
+        if (error.code === '23505') {
+          if (error.constraint?.includes('email')) {
+            return response.status(422).json({
+              success: false,
+              message: 'Email already registered',
+              errors: { email: 'This email is already registered' },
+            })
+          }
+          if (error.constraint?.includes('nick_name')) {
+            return response.status(422).json({
+              success: false,
+              message: 'Nickname already taken',
+              errors: { nickName: 'This nickname is already taken' },
+            })
+          }
+        }
+        throw error
+      }
 
       return response.json({
         success: true,

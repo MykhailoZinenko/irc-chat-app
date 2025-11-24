@@ -51,14 +51,36 @@ export default class AuthController {
         })
       }
 
-      const user = await User.create({
-        firstName: data.firstName || null,
-        lastName: data.lastName || null,
-        nickName: data.nickName,
-        email: data.email,
-        password: data.password,
-        sessionTimeoutDays: 30,
-      })
+      let user
+      try {
+        user = await User.create({
+          firstName: data.firstName || null,
+          lastName: data.lastName || null,
+          nickName: data.nickName,
+          email: data.email,
+          password: data.password,
+          sessionTimeoutDays: 30,
+        })
+      } catch (error) {
+        // Handle unique constraint violation at database level
+        if (error.code === '23505') {
+          if (error.constraint?.includes('email')) {
+            return response.status(422).json({
+              success: false,
+              message: 'Email already registered',
+              errors: { email: 'This email is already registered' },
+            })
+          }
+          if (error.constraint?.includes('nick_name')) {
+            return response.status(422).json({
+              success: false,
+              message: 'Nickname already taken',
+              errors: { nickName: 'This nickname is already taken' },
+            })
+          }
+        }
+        throw error
+      }
 
       const deviceInfo = DeviceDetector.detect(userAgent)
       const token = await User.accessTokens.create(user, ['*'], {

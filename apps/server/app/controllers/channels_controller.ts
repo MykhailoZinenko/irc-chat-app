@@ -78,28 +78,48 @@ export default class ChannelsController {
     const user = auth.user!
     const data = await request.validateUsing(createChannelSchema)
 
-    const channel = await Channel.create({
-      type: data.type,
-      name: data.name,
-      description: data.description || null,
-      createdBy: user.id,
-      lastActivityAt: DateTime.now(),
-    })
+    // Check if channel name already exists
+    const existingChannel = await Channel.query().where('name', data.name).first()
+    if (existingChannel) {
+      return response.status(422).json({
+        success: false,
+        message: 'A channel with this name already exists',
+      })
+    }
 
-    await ChannelParticipant.create({
-      channelId: channel.id,
-      userId: user.id,
-      role: 'admin',
-      addedBy: null,
-      joinedAt: DateTime.now(),
-    })
+    try {
+      const channel = await Channel.create({
+        type: data.type,
+        name: data.name,
+        description: data.description || null,
+        createdBy: user.id,
+        lastActivityAt: DateTime.now(),
+      })
 
-    await channel.load('creator')
+      await ChannelParticipant.create({
+        channelId: channel.id,
+        userId: user.id,
+        role: 'admin',
+        addedBy: null,
+        joinedAt: DateTime.now(),
+      })
 
-    return response.status(201).json({
-      success: true,
-      data: { channel },
-    })
+      await channel.load('creator')
+
+      return response.status(201).json({
+        success: true,
+        data: { channel },
+      })
+    } catch (error) {
+      // Handle unique constraint violation
+      if (error.code === '23505' || error.constraint?.includes('unique')) {
+        return response.status(422).json({
+          success: false,
+          message: 'A channel with this name already exists',
+        })
+      }
+      throw error
+    }
   }
 
   /**
@@ -187,16 +207,42 @@ export default class ChannelsController {
 
     const channel = await Channel.findOrFail(channelId)
 
-    if (data.name) channel.name = data.name
-    if (data.description !== undefined) channel.description = data.description || null
+    // Check if new name already exists (excluding current channel)
+    if (data.name && data.name !== channel.name) {
+      const existingChannel = await Channel.query()
+        .where('name', data.name)
+        .whereNot('id', channelId)
+        .first()
 
-    await channel.save()
-    await channel.load('creator')
+      if (existingChannel) {
+        return response.status(422).json({
+          success: false,
+          message: 'A channel with this name already exists',
+        })
+      }
+    }
 
-    return response.json({
-      success: true,
-      data: { channel },
-    })
+    try {
+      if (data.name) channel.name = data.name
+      if (data.description !== undefined) channel.description = data.description || null
+
+      await channel.save()
+      await channel.load('creator')
+
+      return response.json({
+        success: true,
+        data: { channel },
+      })
+    } catch (error) {
+      // Handle unique constraint violation
+      if (error.code === '23505' || error.constraint?.includes('unique')) {
+        return response.status(422).json({
+          success: false,
+          message: 'A channel with this name already exists',
+        })
+      }
+      throw error
+    }
   }
 
   /**
