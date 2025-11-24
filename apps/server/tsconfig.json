@@ -2,7 +2,14 @@
   "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
     "rootDir": "./",
+    "module": "NodeNext",
+    "isolatedModules": true,
+    "declaration": false,
     "outDir": "./build",
-    "moduleResolution": "nodenext"
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "baseUrl": "./"
   }
 }

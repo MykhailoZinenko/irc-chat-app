@@ -25,12 +25,18 @@ const deleteAccountSchema = vine.compile(
   })
 )
 
+const userIdParamsSchema = vine.object({
+  id: vine.number(),
+})
+
 export default class UserController {
-  /**
-   * Get user profile by ID
-   */
   async profile({ params, response }: HttpContext) {
-    const user = await User.find(params.id)
+    const { id: userId } = await vine.validate({
+      schema: userIdParamsSchema,
+      data: params,
+    })
+
+    const user = await User.find(userId)
 
     if (!user) {
       return response.status(404).json({
@@ -53,15 +59,11 @@ export default class UserController {
     })
   }
 
-  /**
-   * Update user profile (name, nickname, email)
-   */
   async updateProfile({ auth, request, response }: HttpContext) {
     try {
       const user = auth.user!
       const data = await request.validateUsing(updateProfileSchema)
 
-      // Check if nickname is being updated and if it's already taken
       if (data.nickName && data.nickName !== user.nickName) {
         const existingUser = await User.findBy('nickName', data.nickName)
         if (existingUser) {
@@ -73,7 +75,6 @@ export default class UserController {
         }
       }
 
-      // Check if email is being updated and if it's already taken
       if (data.email && data.email !== user.email) {
         const existingUser = await User.findBy('email', data.email)
         if (existingUser) {
@@ -85,7 +86,6 @@ export default class UserController {
         }
       }
 
-      // Update user fields
       if (data.firstName !== undefined) user.firstName = data.firstName || null
       if (data.lastName !== undefined) user.lastName = data.lastName || null
       if (data.nickName) user.nickName = data.nickName
@@ -120,15 +120,11 @@ export default class UserController {
     }
   }
 
-  /**
-   * Update user password
-   */
   async updatePassword({ auth, request, response }: HttpContext) {
     try {
       const user = auth.user!
       const data = await request.validateUsing(updatePasswordSchema)
 
-      // Verify current password
       const isValid = await hash.verify(user.password, data.currentPassword)
       if (!isValid) {
         return response.status(401).json({
@@ -137,7 +133,6 @@ export default class UserController {
         })
       }
 
-      // Update password
       user.password = data.newPassword
       await user.save()
 
@@ -154,15 +149,11 @@ export default class UserController {
     }
   }
 
-  /**
-   * Delete user account (requires password confirmation)
-   */
   async deleteAccount({ auth, request, response }: HttpContext) {
     try {
       const user = auth.user!
       const data = await request.validateUsing(deleteAccountSchema)
 
-      // Verify password before deletion
       const isValid = await hash.verify(user.password, data.password)
       if (!isValid) {
         return response.status(401).json({
@@ -171,10 +162,7 @@ export default class UserController {
         })
       }
 
-      // Delete all user's access tokens first
       await user.related('tokens').query().delete()
-
-      // Delete the user account
       await user.delete()
 
       return response.json({

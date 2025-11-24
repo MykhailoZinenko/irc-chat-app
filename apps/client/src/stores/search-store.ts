@@ -8,6 +8,7 @@ export interface SearchResultChannel {
   name: string
   description: string | null
   createdBy: number
+  memberCount?: number
   resultType: 'user_channel' | 'public_channel'
 }
 

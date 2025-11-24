@@ -8,7 +8,10 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import transmit from '@adonisjs/transmit/services/main'
 import { middleware } from './kernel.js'
+
+transmit.registerRoutes()
 
 router.get('api/test', async () => {
   return {
@@ -29,7 +32,7 @@ router.get('api/test', async () => {
 
 const AuthController = () => import('#controllers/auth_controller')
 const UserController = () => import('#controllers/user_controller')
-const ChannelController = () => import('#controllers/channel_controller')
+const ChannelsController = () => import('#controllers/channels_controller')
 const SearchController = () => import('#controllers/search_controller')
 
 router
@@ -56,14 +59,14 @@ router
 
 router
   .group(() => {
-    router.get('/', [ChannelController, 'index'])
-    router.post('/', [ChannelController, 'create'])
-    router.get(':id', [ChannelController, 'show'])
-    router.put(':id', [ChannelController, 'update'])
-    router.delete(':id', [ChannelController, 'destroy'])
-    router.post(':id/join', [ChannelController, 'join'])
-    router.post(':id/leave', [ChannelController, 'leave'])
-    router.post(':id/invite', [ChannelController, 'invite'])
+    router.get('/', [ChannelsController, 'index'])
+    router.post('/', [ChannelsController, 'create'])
+    router.get(':id', [ChannelsController, 'show'])
+    router.put(':id', [ChannelsController, 'update'])
+    router.delete(':id', [ChannelsController, 'destroy'])
+    router.post(':id/join', [ChannelsController, 'join'])
+    router.post(':id/leave', [ChannelsController, 'leave'])
+    router.post(':id/invite', [ChannelsController, 'invite'])
   })
   .prefix('api/channels')
   .use(middleware.auth())

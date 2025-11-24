@@ -34,6 +34,9 @@ export default class SearchController {
         participantQuery.where('user_id', user.id).whereNull('left_at')
       })
       .preload('creator')
+      .preload('participants', (pQuery) => {
+        pQuery.whereNull('left_at')
+      })
       .limit(5)
 
     // Search users (for now, search all users - in production you'd add privacy settings)
@@ -65,6 +68,7 @@ export default class SearchController {
           name: channel.name,
           description: channel.description,
           createdBy: channel.createdBy,
+          memberCount: channel.participants.length,
           resultType: 'public_channel' as const,
         })),
         users: users.map((u) => ({

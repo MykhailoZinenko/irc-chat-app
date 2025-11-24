@@ -37,11 +37,11 @@
             />
 
             <ProfileActionButton
-              :icon="isContact ? 'person' : 'person_add'"
-              :label="isContact ? 'Contact' : 'Add'"
-              :bg-color="isContact ? 'bg-gray-300' : 'bg-blue-100'"
-              :icon-color="isContact ? 'text-gray-600' : 'text-blue-600'"
-              @click="isContact = !isContact"
+              icon="person_add"
+              label="Add"
+              bg-color="bg-blue-100"
+              icon-color="text-blue-600"
+              @click="showInviteDialog = true"
             />
           </div>
         </ProfileSection>
@@ -124,6 +124,8 @@
         </div>
       </div>
     </template>
+
+    <InviteUserDialog v-model="showInviteDialog" :user-id="props.userId" />
   </div>
 </template>
 
@@ -132,6 +134,7 @@ import { ref, computed, onMounted } from 'vue'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileActionButton from '@/components/profile/ProfileActionButton.vue'
 import ProfileSection from '@/components/profile/ProfileSection.vue'
+import InviteUserDialog from '@/components/dialogs/InviteUserDialog.vue'
 import { api } from 'src/boot/axios'
 import { DateTime } from 'luxon'
 
@@ -157,7 +160,7 @@ defineEmits<{
 const userProfile = ref<UserProfile | null>(null)
 const loading = ref(false)
 const isMuted = ref(false)
-const isContact = ref(false)
+const showInviteDialog = ref(false)
 const commonChannels = ref<any[]>([])
 
 const displayName = computed(() => {

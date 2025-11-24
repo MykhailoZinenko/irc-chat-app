@@ -1,9 +1,11 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Channel from '#models/channel'
 import ChannelParticipant from '#models/channel_participant'
+import Invitation from '#models/invitation'
 import User from '#models/user'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
+import transmit from '@adonisjs/transmit/services/main'
 
 const createChannelSchema = vine.compile(
   vine.object({
@@ -26,7 +28,11 @@ const inviteSchema = vine.compile(
   })
 )
 
-export default class ChannelController {
+const channelIdParamsSchema = vine.object({
+  id: vine.number(),
+})
+
+export default class ChannelsController {
   /**
    * List user's channels
    */
@@ -37,7 +43,9 @@ export default class ChannelController {
       .where('user_id', user.id)
       .whereNull('left_at')
       .preload('channel', (query) => {
-        query.preload('creator')
+        query.preload('creator').preload('participants', (pQuery) => {
+          pQuery.whereNull('left_at')
+        })
       })
 
     const channels = participants.map((p) => ({
@@ -50,6 +58,7 @@ export default class ChannelController {
       role: p.role,
       joinedAt: p.joinedAt,
       lastActivityAt: p.channel.lastActivityAt,
+      memberCount: p.channel.participants.length,
     }))
 
     return response.json({
@@ -94,7 +103,10 @@ export default class ChannelController {
    */
   async show({ auth, params, response }: HttpContext) {
     const user = auth.user!
-    const channelId = params.id
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
 
     const participant = await ChannelParticipant.query()
       .where('channel_id', channelId)
@@ -117,9 +129,32 @@ export default class ChannelController {
       })
       .firstOrFail()
 
+    const members = channel.participants.map((p) => ({
+      id: p.user.id,
+      nickName: p.user.nickName,
+      firstName: p.user.firstName,
+      lastName: p.user.lastName,
+      email: p.user.email,
+      status: p.user.status,
+      role: p.role,
+      joinedAt: p.joinedAt,
+    }))
+
     return response.json({
       success: true,
-      data: { channel, userRole: participant.role },
+      data: {
+        channel: {
+          id: channel.id,
+          type: channel.type,
+          name: channel.name,
+          description: channel.description,
+          createdBy: channel.createdBy,
+          creator: channel.creator,
+          memberCount: members.length,
+        },
+        userRole: participant.role,
+        members,
+      },
     })
   }
 
@@ -128,7 +163,10 @@ export default class ChannelController {
    */
   async update({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
-    const channelId = params.id
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
     const data = await request.validateUsing(updateChannelSchema)
 
     const participant = await ChannelParticipant.query()
@@ -163,7 +201,10 @@ export default class ChannelController {
    */
   async destroy({ auth, params, response }: HttpContext) {
     const user = auth.user!
-    const channelId = params.id
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
 
     const participant = await ChannelParticipant.query()
       .where('channel_id', channelId)
@@ -192,7 +233,10 @@ export default class ChannelController {
    */
   async join({ auth, params, response }: HttpContext) {
     const user = auth.user!
-    const channelId = params.id
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
 
     const channel = await Channel.findOrFail(channelId)
 
@@ -203,25 +247,71 @@ export default class ChannelController {
       })
     }
 
-    const existingParticipant = await ChannelParticipant.query()
+    // Check if user is currently a member
+    const activeParticipant = await ChannelParticipant.query()
       .where('channel_id', channelId)
       .where('user_id', user.id)
       .whereNull('left_at')
       .first()
 
-    if (existingParticipant) {
+    if (activeParticipant) {
       return response.status(422).json({
         success: false,
         message: 'You are already a member of this channel',
       })
     }
 
-    await ChannelParticipant.create({
-      channelId: channel.id,
-      userId: user.id,
-      role: 'member',
-      addedBy: null,
-      joinedAt: DateTime.now(),
+    // Check if user previously left and rejoin them
+    const previousParticipant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .where('user_id', user.id)
+      .whereNotNull('left_at')
+      .first()
+
+    if (previousParticipant) {
+      // Rejoin: clear left_at and update joined_at
+      previousParticipant.leftAt = null
+      previousParticipant.joinedAt = DateTime.now()
+      await previousParticipant.save()
+    } else {
+      // First time joining
+      await ChannelParticipant.create({
+        channelId: channel.id,
+        userId: user.id,
+        role: 'member',
+        addedBy: null,
+        joinedAt: DateTime.now(),
+      })
+    }
+
+    // Get updated member count and the participant record with role
+    const memberCount = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .whereNull('left_at')
+      .count('* as total')
+
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .where('user_id', user.id)
+      .whereNull('left_at')
+      .first()
+
+    // Broadcast member joined event to channel
+    transmit.broadcast(`channels/${channelId}`, {
+      type: 'member_joined',
+      data: {
+        channelId,
+        user: {
+          id: user.id,
+          nickName: user.nickName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          status: user.status,
+        },
+        role: participant?.role || 'member',
+        memberCount: memberCount[0].$extras.total,
+      },
     })
 
     return response.json({
@@ -235,7 +325,10 @@ export default class ChannelController {
    */
   async leave({ auth, params, response }: HttpContext) {
     const user = auth.user!
-    const channelId = params.id
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
 
     const participant = await ChannelParticipant.query()
       .where('channel_id', channelId)
@@ -250,8 +343,52 @@ export default class ChannelController {
       })
     }
 
+    const channel = await Channel.findOrFail(channelId)
+
+    // Mark user as left
     participant.leftAt = DateTime.now()
     await participant.save()
+
+    // Check remaining members
+    const remainingMembers = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .whereNull('left_at')
+
+    // Check if there are any remaining admins
+    const remainingAdmins = remainingMembers.filter((p) => p.role === 'admin')
+
+    // Delete channel if no members left OR if leaving user was admin and no admins remain
+    if (
+      remainingMembers.length === 0 ||
+      (participant.role === 'admin' && remainingAdmins.length === 0)
+    ) {
+      await channel.delete()
+
+      // Broadcast channel deleted event
+      transmit.broadcast(`channels/${channelId}`, {
+        type: 'channel_deleted',
+        data: {
+          channelId,
+          reason: remainingMembers.length === 0 ? 'no_members' : 'no_admins',
+        },
+      })
+
+      return response.json({
+        success: true,
+        message: 'Left channel successfully. Channel has been deleted.',
+        channelDeleted: true,
+      })
+    }
+
+    // Broadcast member left event to channel
+    transmit.broadcast(`channels/${channelId}`, {
+      type: 'member_left',
+      data: {
+        channelId,
+        userId: user.id,
+        memberCount: remainingMembers.length,
+      },
+    })
 
     return response.json({
       success: true,
@@ -264,7 +401,10 @@ export default class ChannelController {
    */
   async invite({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
-    const channelId = params.id
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
     const data = await request.validateUsing(inviteSchema)
 
     const participant = await ChannelParticipant.query()
@@ -310,17 +450,30 @@ export default class ChannelController {
       })
     }
 
-    await ChannelParticipant.create({
+    const existingInvitation = await Invitation.query()
+      .where('channel_id', channelId)
+      .where('invited_user_id', data.userId)
+      .where('status', 'pending')
+      .first()
+
+    if (existingInvitation) {
+      return response.status(422).json({
+        success: false,
+        message: 'User already has a pending invitation to this channel',
+      })
+    }
+
+    await Invitation.create({
       channelId: channel.id,
-      userId: data.userId,
-      role: 'member',
-      addedBy: user.id,
-      joinedAt: DateTime.now(),
+      invitedUserId: data.userId,
+      invitedBy: user.id,
+      status: 'pending',
+      expiresAt: DateTime.now().plus({ days: 7 }),
     })
 
     return response.json({
       success: true,
-      message: 'User invited successfully',
+      message: 'Invitation sent successfully',
     })
   }
 }
