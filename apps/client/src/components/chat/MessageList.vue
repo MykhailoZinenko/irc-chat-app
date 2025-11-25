@@ -32,6 +32,7 @@
       </div>
     </q-scroll-area>
 
+    <!-- Scroll to bottom button -->
     <div v-if="showScrollToBottom" class="scroll-to-bottom-container">
       <button
         @click="scrollToBottomWithAnimation"
@@ -100,7 +101,6 @@ onMounted(() => {
   const scrollArea = scrollAreaRef.value
   if (scrollArea) {
     scrollTarget.value = scrollArea.getScrollTarget()
-    // Setup scroll listener
     scrollTarget.value?.addEventListener('scroll', checkScrollPosition)
   }
 })
@@ -110,7 +110,6 @@ onUnmounted(() => {
   cleanupIntersectionObserver()
 })
 
-// Setup Intersection Observer
 const setupIntersectionObserver = () => {
   cleanupIntersectionObserver()
 
@@ -125,7 +124,6 @@ const setupIntersectionObserver = () => {
         if (entry.isIntersecting) {
           visibleMessages.value.add(messageId)
 
-          // Mark unread messages as read when they become visible
           const message = props.messages.find((m) => m.id === messageId)
           if (message && message.senderId !== authStore.user?.id && !message.status?.read) {
             void messageStore.markMessageAsRead(messageId)
@@ -137,12 +135,11 @@ const setupIntersectionObserver = () => {
     },
     {
       root: scrollTarget.value,
-      threshold: 0.5, // 50% of message must be visible
+      threshold: 0.5,
       rootMargin: '0px',
     }
   )
 
-  // Observe all message elements
   const messageElements = messagesContainerRef.value.querySelectorAll('[data-message-id]')
   messageElements.forEach((el) => {
     if (intersectionObserver.value) {
@@ -159,34 +156,28 @@ const cleanupIntersectionObserver = () => {
   visibleMessages.value.clear()
 }
 
-// Update unread count
 const updateUnreadCount = () => {
   let count = 0
   const messages = props.messages
 
-  // Count unread messages from the latest backwards until we hit a read message
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i]
     if (!message) continue
 
-    // Skip own messages
     if (message.senderId === authStore.user?.id) {
       continue
     }
 
-    // If message is read, stop counting
     if (message.status?.read) {
       break
     }
 
-    // Count this unread message
     count++
   }
 
   unreadCount.value = count
 }
 
-// Check scroll position to show/hide button
 const checkScrollPosition = () => {
   if (!scrollTarget.value) return
 
@@ -195,32 +186,26 @@ const checkScrollPosition = () => {
   const scrollHeight = container.scrollHeight
   const clientHeight = container.clientHeight
 
-  // Calculate distance from bottom
   const distanceFromBottom = scrollHeight - scrollTop - clientHeight
 
-  // Track if scrolled away
   if (distanceFromBottom > 100) {
     hasScrolledAway.value = true
   }
 
-  // Reset when at bottom
   if (distanceFromBottom <= 10) {
     hasScrolledAway.value = false
     showScrollToBottom.value = false
     return
   }
 
-  // Show button if unread messages OR scrolled away significantly
   showScrollToBottom.value = unreadCount.value > 0 || hasScrolledAway.value
 
   lastScrollTop.value = scrollTop
 }
 
-// Watch messages to update observer and unread count
 watch(
   () => props.messages.length,
   async (newLength, oldLength) => {
-    // Reset noMoreMessages when switching channels (length goes from N to 0 or changes significantly)
     if (oldLength !== undefined && oldLength > 0 && newLength === 0) {
       noMoreMessages.value = false
     }
@@ -232,7 +217,6 @@ watch(
   { immediate: true }
 )
 
-// Watch for message status changes to update unread count
 watch(
   () => props.messages.map((m) => m.status?.read).join(','),
   () => {
@@ -282,6 +266,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  padding-bottom: 90px; /* Console input height + extra space */
 }
 
 .text-gray-500 {

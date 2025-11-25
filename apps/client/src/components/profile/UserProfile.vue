@@ -238,6 +238,7 @@ const handleMessage = () => {
 }
 
 const handleChannelClick = (channel: any) => {
+  console.log('Channel clicked:', channel);
 }
 
 const handleBlock = () => {

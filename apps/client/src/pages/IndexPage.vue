@@ -2,32 +2,35 @@
   <q-page class="index-page">
     <div class="flex h-screen bg-gray-50 overflow-hidden">
       <ChannelSidebarContainer />
-
       <div
         v-if="selectionStore.sidebarOpen"
         class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
         @click="selectionStore.sidebarOpen = false"
       />
-
-      <UserProfile
-        v-if="selectionStore.selectedUserId"
-        :userId="selectionStore.selectedUserId"
-        @back="selectionStore.selectedUserId = null"
-      />
-      <ChatViewContainer v-else />
-
+      <div class="flex flex-col flex-1 min-w-0 relative">
+        <div class="flex-1 min-h-0 flex flex-col">
+          <UserProfile
+            v-if="selectionStore.selectedUserId"
+            :userId="selectionStore.selectedUserId"
+            class="flex-1"
+            @back="selectionStore.selectedUserId = null"
+          />
+          <ChatViewContainer v-else />
+        </div>
+      </div>
+      <!-- Info Panel Overlay - only on mobile/tablet (xl breakpoint) -->
       <div
-        v-show="selectionStore.infoPanelOpen"
+        v-if="selectionStore.infoPanelOpen"
         class="xl:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-        @click="selectionStore.infoPanelOpen = false"
+        @click="handleCloseInfoPanel"
       />
-
+      <!-- Info Panel -->
       <InfoPanel
         v-if="currentChannel && !selectionStore.selectedUserId && currentChatData"
         :chat="currentChatData"
         :is-open="selectionStore.infoPanelOpen"
         :members="channelStore.currentChannelMembers"
-        @close="selectionStore.infoPanelOpen = false"
+        @close="handleCloseInfoPanel"
         @user-click="handleUserClick"
         @leave="handleLeaveChannel"
       />
@@ -49,8 +52,6 @@ import ChannelSidebarContainer from '@/containers/ChannelSidebarContainer.vue'
 import ChatViewContainer from '@/containers/ChatViewContainer.vue'
 import InfoPanel from '@/components/chat/InfoPanel.vue'
 import UserProfile from '@/components/profile/UserProfile.vue'
-import type { ChannelMember } from '@/stores/channel-store'
-import type { Invitation } from '@/stores/invitation-store'
 
 const route = useRoute()
 const router = useRouter()
@@ -62,7 +63,33 @@ const invitationStore = useInvitationStore()
 
 let userSubscription: { unsubscribe: () => void } | null = null
 
-onMounted(() => {
+onMounted(async () => {
+  // Fetch channels first
+  await channelStore.fetchChannels()
+
+  // Handle initial route after channels are loaded
+  if (route.path.startsWith('/chat/')) {
+    const channelId = parseInt(route.params.id as string)
+    if (!isNaN(channelId)) {
+      selectionStore.selectChannel(channelId)
+    }
+  } else if (route.path.startsWith('/profile/')) {
+    const userId = parseInt(route.params.id as string)
+    if (!isNaN(userId)) {
+      selectionStore.selectUser(userId)
+    }
+  } else if (route.path === '/invitations') {
+    selectionStore.selectInvitations()
+  } else if (route.path === '/chat') {
+    // On /chat without ID, select first channel if available
+    if (channelStore.channels.length > 0) {
+      const firstChannel = channelStore.channels[0]
+      if (firstChannel) {
+        void router.push(`/chat/${firstChannel.id}`)
+      }
+    }
+  }
+
   if (!authStore.user) return
 
   void invitationStore.fetchInvitations()
@@ -120,7 +147,7 @@ onMounted(() => {
         void channelStore.fetchChannels()
         if (selectionStore.selectedChannelId === data.channelId) {
           selectionStore.clearSelection()
-          router.push('/chat')
+          void router.push('/chat')
         }
         break
 
@@ -188,26 +215,28 @@ onUnmounted(() => {
 
 // Watch route params and update selection store
 watch(
-  () => route.params,
-  (params) => {
-    if (route.path.startsWith('/chat/') && params.id) {
-      const channelId = parseInt(params.id as string)
-      if (!isNaN(channelId)) {
+  () => route.path,
+  (path) => {
+    if (path.startsWith('/chat/')) {
+      const channelId = parseInt(route.params.id as string)
+      if (!isNaN(channelId) && selectionStore.selectedChannelId !== channelId) {
         selectionStore.selectChannel(channelId)
       }
-    } else if (route.path.startsWith('/profile/') && params.id) {
-      const userId = parseInt(params.id as string)
-      if (!isNaN(userId)) {
+    } else if (path.startsWith('/profile/')) {
+      const userId = parseInt(route.params.id as string)
+      if (!isNaN(userId) && selectionStore.selectedUserId !== userId) {
         selectionStore.selectUser(userId)
       }
-    } else if (route.path === '/invitations') {
-      selectionStore.selectInvitations()
-    } else if (route.path === '/chat') {
+    } else if (path === '/invitations') {
+      if (!selectionStore.showInvitations) {
+        selectionStore.selectInvitations()
+      }
+    } else if (path === '/chat') {
       // On /chat without ID, select first channel if available
       if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
         const firstChannel = channelStore.channels[0]
         if (firstChannel) {
-          router.push(`/chat/${firstChannel.id}`)
+          void router.push(`/chat/${firstChannel.id}`)
         }
       }
     }
@@ -219,7 +248,7 @@ watch(
   () => selectionStore.selectedChannelId,
   (channelId) => {
     if (channelId && route.path !== `/chat/${channelId}`) {
-      router.push(`/chat/${channelId}`)
+      void router.push(`/chat/${channelId}`)
     }
   }
 )
@@ -228,13 +257,13 @@ watch(
   () => selectionStore.selectedUserId,
   (userId) => {
     if (userId && route.path !== `/profile/${userId}`) {
-      router.push(`/profile/${userId}`)
+      void router.push(`/profile/${userId}`)
     } else if (!userId && route.path.startsWith('/profile/')) {
       // User closed profile, go back to chat
       if (selectionStore.selectedChannelId) {
-        router.push(`/chat/${selectionStore.selectedChannelId}`)
+        void router.push(`/chat/${selectionStore.selectedChannelId}`)
       } else {
-        router.push('/chat')
+        void router.push('/chat')
       }
     }
   }
@@ -244,13 +273,13 @@ watch(
   () => selectionStore.showInvitations,
   (show) => {
     if (show && route.path !== '/invitations') {
-      router.push('/invitations')
+      void router.push('/invitations')
     } else if (!show && route.path === '/invitations') {
       // User closed invitations, go back to chat
       if (selectionStore.selectedChannelId) {
-        router.push(`/chat/${selectionStore.selectedChannelId}`)
+        void router.push(`/chat/${selectionStore.selectedChannelId}`)
       } else {
-        router.push('/chat')
+        void router.push('/chat')
       }
     }
   }
@@ -263,10 +292,8 @@ const currentChannel = computed(() => {
 
 const currentChatData = computed(() => {
   if (!currentChannel.value) return null
-
   const channel = currentChannel.value
   const avatar = channel.type === 'public' ? '📢' : '🔒'
-
   return {
     id: channel.id,
     name: channel.name,
@@ -278,6 +305,10 @@ const currentChatData = computed(() => {
   }
 })
 
+const handleCloseInfoPanel = () => {
+  selectionStore.infoPanelOpen = false
+}
+
 const handleUserClick = (userId: number) => {
   selectionStore.selectUser(userId)
   selectionStore.infoPanelOpen = false
@@ -285,69 +316,42 @@ const handleUserClick = (userId: number) => {
 
 const handleLeaveChannel = async () => {
   if (!selectionStore.selectedChannelId) return
-
   const leavingChannelId = selectionStore.selectedChannelId
+
+  // Close info panel and clear selection to prevent watches from firing
+  selectionStore.infoPanelOpen = false
+  selectionStore.clearSelection()
+
+  // Leave the channel
   const result = await channelStore.leaveChannel(leavingChannelId)
-
   if (result.success) {
-    selectionStore.infoPanelOpen = false
-    selectionStore.clearSelection()
-
+    // Fetch updated channel list (this removes the left channel from the list)
     await channelStore.fetchChannels()
 
+    // Navigate to next channel which will trigger selection change via route watch
     if (channelStore.channels.length > 0) {
       const firstChannel = channelStore.channels[0]
       if (firstChannel) {
-        router.push(`/chat/${firstChannel.id}`)
+        await router.push(`/chat/${firstChannel.id}`)
       }
     } else {
-      router.push('/chat')
+      // No channels left - navigate to empty chat state
+      await router.push('/chat')
     }
   }
 }
-
-onMounted(async () => {
-  await channelStore.fetchChannels()
-
-  // Handle initial route after channels are loaded
-  if (route.path.startsWith('/chat/') && route.params.id) {
-    // If we have a channel ID in the route, select it
-    const channelId = parseInt(route.params.id as string)
-    if (!isNaN(channelId)) {
-      selectionStore.selectChannel(channelId)
-    }
-  } else if (route.path === '/chat') {
-    // If we're on /chat without an ID, redirect to first channel
-    if (channelStore.channels.length > 0) {
-      const firstChannel = channelStore.channels[0]
-      if (firstChannel) {
-        router.push(`/chat/${firstChannel.id}`)
-      }
-    }
-  } else if (route.path.startsWith('/profile/') && route.params.id) {
-    const userId = parseInt(route.params.id as string)
-    if (!isNaN(userId)) {
-      selectionStore.selectUser(userId)
-    }
-  } else if (route.path === '/invitations') {
-    selectionStore.selectInvitations()
-  }
-})
 </script>
 
 <style scoped>
 .index-page {
   padding: 0;
 }
-
 .bg-gray-50 {
   background-color: #f9fafb;
 }
-
 .bg-black {
   background-color: black;
 }
-
 .bg-opacity-50 {
   opacity: 0.5;
 }

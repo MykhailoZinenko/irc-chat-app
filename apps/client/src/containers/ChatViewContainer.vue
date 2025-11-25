@@ -11,65 +11,71 @@
       <!-- Header -->
       <ChannelHeaderContainer />
 
-      <!-- Messages for members -->
-      <MessageList
-        v-if="selectionStore.selectedChannelId && !showJoinButton"
-        ref="messageListRef"
-        :messages="displayedMessages"
-        @load-more="loadMoreMessages"
-        @user-click="handleUserClick"
-      />
+      <!-- Main content: messages OR empty state -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <!-- Messages (when member) -->
+        <MessageList
+          v-if="selectionStore.selectedChannelId && !showJoinButton"
+          ref="messageListRef"
+          :messages="displayedMessages"
+          @load-more="loadMoreMessages"
+          @user-click="handleUserClick"
+        />
 
-      <!-- Preview overlay for non-members -->
-      <div v-else-if="showJoinButton" class="flex-1 relative flex items-center justify-center bg-gray-50">
-        <div class="absolute inset-0 backdrop-blur-sm bg-white/30"></div>
-        <div class="relative z-10 text-center">
-          <q-btn
-            unelevated
-            color="primary"
-            size="lg"
-            label="Join Channel"
-            padding="12px 48px"
-            @click="handleJoinChannel"
-          />
+        <!-- Preview state (when not a member but viewing channel) -->
+        <div
+          v-else-if="showJoinButton"
+          class="flex-1 flex flex-col items-center justify-center relative bg-gray-50"
+        >
+          <div class="text-center">
+            <q-icon name="lock_open" size="64px" color="grey-5" class="q-mb-md" />
+            <p class="text-h6 text-grey-7 q-mb-sm">Public Channel Preview</p>
+            <p class="text-body2 text-grey-6 q-mb-lg">
+              Join this channel to participate
+            </p>
+            <q-btn
+              unelevated
+              color="primary"
+              size="lg"
+              label="Join Channel"
+              padding="12px 48px"
+              @click="handleJoinChannel"
+            />
+          </div>
         </div>
-      </div>
 
-      <!-- Empty state -->
-      <div v-else class="flex-1 flex flex-col items-center justify-center">
-        <div class="lg:hidden absolute top-4 left-4">
-          <q-btn
-            flat
-            round
-            dense
-            icon="menu"
-            color="grey-7"
-            @click="selectionStore.toggleSidebar()"
-          />
-        </div>
-        <div class="text-center">
-          <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
-          <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
-          <p class="text-body2 text-grey-6">Create a channel to start chatting</p>
+        <!-- Empty state (no channel selected) -->
+        <div
+          v-else
+          class="flex-1 flex flex-col items-center justify-center relative"
+        >
+          <div class="lg:hidden absolute top-4 left-4">
+            <q-btn
+              flat
+              round
+              dense
+              icon="menu"
+              color="grey-7"
+              @click="selectionStore.toggleSidebar()"
+            />
+          </div>
+
+          <div class="text-center">
+            <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
+            <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
+            <p class="text-body2 text-grey-6">
+              Create a channel to start chatting
+            </p>
+          </div>
         </div>
       </div>
     </template>
-
-    <!-- Floating Message Input (persistent across all views) -->
-    <div v-if="selectionStore.selectedChannelId && !showJoinButton" class="floating-input-container">
-      <MessageInput
-        @send="handleSendMessage"
-        @attach="handleAttach"
-        @emoji="handleEmoji"
-      />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import MessageList from '@/components/chat/MessageList.vue'
-import MessageInput from '@/components/chat/MessageInput.vue'
 import ChannelHeaderContainer from './ChannelHeaderContainer.vue'
 import InvitationsView from '@/components/invitations/InvitationsView.vue'
 import { useSelectionStore } from '@/stores/selection-store'
@@ -98,6 +104,7 @@ watch(
       const isMember = channelStore.channels.some((c) => c.id === newChannelId)
 
       if (isMember) {
+        // User is a member - fetch full details and messages
         messageStore.setCurrentChannel(newChannelId)
         await channelStore.fetchChannelDetails(newChannelId)
         await messageStore.fetchMessages(newChannelId, 1)
@@ -106,14 +113,36 @@ watch(
           messageListRef.value?.scrollToBottom()
         }, 300)
       } else {
+        // Not a member - could be preview mode for public channel
         messageStore.setCurrentChannel(null)
+        // Fetch channel details for preview (will show join button if public)
         await channelStore.fetchChannelDetails(newChannelId)
       }
+
+      setTimeout(() => {
+        messageListRef.value?.newChat()
+      }, 300)
     } else {
       messageStore.setCurrentChannel(null)
+      selectionStore.infoPanelOpen = false
     }
   }
 )
+
+// Close info panel when switching to invitations view
+watch(
+  () => selectionStore.showInvitations,
+  (showInvitations) => {
+    if (showInvitations) {
+      selectionStore.infoPanelOpen = false
+    }
+  }
+)
+
+// Close info panel when component is unmounted (e.g., navigating to settings)
+onUnmounted(() => {
+  selectionStore.infoPanelOpen = false
+})
 
 const loadMoreMessages = async (done: (stop?: boolean) => void) => {
   if (!selectionStore.selectedChannelId) {
@@ -140,11 +169,6 @@ const loadMoreMessages = async (done: (stop?: boolean) => void) => {
   done(!(result && result.hasMore))
 }
 
-const handleSendMessage = async (message: string) => {
-  if (!selectionStore.selectedChannelId) return
-  await messageStore.sendMessage(selectionStore.selectedChannelId, message)
-}
-
 const handleUserClick = (userNameOrId: string | number) => {
   if (typeof userNameOrId === 'number') {
     selectionStore.selectUser(userNameOrId)
@@ -158,11 +182,6 @@ const handleUserClick = (userNameOrId: string | number) => {
   }
 }
 
-const handleAttach = () => {
-}
-
-const handleEmoji = () => {
-}
 
 const handleJoinChannel = async () => {
   if (!selectionStore.selectedChannelId) return
@@ -182,14 +201,3 @@ const handleJoinChannel = async () => {
   }
 }
 </script>
-
-<style scoped>
-.floating-input-container {
-  position: sticky;
-  bottom: 0;
-  z-index: 50;
-  background: white;
-  border-top: 1px solid #e5e7eb;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-}
-</style>

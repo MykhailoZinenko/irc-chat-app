@@ -35,8 +35,6 @@ const messageStore = useMessageStore()
 const authStore = useAuthStore()
 
 const formattedChats = computed(() => {
-  const _ = messageStore.messagesVersion
-
   return channelStore.channels.map((channel) => {
     const avatar = channel.type === 'public' ? '📢' : '🔒'
 
