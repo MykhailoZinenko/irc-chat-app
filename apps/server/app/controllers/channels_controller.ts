@@ -387,7 +387,9 @@ export default class ChannelsController {
       message: 'Joined channel successfully',
     })
   }
+  async joinByName(){
 
+  }
   /**
    * Leave channel
    */
