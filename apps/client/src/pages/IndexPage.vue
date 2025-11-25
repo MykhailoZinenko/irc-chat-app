@@ -94,7 +94,6 @@ const handleLeaveChannel = async () => {
   const leavingChannelId = selectionStore.selectedChannelId
   const result = await channelStore.leaveChannel(leavingChannelId)
   if (result.success) {
-    selectionStore.infoPanelOpen = false
     channelEvents.unsubscribeFromChannel(leavingChannelId)
     selectionStore.clearSelection()
     await channelStore.fetchChannels()

@@ -50,14 +50,12 @@ const availableCommands = computed(() => {
   return getChatCommands(channel.type, channel.role === 'admin')
 })
 
-// Check if sidebar exists and is visible
 const hasSidebar = computed(() => {
-  // On mobile, sidebar might be hidden
-  // On desktop (1024px+), sidebar is always visible if channels exist
-  return channelStore.channels.length > 0
+  // Sidebar is always visible on desktop, even with 0 channels (shows empty state)
+  // If you have logic to hide sidebar on mobile, add that check here
+  return true
 })
 
-// Check if info panel exists and is open
 const hasInfoPanel = computed(() => {
   return selectionStore.infoPanelOpen && !!currentChannel.value
 })
@@ -68,6 +66,27 @@ const handleMessage = (msg: string) => {
 
 const handleCommand = (cmd: CommandType, arg: string) => {
   console.log('Sending command:', cmd, 'with args:', arg);
+  switch(cmd){
+    case 'cancel':
+      void handleCancel();
+  }
+}
+
+const handleCancel = async () => {
+  if (!selectionStore.selectedChannelId) return
+  const leavingChannelId = selectionStore.selectedChannelId
+  const result = await channelStore.leaveChannel(leavingChannelId)
+  if (result.success) {
+    selectionStore.infoPanelOpen = false
+    selectionStore.clearSelection()
+    await channelStore.fetchChannels()
+    if (channelStore.channels.length > 0) {
+      const firstChannel = channelStore.channels[0]
+      if (firstChannel) {
+        selectionStore.selectChannel(firstChannel.id)
+      }
+    }
+  }
 }
 </script>
 
@@ -89,8 +108,10 @@ const handleCommand = (cmd: CommandType, arg: string) => {
   border-radius: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  margin: 12px;
+  margin: 12px auto;
   max-width: 900px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Mobile - full width with margin */
@@ -100,7 +121,7 @@ const handleCommand = (cmd: CommandType, arg: string) => {
     right: 0;
   }
   
-  /* When empty and centered, center the input */
+  /* When empty and centered, keep same constraints */
   .console-input-bar.is-empty {
     left: 50%;
     right: auto;
@@ -109,7 +130,8 @@ const handleCommand = (cmd: CommandType, arg: string) => {
   }
   
   .console-input-bar.is-empty .console-wrapper {
-    max-width: 600px;
+    margin: 12px 0;
+    max-width: 900px;
   }
 }
 
@@ -120,18 +142,11 @@ const handleCommand = (cmd: CommandType, arg: string) => {
     right: 0;
   }
   
-  /* When empty (no channel selected), center it */
-  .console-input-bar.is-empty {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    width: auto;
-  }
-  
+  /* When empty, keep same max-width as normal state */
   .console-input-bar.is-empty .console-wrapper {
-    max-width: 600px;
-    margin-left: 12px;
-    margin-right: 12px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -141,10 +156,9 @@ const handleCommand = (cmd: CommandType, arg: string) => {
     left: 320px;
   }
   
-  /* Empty state with sidebar - shift center to the right */
+  /* Empty state with sidebar - bar still spans full space, wrapper shrinks */
   .console-input-bar.is-empty.has-sidebar {
-    left: calc(320px + 50%);
-    transform: translateX(-50%);
+    left: 320px;
   }
 }
 
@@ -154,49 +168,17 @@ const handleCommand = (cmd: CommandType, arg: string) => {
     right: 332px; /* 320px panel + 12px margin */
   }
   
-  /* Empty state with info panel (no sidebar) */
-  .console-input-bar.is-empty.has-info-panel:not(.has-sidebar) {
-    left: 50%;
-    right: auto;
-    transform: translateX(calc(-50% - 160px));
-  }
-  
-  /* Empty state with both sidebar AND info panel */
-  .console-input-bar.is-empty.has-sidebar.has-info-panel {
-    /* Center between 320px (left) and calc(100% - 320px) (right) */
-    left: 320px;
-    right: auto;
-    width: calc(100vw - 640px);
-    transform: none;
-  }
-  
-  .console-input-bar.is-empty.has-sidebar.has-info-panel .console-wrapper {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 600px;
+  /* Info panel applies to empty state too */
+  .console-input-bar.is-empty.has-info-panel {
+    right: 332px;
   }
 }
 
-/* Normal state with both panels - center the wrapper when maxed out */
+/* Normal state - center the wrapper when it hits max-width */
 @media (min-width: 1024px) {
-  .console-input-bar.has-sidebar:not(.is-empty):not(.has-info-panel) .console-wrapper {
-    /* When right edge is free, center wrapper when it hits max-width */
+  .console-input-bar:not(.is-empty) .console-wrapper {
     margin-left: auto;
     margin-right: auto;
   }
-}
-
-@media (min-width: 1280px) {
-  .console-input-bar.has-sidebar.has-info-panel:not(.is-empty) .console-wrapper {
-    /* With both panels, center wrapper when it hits max-width */
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-/* Ensure console wrapper never exceeds max width */
-.console-wrapper {
-  width: 100%;
-  box-sizing: border-box;
 }
 </style>

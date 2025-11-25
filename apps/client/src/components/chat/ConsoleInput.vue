@@ -13,9 +13,9 @@
         no-focus
         transition-show="jump-down"
         transition-hide="jump-up"
-        :offset="[0, 20]"
+        :offset="[0, 8]"
       >
-        <q-list dense style="min-width: 200px; max-height: 250px; padding: 8px;">
+        <q-list dense style="min-width: 200px; max-height: 250px; padding: 4px;">
           <q-item
             v-for="(item, index) in suggestions"
             :key="item.type + '-' + item.value"

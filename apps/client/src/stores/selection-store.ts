@@ -49,6 +49,7 @@ export const useSelectionStore = defineStore('selection', () => {
     selectedUserId.value = null
     showInvitations.value = false
     previewChannel.value = null
+    useSelectionStore().showInvitations = false
   }
 
   const toggleSidebar = () => {
