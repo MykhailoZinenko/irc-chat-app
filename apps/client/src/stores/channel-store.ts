@@ -174,6 +174,30 @@ export const useChannelStore = defineStore('channel', () => {
     }
   };
 
+  const joinByName = async (name: string) => {
+    try {
+      const response = await api.post<{ success: boolean; message: string }>(
+        `/api/channels/join-by-name`, {name}
+      );
+      if (response.data.success) {
+        await fetchChannels();
+        Notify.create({
+          type: 'positive',
+          message: response.data.message,
+        });
+        return { success: true };
+      }
+      return { success: false };
+    } catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to join channel',
+      });
+      return { success: false };
+    }
+  };
+
+
   const createChannel = async (data: CreateChannelData) => {
     try {
       const response = await api.post<{ success: boolean; data: { channel: any } }>(
@@ -253,6 +277,7 @@ export const useChannelStore = defineStore('channel', () => {
     fetchChannelDetails,
     createChannel,
     joinChannel,
+    joinByName,
     leaveChannel,
     deleteChannel,
     updateMemberCount,

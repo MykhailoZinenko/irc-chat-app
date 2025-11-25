@@ -70,6 +70,7 @@ router
     router.put(':id', [ChannelsController, 'update'])
     router.delete(':id', [ChannelsController, 'destroy'])
     router.post(':id/join', [ChannelsController, 'join'])
+    router.post('join-by-name', [ChannelsController, 'joinByName'])
     router.post(':id/leave', [ChannelsController, 'leave'])
     router.post(':id/invite', [ChannelsController, 'invite'])
     router.post('invitations/:invitationId/accept', [ChannelsController, 'acceptInvitation'])

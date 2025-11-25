@@ -387,8 +387,45 @@ export default class ChannelsController {
       message: 'Joined channel successfully',
     })
   }
-  async joinByName(){
+  /**
+   * Join public channel by name or create new one if doesn't exist
+   */
+  async joinByName({ auth, params, request, response }: HttpContext) {
+    const { name } = request.body()
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return response.status(400).json({
+        success: false,
+        message: 'Channel name is required',
+      })
+    }
 
+    const channelName = name.trim()
+    const channel = await Channel.query().where('name', channelName).first()
+
+    // If channel doesn't exist, create a new public channel
+    if (!channel) {
+      const mockRequest = {
+        ...request,
+        validateUsing: async () => ({
+          type: 'public' as const,
+          name: channelName,
+          description: undefined,
+        }),
+      }
+      return await this.create({
+        auth,
+        request: mockRequest,
+        response,
+      } as any)
+    }
+    // Else join/request to join an existing channel
+    const mockParams = { ...params, id: channel.id }
+    return await this.join({
+      auth,
+      params: mockParams,
+      request,
+      response,
+    } as any)
   }
   /**
    * Leave channel

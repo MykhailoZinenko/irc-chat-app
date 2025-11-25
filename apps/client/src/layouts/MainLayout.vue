@@ -72,9 +72,13 @@ const handleCommand = (cmd: CommandType, arg: string) => {
   switch(cmd){
     case 'cancel':
       void handleCancel();
+    case 'join':
+      void handleJoin(arg);
   }
 }
-
+const handleJoin = async (name: string) => {
+  const result = await channelStore.joinByName(name);
+}
 const handleCancel = async () => {
   if (!selectionStore.selectedChannelId) return
   const leavingChannelId = selectionStore.selectedChannelId
