@@ -13,7 +13,7 @@
           </div>
         </template>
         
-        <div class="messages-wrapper p-3 sm:p-4 md:p-6">
+        <div class="messages-wrapper p-3 sm:p-4 md:p-6 pb-24">
           <!-- End of messages indicator -->
           <div v-if="noMoreMessages && messages.length > 0" class="text-center py-2 text-gray-500 text-sm">
             Beginning of conversation

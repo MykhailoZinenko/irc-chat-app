@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { type ChatPreview } from 'src/types/chat'
 import { ref } from 'vue'
 
 /**
@@ -13,9 +14,9 @@ export const useSelectionStore = defineStore('selection', () => {
   const infoPanelOpen = ref(false)
 
   // Store preview channel data for public channels not yet joined
-  const previewChannel = ref<any>(null)
+  const previewChannel = ref<ChatPreview | null>(null)
 
-  const selectChannel = (channelId: number, preview?: any) => {
+  const selectChannel = (channelId: number, preview?: ChatPreview) => {
     console.log('[SelectionStore] Selecting channel:', channelId, preview ? '(preview)' : '')
     selectedChannelId.value = channelId
     selectedUserId.value = null

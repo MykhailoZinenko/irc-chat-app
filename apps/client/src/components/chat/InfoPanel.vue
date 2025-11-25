@@ -1,9 +1,10 @@
 <template>
   <div
+    v-if="isOpen"
     :class="[
       'fixed right-0 top-0 z-50 border-l border-gray-200 h-full transition-transform duration-300 w-80 sm:w-96',
-      'xl:relative xl:z-0 xl:w-80 xl:transition-[width,transform] xl:translate-x-0 xl:overflow-hidden',
-      isOpen ? 'translate-x-0 xl:w-80' : 'translate-x-full xl:w-0 xl:border-l-0'
+      'xl:relative xl:z-0 xl:w-80 xl:transition-[width] xl:overflow-hidden',
+      'translate-x-0'
     ]"
   >
     <div class="flex flex-col h-full bg-white">
@@ -18,7 +19,7 @@
           dense
           icon="close"
           color="grey-7"
-          @click="$emit('close')"
+          @click="handleClose"
         />
       </div>
 
@@ -188,11 +189,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
   userClick: [userId: number]
   leave: []
 }>()
+
+const handleClose = () => {
+  emit('close')
+}
 
 const getInitials = (name: string) => {
   if (!name) return '?'
@@ -226,7 +231,6 @@ const statusText = computed(() => {
   if (props.chat.type === 'channel') return `${props.chat.memberCount || 0} members`
   return ''
 })
-
 </script>
 
 <style scoped>

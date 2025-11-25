@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
+import { type UserRole, type ChannelType } from 'src/types/chat';
 
 export interface ChannelMember {
   id: number;
@@ -9,17 +10,17 @@ export interface ChannelMember {
   firstName: string | null;
   lastName: string | null;
   email: string;
-  role: 'member' | 'admin';
+  role: UserRole;
   joinedAt: string;
 }
 
 export interface Channel {
   id: number;
-  type: 'private' | 'public';
+  type: ChannelType;
   name: string;
   description: string | null;
   createdBy: number;
-  role: 'member' | 'admin';
+  role: UserRole;
   joinedAt: string;
   lastActivityAt: string | null;
   memberCount?: number;
@@ -27,7 +28,7 @@ export interface Channel {
 
 export interface ChannelDetails {
   id: number;
-  type: 'private' | 'public';
+  type: ChannelType;
   name: string;
   description: string | null;
   createdBy: number;
@@ -38,11 +39,11 @@ export interface ChannelDetails {
     firstName: string | null;
     lastName: string | null;
   };
-  userRole?: 'member' | 'admin' | undefined;
+  userRole?: UserRole | undefined;
 }
 
 interface CreateChannelData {
-  type: 'private' | 'public';
+  type: ChannelType;
   name: string;
   description?: string;
 }

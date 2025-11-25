@@ -2,32 +2,35 @@
   <q-page class="index-page">
     <div class="flex h-screen bg-gray-50 overflow-hidden">
       <ChannelSidebarContainer />
-
       <div
         v-if="selectionStore.sidebarOpen"
         class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
         @click="selectionStore.sidebarOpen = false"
       />
-
-      <UserProfile
-        v-if="selectionStore.selectedUserId"
-        :userId="selectionStore.selectedUserId"
-        @back="selectionStore.selectedUserId = null"
-      />
-      <ChatViewContainer v-else />
-
+      <div class="flex flex-col flex-1 min-w-0 relative">
+        <div class="flex-1 min-h-0 flex flex-col">
+          <UserProfile
+            v-if="selectionStore.selectedUserId"
+            :userId="selectionStore.selectedUserId"
+            class="flex-1"
+            @back="selectionStore.selectedUserId = null"
+          />
+          <ChatViewContainer v-else />
+        </div>
+      </div>
+      <!-- Info Panel Overlay - only on mobile/tablet (xl breakpoint) -->
       <div
-        v-show="selectionStore.infoPanelOpen"
+        v-if="selectionStore.infoPanelOpen"
         class="xl:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-        @click="selectionStore.infoPanelOpen = false"
+        @click="handleCloseInfoPanel"
       />
-
+      <!-- Info Panel -->
       <InfoPanel
         v-if="currentChannel && !selectionStore.selectedUserId && currentChatData"
         :chat="currentChatData"
         :is-open="selectionStore.infoPanelOpen"
         :members="channelStore.currentChannelMembers"
-        @close="selectionStore.infoPanelOpen = false"
+        @close="handleCloseInfoPanel"
         @user-click="handleUserClick"
         @leave="handleLeaveChannel"
       />
@@ -64,10 +67,8 @@ const currentChannel = computed(() => {
 
 const currentChatData = computed(() => {
   if (!currentChannel.value) return null
-
   const channel = currentChannel.value
   const avatar = channel.type === 'public' ? '📢' : '🔒'
-
   return {
     id: channel.id,
     name: channel.name,
@@ -79,6 +80,10 @@ const currentChatData = computed(() => {
   }
 })
 
+const handleCloseInfoPanel = () => {
+  selectionStore.infoPanelOpen = false
+}
+
 const handleUserClick = (userId: number) => {
   selectionStore.selectUser(userId)
   selectionStore.infoPanelOpen = false
@@ -86,17 +91,13 @@ const handleUserClick = (userId: number) => {
 
 const handleLeaveChannel = async () => {
   if (!selectionStore.selectedChannelId) return
-
   const leavingChannelId = selectionStore.selectedChannelId
   const result = await channelStore.leaveChannel(leavingChannelId)
-
   if (result.success) {
     selectionStore.infoPanelOpen = false
     channelEvents.unsubscribeFromChannel(leavingChannelId)
     selectionStore.clearSelection()
-
     await channelStore.fetchChannels()
-
     if (channelStore.channels.length > 0) {
       const firstChannel = channelStore.channels[0]
       if (firstChannel) {
@@ -108,7 +109,6 @@ const handleLeaveChannel = async () => {
 
 onMounted(async () => {
   await channelStore.fetchChannels()
-
   if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
     const firstChannel = channelStore.channels[0]
     if (firstChannel) {
@@ -122,15 +122,12 @@ onMounted(async () => {
 .index-page {
   padding: 0;
 }
-
 .bg-gray-50 {
   background-color: #f9fafb;
 }
-
 .bg-black {
   background-color: black;
 }
-
 .bg-opacity-50 {
   opacity: 0.5;
 }

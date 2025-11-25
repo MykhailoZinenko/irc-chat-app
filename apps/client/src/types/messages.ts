@@ -13,3 +13,4 @@ export interface IMessage {
   read: boolean
   reactions?: IReaction[]
 }
+

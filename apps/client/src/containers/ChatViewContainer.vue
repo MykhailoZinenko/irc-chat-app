@@ -11,17 +11,45 @@
       <!-- Header -->
       <ChannelHeaderContainer />
 
-      <!-- Messages -->
-      <MessageList
-        v-if="selectionStore.selectedChannelId"
-        ref="messageListRef"
-        :messages="displayedMessages"
-        @load-more="loadMoreMessages"
-        @user-click="handleUserClick"
-      />
+      <!-- Main content: messages OR empty state -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <!-- Messages -->
+        <MessageList
+          v-if="selectionStore.selectedChannelId"
+          ref="messageListRef"
+          :messages="displayedMessages"
+          @load-more="loadMoreMessages"
+          @user-click="handleUserClick"
+        />
+
+        <!-- Empty state -->
+        <div
+          v-else
+          class="flex-1 flex flex-col items-center justify-center relative"
+        >
+          <div class="lg:hidden absolute top-4 left-4">
+            <q-btn
+              flat
+              round
+              dense
+              icon="menu"
+              color="grey-7"
+              @click="selectionStore.toggleSidebar()"
+            />
+          </div>
+
+          <div class="text-center">
+            <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
+            <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
+            <p class="text-body2 text-grey-6">
+              Create a channel to start chatting
+            </p>
+          </div>
+        </div>
+      </div>
 
       <!-- Join button for non-member public channels -->
-      <div v-if="showJoinButton" class="p-4 border-t border-gray-200">
+      <div v-if="showJoinButton" class="border-t border-gray-200 p-4">
         <q-btn
           unelevated
           color="primary"
@@ -31,41 +59,13 @@
           @click="handleJoinChannel"
         />
       </div>
-
-      <!-- Message input for members -->
-      <MessageInput
-        v-else-if="selectionStore.selectedChannelId"
-        @send="handleSendMessage"
-        @attach="handleAttach"
-        @emoji="handleEmoji"
-      />
-
-      <!-- Empty state -->
-      <div v-else class="flex-1 flex flex-col items-center justify-center">
-        <div class="lg:hidden absolute top-4 left-4">
-          <q-btn
-            flat
-            round
-            dense
-            icon="menu"
-            color="grey-7"
-            @click="selectionStore.toggleSidebar()"
-          />
-        </div>
-        <div class="text-center">
-          <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
-          <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
-          <p class="text-body2 text-grey-6">Create a channel to start chatting</p>
-        </div>
-      </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import MessageList from '@/components/chat/MessageList.vue'
-import MessageInput from '@/components/chat/MessageInput.vue'
 import ChannelHeaderContainer from './ChannelHeaderContainer.vue'
 import InvitationsView from '@/components/invitations/InvitationsView.vue'
 import { useSelectionStore } from '@/stores/selection-store'
@@ -88,11 +88,14 @@ const displayedMessages = computed(() => {
   return allMessages.value.slice(start)
 })
 
-const showJoinButton = computed(() => {
-  if (!selectionStore.selectedChannelId) return false
+const currentChannel = computed(() => {
+  if (!selectionStore.selectedChannelId) return undefined
+  return channelStore.channels.find((c) => c.id === selectionStore.selectedChannelId)
+})
 
-  const isMember = channelStore.channels.some((c) => c.id === selectionStore.selectedChannelId)
-  if (isMember) return false
+const showJoinButton = computed(() => {
+  const isMember = currentChannel;
+  if (isMember.value) return false
 
   return (
     selectionStore.previewChannel && selectionStore.previewChannel.type === 'public'
@@ -125,10 +128,28 @@ watch(
 
       loadedCount.value = MESSAGES_PER_LOAD
       messageListRef.value?.newChat()
+    } else {
+      // When no channel is selected, close info panel
+      selectionStore.infoPanelOpen = false
     }
   },
   { immediate: true }
 )
+
+// Close info panel when switching to invitations view
+watch(
+  () => selectionStore.showInvitations,
+  (showInvitations) => {
+    if (showInvitations) {
+      selectionStore.infoPanelOpen = false
+    }
+  }
+)
+
+// Close info panel when component is unmounted (e.g., navigating to settings)
+onUnmounted(() => {
+  selectionStore.infoPanelOpen = false
+})
 
 const loadMoreMessages = (done: (stop?: boolean) => void) => {
   setTimeout(() => {
@@ -139,10 +160,6 @@ const loadMoreMessages = (done: (stop?: boolean) => void) => {
       done()
     }
   }, 400)
-}
-
-const handleSendMessage = (message: string) => {
-  console.log('Send message:', message)
 }
 
 const handleUserClick = (userNameOrId: string | number) => {
@@ -159,14 +176,6 @@ const handleUserClick = (userNameOrId: string | number) => {
       selectionStore.selectUser(member.id)
     }
   }
-}
-
-const handleAttach = () => {
-  console.log('Attach file')
-}
-
-const handleEmoji = () => {
-  console.log('Open emoji picker')
 }
 
 const handleJoinChannel = async () => {
