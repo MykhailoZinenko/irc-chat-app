@@ -132,19 +132,6 @@ export default class ChannelsController {
       data: params,
     })
 
-    const participant = await ChannelParticipant.query()
-      .where('channel_id', channelId)
-      .where('user_id', user.id)
-      .whereNull('left_at')
-      .first()
-
-    if (!participant) {
-      return response.status(403).json({
-        success: false,
-        message: 'You are not a member of this channel',
-      })
-    }
-
     const channel = await Channel.query()
       .where('id', channelId)
       .preload('creator')
@@ -152,6 +139,19 @@ export default class ChannelsController {
         query.whereNull('left_at').preload('user')
       })
       .firstOrFail()
+
+    const participant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .where('user_id', user.id)
+      .whereNull('left_at')
+      .first()
+
+    if (!participant && channel.type === 'private') {
+      return response.status(403).json({
+        success: false,
+        message: 'You are not a member of this channel',
+      })
+    }
 
     const members = channel.participants.map((p) => ({
       id: p.user.id,
@@ -175,7 +175,7 @@ export default class ChannelsController {
           creator: channel.creator,
           memberCount: members.length,
         },
-        userRole: participant.role,
+        userRole: participant?.role || null,
         members,
       },
     })
@@ -345,8 +345,13 @@ export default class ChannelsController {
       .whereNull('left_at')
       .first()
 
-    // Broadcast member joined event to channel
-    transmit.broadcast(`channels/${channelId}`, {
+    // Get all channel members to broadcast to their user channels
+    const channelMembers = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .whereNull('left_at')
+      .select('user_id')
+
+    const memberJoinedPayload = {
       type: 'member_joined',
       data: {
         channelId,
@@ -360,9 +365,14 @@ export default class ChannelsController {
         role: participant?.role || 'member',
         memberCount: memberCount[0].$extras.total,
       },
-    })
+    }
 
-    // Broadcast user_joined_channel to user's own channel (for profile watchers)
+    // Broadcast to all channel members' user channels
+    for (const member of channelMembers) {
+      transmit.broadcast(`users/${member.userId}`, memberJoinedPayload)
+    }
+
+    // Also broadcast user_joined_channel to the joining user
     transmit.broadcast(`users/${user.id}`, {
       type: 'user_joined_channel',
       data: {
@@ -420,16 +430,23 @@ export default class ChannelsController {
       remainingMembers.length === 0 ||
       (participant.role === 'admin' && remainingAdmins.length === 0)
     ) {
-      await channel.delete()
-
-      // Broadcast channel deleted event
-      transmit.broadcast(`channels/${channelId}`, {
+      const channelDeletedPayload = {
         type: 'channel_deleted',
         data: {
           channelId,
           reason: remainingMembers.length === 0 ? 'no_members' : 'no_admins',
         },
-      })
+      }
+
+      // Broadcast to all remaining members (if any) before deleting
+      for (const member of remainingMembers) {
+        transmit.broadcast(`users/${member.userId}`, channelDeletedPayload)
+      }
+
+      // Also notify the leaving user
+      transmit.broadcast(`users/${user.id}`, channelDeletedPayload)
+
+      await channel.delete()
 
       return response.json({
         success: true,
@@ -438,17 +455,21 @@ export default class ChannelsController {
       })
     }
 
-    // Broadcast member left event to channel
-    transmit.broadcast(`channels/${channelId}`, {
+    const memberLeftPayload = {
       type: 'member_left',
       data: {
         channelId,
         userId: user.id,
         memberCount: remainingMembers.length,
       },
-    })
+    }
 
-    // Broadcast user_left_channel to user's own channel (for profile watchers)
+    // Broadcast to all remaining channel members' user channels
+    for (const member of remainingMembers) {
+      transmit.broadcast(`users/${member.userId}`, memberLeftPayload)
+    }
+
+    // Broadcast user_left_channel to the leaving user
     transmit.broadcast(`users/${user.id}`, {
       type: 'user_left_channel',
       data: {
@@ -475,6 +496,13 @@ export default class ChannelsController {
     })
     const data = await request.validateUsing(inviteSchema)
 
+    if (data.userId === user.id) {
+      return response.status(422).json({
+        success: false,
+        message: 'You cannot invite yourself',
+      })
+    }
+
     const participant = await ChannelParticipant.query()
       .where('channel_id', channelId)
       .where('user_id', user.id)
@@ -490,7 +518,6 @@ export default class ChannelsController {
 
     const channel = await Channel.findOrFail(channelId)
 
-    // Only admins can invite users to any channel (both private and public)
     if (participant.role !== 'admin') {
       return response.status(403).json({
         success: false,
@@ -647,8 +674,13 @@ export default class ChannelsController {
       .whereNull('left_at')
       .first()
 
-    // Broadcast member_joined to channel members
-    transmit.broadcast(`channels/${invitation.channelId}`, {
+    // Get all channel members to broadcast to their user channels
+    const channelMembers = await ChannelParticipant.query()
+      .where('channel_id', invitation.channelId)
+      .whereNull('left_at')
+      .select('user_id')
+
+    const memberJoinedPayload = {
       type: 'member_joined',
       data: {
         channelId: invitation.channelId,
@@ -662,9 +694,14 @@ export default class ChannelsController {
         role: participant?.role || 'member',
         memberCount: memberCount[0].$extras.total,
       },
-    })
+    }
 
-    // Broadcast user_joined_channel to user's own channel (for profile watchers)
+    // Broadcast to all channel members' user channels
+    for (const member of channelMembers) {
+      transmit.broadcast(`users/${member.userId}`, memberJoinedPayload)
+    }
+
+    // Also broadcast user_joined_channel to the joining user
     transmit.broadcast(`users/${user.id}`, {
       type: 'user_joined_channel',
       data: {

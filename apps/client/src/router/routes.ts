@@ -25,6 +25,9 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', redirect: '/chat' },
       { path: 'chat', component: () => import('pages/IndexPage.vue') },
+      { path: 'chat/:id', component: () => import('pages/IndexPage.vue') },
+      { path: 'profile/:id', component: () => import('pages/IndexPage.vue') },
+      { path: 'invitations', component: () => import('pages/IndexPage.vue') },
       { path: 'settings', component: () => import('pages/SettingsPage.vue') },
     ],
   },

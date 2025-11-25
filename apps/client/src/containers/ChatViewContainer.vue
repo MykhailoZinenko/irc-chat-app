@@ -11,34 +11,29 @@
       <!-- Header -->
       <ChannelHeaderContainer />
 
-      <!-- Messages -->
+      <!-- Messages for members -->
       <MessageList
-        v-if="selectionStore.selectedChannelId"
+        v-if="selectionStore.selectedChannelId && !showJoinButton"
         ref="messageListRef"
         :messages="displayedMessages"
         @load-more="loadMoreMessages"
         @user-click="handleUserClick"
       />
 
-      <!-- Join button for non-member public channels -->
-      <div v-if="showJoinButton" class="p-4 border-t border-gray-200">
-        <q-btn
-          unelevated
-          color="primary"
-          class="full-width"
-          size="lg"
-          label="Join Channel"
-          @click="handleJoinChannel"
-        />
+      <!-- Preview overlay for non-members -->
+      <div v-else-if="showJoinButton" class="flex-1 relative flex items-center justify-center bg-gray-50">
+        <div class="absolute inset-0 backdrop-blur-sm bg-white/30"></div>
+        <div class="relative z-10 text-center">
+          <q-btn
+            unelevated
+            color="primary"
+            size="lg"
+            label="Join Channel"
+            padding="12px 48px"
+            @click="handleJoinChannel"
+          />
+        </div>
       </div>
-
-      <!-- Message input for members -->
-      <MessageInput
-        v-else-if="selectionStore.selectedChannelId"
-        @send="handleSendMessage"
-        @attach="handleAttach"
-        @emoji="handleEmoji"
-      />
 
       <!-- Empty state -->
       <div v-else class="flex-1 flex flex-col items-center justify-center">
@@ -59,6 +54,15 @@
         </div>
       </div>
     </template>
+
+    <!-- Floating Message Input (persistent across all views) -->
+    <div v-if="selectionStore.selectedChannelId && !showJoinButton" class="floating-input-container">
+      <MessageInput
+        @send="handleSendMessage"
+        @attach="handleAttach"
+        @emoji="handleEmoji"
+      />
+    </div>
   </div>
 </template>
 
@@ -70,88 +74,81 @@ import ChannelHeaderContainer from './ChannelHeaderContainer.vue'
 import InvitationsView from '@/components/invitations/InvitationsView.vue'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useChannelStore } from '@/stores/channel-store'
-import { useChannelEvents } from '@/composables/useChannelEvents'
+import { useMessageStore } from '@/stores/message-store'
 
 const selectionStore = useSelectionStore()
 const channelStore = useChannelStore()
-const channelEvents = useChannelEvents()
+const messageStore = useMessageStore()
 
 const messageListRef = ref<any>(null)
 
-// Mock messages data
-const MESSAGES_PER_LOAD = 15
-const loadedCount = ref(MESSAGES_PER_LOAD)
-const allMessages = ref<any[]>([])
-
 const displayedMessages = computed(() => {
-  const start = Math.max(0, allMessages.value.length - loadedCount.value)
-  return allMessages.value.slice(start)
+  return messageStore.currentMessages
 })
 
 const showJoinButton = computed(() => {
-  if (!selectionStore.selectedChannelId) return false
-
-  const isMember = channelStore.channels.some((c) => c.id === selectionStore.selectedChannelId)
-  if (isMember) return false
-
-  return (
-    selectionStore.previewChannel && selectionStore.previewChannel.type === 'public'
-  )
+  if (!channelStore.currentChannelDetails) return false
+  return channelStore.currentChannelDetails.userRole === null
 })
 
-// Subscribe to channel events when selection changes
 watch(
   () => selectionStore.selectedChannelId,
-  async (newChannelId, oldChannelId) => {
-    if (oldChannelId) {
-      channelEvents.unsubscribeFromChannel(oldChannelId)
-    }
-
+  async (newChannelId) => {
     if (newChannelId) {
       const isMember = channelStore.channels.some((c) => c.id === newChannelId)
 
       if (isMember) {
+        messageStore.setCurrentChannel(newChannelId)
         await channelStore.fetchChannelDetails(newChannelId)
+        await messageStore.fetchMessages(newChannelId, 1)
 
-        channelEvents.subscribeToChannel(newChannelId, {
-          onChannelDeleted: async (data) => {
-            if (selectionStore.selectedChannelId === data.channelId) {
-              selectionStore.clearSelection()
-              await channelStore.fetchChannels()
-            }
-          },
-        })
+        setTimeout(() => {
+          messageListRef.value?.scrollToBottom()
+        }, 300)
+      } else {
+        messageStore.setCurrentChannel(null)
+        await channelStore.fetchChannelDetails(newChannelId)
       }
-
-      loadedCount.value = MESSAGES_PER_LOAD
-      messageListRef.value?.newChat()
+    } else {
+      messageStore.setCurrentChannel(null)
     }
-  },
-  { immediate: true }
+  }
 )
 
-const loadMoreMessages = (done: (stop?: boolean) => void) => {
-  setTimeout(() => {
-    loadedCount.value += MESSAGES_PER_LOAD
-    if (loadedCount.value >= allMessages.value.length) {
-      done(true)
-    } else {
-      done()
-    }
-  }, 400)
+const loadMoreMessages = async (done: (stop?: boolean) => void) => {
+  if (!selectionStore.selectedChannelId) {
+    done(true)
+    return
+  }
+
+  const isMember = channelStore.channels.some((c) => c.id === selectionStore.selectedChannelId)
+  if (!isMember) {
+    done(true)
+    return
+  }
+
+  const currentMessages = messageStore.currentMessages
+
+  if (currentMessages.length > 0 && currentMessages.length % 50 !== 0) {
+    done(true)
+    return
+  }
+
+  const nextPage = Math.floor(currentMessages.length / 50) + 1
+  const result = await messageStore.fetchMessages(selectionStore.selectedChannelId, nextPage)
+
+  done(!(result && result.hasMore))
 }
 
-const handleSendMessage = (message: string) => {
-  console.log('Send message:', message)
+const handleSendMessage = async (message: string) => {
+  if (!selectionStore.selectedChannelId) return
+  await messageStore.sendMessage(selectionStore.selectedChannelId, message)
 }
 
 const handleUserClick = (userNameOrId: string | number) => {
-  // TODO: When messages include userId, use that instead of userName
-  // For now, we need to look up the user by name from members
   if (typeof userNameOrId === 'number') {
     selectionStore.selectUser(userNameOrId)
   } else {
-    // Find user by name in current channel members
     const member = channelStore.currentChannelMembers.find(
       (m) => m.nickName === userNameOrId || `${m.firstName} ${m.lastName}` === userNameOrId
     )
@@ -162,11 +159,9 @@ const handleUserClick = (userNameOrId: string | number) => {
 }
 
 const handleAttach = () => {
-  console.log('Attach file')
 }
 
 const handleEmoji = () => {
-  console.log('Open emoji picker')
 }
 
 const handleJoinChannel = async () => {
@@ -178,14 +173,23 @@ const handleJoinChannel = async () => {
     await channelStore.fetchChannels()
     await channelStore.fetchChannelDetails(channelId)
 
-    channelEvents.subscribeToChannel(channelId, {
-      onChannelDeleted: async (data) => {
-        if (selectionStore.selectedChannelId === data.channelId) {
-          selectionStore.clearSelection()
-          await channelStore.fetchChannels()
-        }
-      },
-    })
+    messageStore.setCurrentChannel(channelId)
+    await messageStore.fetchMessages(channelId, 1)
+
+    setTimeout(() => {
+      messageListRef.value?.scrollToBottom()
+    }, 300)
   }
 }
 </script>
+
+<style scoped>
+.floating-input-container {
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+</style>

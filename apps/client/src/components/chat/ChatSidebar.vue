@@ -255,7 +255,6 @@ const selectResult = (result: SearchResult) => {
   if (result.resultType === 'user') {
     emit('select-user', result.id)
   } else {
-    // For channels, select the chat
     emit('select-chat', result.id)
   }
   clearSearch()

@@ -19,21 +19,12 @@ const selectionStore = useSelectionStore()
 const currentChannel = computed(() => {
   if (!selectionStore.selectedChannelId) return null
 
-  // Try to find in user's channels first
   const memberChannel = channelStore.channels.find(
     (c) => c.id === selectionStore.selectedChannelId
   )
   if (memberChannel) return memberChannel
 
-  // Fall back to preview channel
-  if (
-    selectionStore.previewChannel &&
-    selectionStore.previewChannel.id === selectionStore.selectedChannelId
-  ) {
-    return selectionStore.previewChannel
-  }
-
-  return null
+  return channelStore.currentChannelDetails
 })
 
 const chatData = computed(() => {

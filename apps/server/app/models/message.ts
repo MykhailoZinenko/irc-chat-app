@@ -1,8 +1,9 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Channel from './channel.js'
 import User from './user.js'
+import MessageRead from './message_read.js'
 
 export default class Message extends BaseModel {
   @column({ isPrimary: true })
@@ -56,4 +57,7 @@ export default class Message extends BaseModel {
     foreignKey: 'pinnedBy',
   })
   declare pinner: BelongsTo<typeof User>
+
+  @hasMany(() => MessageRead)
+  declare reads: HasMany<typeof MessageRead>
 }

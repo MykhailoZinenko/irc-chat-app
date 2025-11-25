@@ -33,6 +33,7 @@ router.get('api/test', async () => {
 const AuthController = () => import('#controllers/auth_controller')
 const UserController = () => import('#controllers/user_controller')
 const ChannelsController = () => import('#controllers/channels_controller')
+const MessagesController = () => import('#controllers/messages_controller')
 const SearchController = () => import('#controllers/search_controller')
 
 router
@@ -73,6 +74,10 @@ router
     router.post(':id/invite', [ChannelsController, 'invite'])
     router.post('invitations/:invitationId/accept', [ChannelsController, 'acceptInvitation'])
     router.post('invitations/:invitationId/decline', [ChannelsController, 'declineInvitation'])
+    router.post(':id/messages', [MessagesController, 'sendMessage'])
+    router.get(':id/messages', [MessagesController, 'getMessages'])
+    router.post('messages/:messageId/read', [MessagesController, 'markAsRead'])
+    router.post('messages/:messageId/delivered', [MessagesController, 'markAsDelivered'])
   })
   .prefix('api/channels')
   .use(middleware.auth())
