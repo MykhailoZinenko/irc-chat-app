@@ -59,7 +59,30 @@
       icon="sentiment_satisfied_alt"
       color="grey-6"
       class="emoji-btn"
-    />
+    >
+      <q-menu>
+        <q-card style="width: 300px; overflow: hidden;">
+          <q-card-section class="q-pa-md">
+            <div class="text-subtitle2 q-mb-sm text-grey-8">Emoji</div>
+            <div class="emoji-scroll-container">
+              <div class="emoji-grid">
+                <q-btn
+                  v-for="emoji in emojiList"
+                  :key="emoji"
+                  flat
+                  dense
+                  size="md"
+                  class="emoji-item"
+                  @click="insertEmoji(emoji)"
+                >
+                  {{ emoji }}
+                </q-btn>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-menu>
+    </q-btn>
 
     <!-- Send button -->
     <q-btn
@@ -96,6 +119,24 @@ const emit = defineEmits<{
 const onlyCommandMode = computed(() => props.onlyCommandMode ?? false)
 
 const inputMessage = ref('')
+
+// --- emoji picker ---
+const emojiList = [
+  '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂',
+  '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋',
+  '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩',
+  '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+  '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+  '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👏', '🙌',
+  '👐', '🤲', '🤝', '🙏', '✍️', '💪', '🦾', '🦿', '🦵', '🦶',
+  '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+  '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
+  '✨', '⭐', '🌟', '💫', '✅', '❌', '🔥', '💯', '🎉', '🎊'
+]
+
+const insertEmoji = (emoji: string) => {
+  inputMessage.value += emoji
+}
 
 // --- suggestion state ---
 const menuVisible = ref(false)
@@ -221,7 +262,6 @@ const handleSend = () => {
   const text = inputMessage.value.trim()
   if (!text) return
 
-  // 2. If starts with "/" → try to parse as command
   if (text.startsWith('/')) {
     const withoutSlash = text.slice(1)
     const [commandRaw, ...rest] = withoutSlash.split(' ')
@@ -322,5 +362,49 @@ const handleSend = () => {
 
 .message-input :deep(.q-field__native)::placeholder {
   color: #9ca3af;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0;
+}
+
+.emoji-scroll-container {
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+  margin-right: -8px;
+}
+
+.emoji-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.emoji-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.emoji-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.emoji-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.emoji-item {
+  font-size: 20px;
+  width: 100%;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+}
+
+.emoji-item:hover {
+  background: #f3f4f6;
 }
 </style>
