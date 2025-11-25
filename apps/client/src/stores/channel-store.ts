@@ -105,9 +105,13 @@ export const useChannelStore = defineStore('channel', () => {
       }
       return { success: false };
     } catch (error: any) {
-      // If 403, user is not a member - still return success but without userRole
+      // If 404, channel doesn't exist
+      if (error.response?.status === 404) {
+        return { success: false, notFound: true };
+      }
+      // If 403, user doesn't have access (private channel or not a member)
       if (error.response?.status === 403) {
-        return { success: false, notMember: true };
+        return { success: false, forbidden: true };
       }
       Notify.create({
         type: 'negative',

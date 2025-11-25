@@ -29,6 +29,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'profile/:id', component: () => import('pages/IndexPage.vue') },
       { path: 'invitations', component: () => import('pages/IndexPage.vue') },
       { path: 'settings', component: () => import('pages/SettingsPage.vue') },
+      { path: '404', component: () => import('pages/ErrorNotFound.vue') },
     ],
   },
   {

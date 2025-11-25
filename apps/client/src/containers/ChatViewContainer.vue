@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MessageList from '@/components/chat/MessageList.vue'
 import ChannelHeaderContainer from './ChannelHeaderContainer.vue'
 import InvitationsView from '@/components/invitations/InvitationsView.vue'
@@ -82,6 +83,7 @@ import { useSelectionStore } from '@/stores/selection-store'
 import { useChannelStore } from '@/stores/channel-store'
 import { useMessageStore } from '@/stores/message-store'
 
+const router = useRouter()
 const selectionStore = useSelectionStore()
 const channelStore = useChannelStore()
 const messageStore = useMessageStore()
@@ -106,7 +108,15 @@ watch(
       if (isMember) {
         // User is a member - fetch full details and messages
         messageStore.setCurrentChannel(newChannelId)
-        await channelStore.fetchChannelDetails(newChannelId)
+        const result = await channelStore.fetchChannelDetails(newChannelId)
+
+        // Check if channel not found or forbidden
+        if (result && (result.notFound || result.forbidden)) {
+          selectionStore.clearSelection()
+          void router.push('/404')
+          return
+        }
+
         await messageStore.fetchMessages(newChannelId, 1)
 
         setTimeout(() => {
@@ -116,7 +126,14 @@ watch(
         // Not a member - could be preview mode for public channel
         messageStore.setCurrentChannel(null)
         // Fetch channel details for preview (will show join button if public)
-        await channelStore.fetchChannelDetails(newChannelId)
+        const result = await channelStore.fetchChannelDetails(newChannelId)
+
+        // Check if channel not found or forbidden
+        if (result && (result.notFound || result.forbidden)) {
+          selectionStore.clearSelection()
+          void router.push('/404')
+          return
+        }
       }
 
       setTimeout(() => {

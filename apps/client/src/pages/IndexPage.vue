@@ -217,6 +217,11 @@ onUnmounted(() => {
 watch(
   () => route.path,
   (path) => {
+    // Don't handle 404 or settings routes
+    if (path === '/404' || path === '/settings') {
+      return
+    }
+
     if (path.startsWith('/chat/')) {
       const channelId = parseInt(route.params.id as string)
       if (!isNaN(channelId) && selectionStore.selectedChannelId !== channelId) {
