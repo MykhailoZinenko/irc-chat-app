@@ -2,51 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
-import { type UserRole, type ChannelType } from 'src/types/chat';
-
-export interface ChannelMember {
-  id: number;
-  nickName: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string;
-  role: UserRole;
-  joinedAt: string;
-}
-
-export interface Channel {
-  id: number;
-  type: ChannelType;
-  name: string;
-  description: string | null;
-  createdBy: number;
-  role: UserRole;
-  joinedAt: string;
-  lastActivityAt: string | null;
-  memberCount?: number;
-}
-
-export interface ChannelDetails {
-  id: number;
-  type: ChannelType;
-  name: string;
-  description: string | null;
-  createdBy: number;
-  memberCount: number;
-  creator: {
-    id: number;
-    nickName: string;
-    firstName: string | null;
-    lastName: string | null;
-  };
-  userRole?: UserRole | undefined;
-}
-
-interface CreateChannelData {
-  type: ChannelType;
-  name: string;
-  description?: string;
-}
+import { type ChannelDetails, type Channel, type ChannelMember, type CreateChannelData } from 'src/types/chat';
 
 export const useChannelStore = defineStore('channel', () => {
   const channels = ref<Channel[]>([]);
@@ -285,3 +241,5 @@ export const useChannelStore = defineStore('channel', () => {
     removeMember,
   };
 });
+export { ChannelMember };
+

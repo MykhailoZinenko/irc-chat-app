@@ -99,7 +99,8 @@
 </template>
 
 <script setup lang="ts">
-import { type CommandType, isCommandType, type CommandItem, type MemberItem } from 'src/types/commands';
+import { MemberItem } from 'src/types/chat';
+import { type CommandType, isCommandType, type CommandItem } from 'src/types/commands';
 import { computed, ref, watch } from 'vue'
 
 type Suggestion =
@@ -276,7 +277,7 @@ const handleSend = () => {
     const [commandRaw, ...rest] = withoutSlash.split(' ')
     const command = commandRaw?.toLowerCase() ?? '';
 
-    if (isCommandType(command)) {
+    if (isCommandType(command) && props.commands?.some((commandSuggestion)=> commandSuggestion.name === command)) {
       const args = rest.join(' ').trim()
       emit('command',command, args)
     } else {

@@ -15,11 +15,7 @@
         <ConsoleInput
           :onlyCommandMode="!selectionStore.selectedChannelId"
           :placeholder="selectionStore.selectedChannelId ? 'Message' : 'Command'"
-          :members="
-            selectionStore.selectedChannelId
-              ? [{ name: 'Lena Golovach', username: 'golovach_lena', id: 1234 }]
-              : []
-          "
+          :members="availableMembers"
           :commands="availableCommands"
           @command="handleCommand"
           @send="handleMessage"
@@ -31,25 +27,30 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useChannelStore } from '@/stores/channel-store'
+import { ChannelMember, useChannelStore } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useMessageStore } from '@/stores/message-store'
 import { getChatCommands, getMenuCommands, type CommandType } from '@/types/commands'
 import ConsoleInput from '@/components/chat/ConsoleInput.vue'
+import { useCurrentChannel } from 'src/composables/useCurrentChannel'
+import { useAuthStore } from 'src/stores/auth-store'
+import { memberToSuggestion } from 'src/types/chat'
 
 const channelStore = useChannelStore()
+const authStore = useAuthStore()
 const selectionStore = useSelectionStore()
 const messageStore = useMessageStore()
-
-const currentChannel = computed(() => {
-  if (!selectionStore.selectedChannelId) return null
-  return channelStore.channels.find((c) => c.id === selectionStore.selectedChannelId) || null
-})
+const currentChannel = useCurrentChannel()
 
 const availableCommands = computed(() => {
-  const channel = currentChannel.value
+  const channel = currentChannel.currentChannel.value;
   if (!channel) return getMenuCommands()
   return getChatCommands(channel.type, channel.role === 'admin')
+})
+const availableMembers = computed(()=>{
+  const usr = authStore.user;
+  if(!usr || !currentChannel.currentChannelMembers.value) return []
+  return (currentChannel.currentChannelMembers.value.filter((m: ChannelMember)=> m.id !== usr.id)).map(memberToSuggestion)
 })
 
 const hasSidebar = computed(() => {
@@ -59,7 +60,7 @@ const hasSidebar = computed(() => {
 })
 
 const hasInfoPanel = computed(() => {
-  return selectionStore.infoPanelOpen && !!currentChannel.value
+  return selectionStore.infoPanelOpen && !!currentChannel.currentChannelId.value
 })
 
 const handleMessage = async (msg: string) => {
@@ -70,6 +71,7 @@ const handleMessage = async (msg: string) => {
 const handleCommand = (cmd: CommandType, arg: string) => {
   console.log('Sending command:', cmd, 'with args:', arg);
   switch(cmd){
+    case 'quit':
     case 'cancel':
       void handleCancel();
     case 'join':
@@ -81,19 +83,7 @@ const handleJoin = async (name: string) => {
 }
 const handleCancel = async () => {
   if (!selectionStore.selectedChannelId) return
-  const leavingChannelId = selectionStore.selectedChannelId
-  const result = await channelStore.leaveChannel(leavingChannelId)
-  if (result.success) {
-    selectionStore.infoPanelOpen = false
-    selectionStore.clearSelection()
-    await channelStore.fetchChannels()
-    if (channelStore.channels.length > 0) {
-      const firstChannel = channelStore.channels[0]
-      if (firstChannel) {
-        selectionStore.selectChannel(firstChannel.id)
-      }
-    }
-  }
+  const result = await channelStore.leaveChannel(selectionStore.selectedChannelId)
 }
 </script>
 

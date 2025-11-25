@@ -58,7 +58,7 @@ export const CMD_KICK = {
 
 export const CMD_QUIT = {
   name: "quit",
-  description: "/quit - Delete the current channel. Admin only."
+  description: "/quit - Delete the current channel."
 } as const satisfies CommandItem
 
 // ─────────────────────────────────────────────
@@ -123,10 +123,3 @@ export function isCommandType(value: string): value is CommandType{
 }
 
 // ─────────────────────────────────────────────
-
-export type MemberItem = {
-  id?: string | number
-  name?: string
-  username?: string
-}
-

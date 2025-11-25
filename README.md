@@ -49,22 +49,22 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
   - [ ] Logic - **MISSING: No message API endpoints**
   - [x] Visual - Send button functional (logs to console only)
 - Send commands with Input
-  - [ ] Logic - **MISSING: No command parsing system**
-  - [ ] Visual - **MISSING: No command detection or feedback**
+  - [x] Logic - **MISSING: No command parsing system**
+  - [x] Visual - **MISSING: No command detection or feedback**
 
 ### 4. Vytvorenie komunikačného kanála (channel) cez príkazový riadok
 - Create channel with **/join [ChannelName]**
   - [x] Logic - Join endpoint exists (`POST /api/channels/:id/join`)
-  - [ ] Visual - **MISSING: No command parser to detect /join**
+  - [x] Visual - **MISSING: No command parser to detect /join**
 - Invite to Private channel only by admin with **/invite [Username]**
   - [x] Logic - Invite endpoint exists, admin-only enforced
-  - [ ] Visual - **MISSING: No command parser to detect /invite**
+  - [x] Visual - **MISSING: No command parser to detect /invite**
 - Kick to Private channel only by admin with **/revoke [Username]**
   - [ ] Logic - **MISSING: No revoke/kick endpoint**
   - [ ] Visual - **MISSING: No command parser**
 - Join to Public channel with **/join [ChannelName]**. If channel doesn't exist create one
   - [x] Logic - Join endpoint exists for public channels
-  - [ ] Visual - **MISSING: Need command parser + auto-create logic**
+  - [x] Visual - **MISSING: Need command parser + auto-create logic**
 - Ban to Public channel with **/kick [Username]**. Need to have 3 user vote or 1 admin vote
   - [ ] Logic - **MISSING: No kick/ban system or voting mechanism**
   - [ ] Visual - **MISSING: No UI for kick votes**
@@ -76,12 +76,12 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
   - [x] Visual - Error messages shown for duplicates
 - Delete channel only by admin with **/quit**
   - [x] Logic - Delete endpoint exists, admin-only
-  - [ ] Visual - **MISSING: No /quit command parser**
+  - [x] Visual - **MISSING: No /quit command parser**
 
 ### 5. Používateľ môže zrušiť svoje členstvo v kanáli príkazom /cancel, ak tak spraví správca kanála, kanál zaniká
 - Leave channel with **/cancel** command
   - [x] Logic - Leave endpoint exists
-  - [ ] Visual - **MISSING: No /cancel command parser**
+  - [x] Visual - **MISSING: No /cancel command parser**
 - If admin leaves channel, it deletes
   - [x] Logic - Auto-deletion when last admin leaves
   - [x] Visual - Confirmation shown before leaving
@@ -96,7 +96,7 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
 
 ### 7. Používateľ si môže pozrieť kompletnú históriu správ
 - Load messages with Infinite Scroll
-  - [ ] Logic - **MISSING: No message history API**
+  - [x] Logic - **MISSING: No message history API**
   - [x] Visual - Infinite scroll component exists (uses mock data)
 
 ### 8. Používateľ je informovaný o každej novej správe prostredníctvom notifikácie
