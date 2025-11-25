@@ -4,6 +4,7 @@
     <div class="input-wrapper">
       <!-- Suggestions menu above input -->
       <q-menu
+        ref="menuRef"
         v-model="menuVisible"
         anchor="top middle"
         self="bottom middle"
@@ -12,8 +13,9 @@
         no-focus
         transition-show="jump-down"
         transition-hide="jump-up"
+        :offset="[0, 20]"
       >
-        <q-list dense style="min-width: 200px; max-height: 250px;">
+        <q-list dense style="min-width: 200px; max-height: 250px; padding: 8px;">
           <q-item
             v-for="(item, index) in suggestions"
             :key="item.type + '-' + item.value"
@@ -141,6 +143,7 @@ const insertEmoji = (emoji: string) => {
 // --- suggestion state ---
 const menuVisible = ref(false)
 const highlightedIndex = ref(0)
+const menuRef = ref<any>(null)
 
 const currentWords = computed(() =>
   inputMessage.value.trim().split(/\s+/).filter(Boolean)
@@ -218,6 +221,12 @@ watch(
     if (suggestions.value.length > 0) {
       menuVisible.value = true
       highlightedIndex.value = 0
+      // Force menu to update position on next tick
+      if (menuRef.value) {
+        setTimeout(() => {
+          menuRef.value?.updatePosition?.()
+        }, 0)
+      }
     } else {
       menuVisible.value = false
     }
@@ -400,6 +409,11 @@ const handleSend = () => {
   font-size: 20px;
   width: 100%;
   height: 36px;
+  padding: 0;
+  margin: 0;
+}
+
+.emoji-item :deep(.q-btn__content) {
   padding: 0;
   margin: 0;
 }
