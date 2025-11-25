@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { MemberItem } from 'src/types/chat';
+import { type MemberItem } from 'src/types/chat';
 import { type CommandType, isCommandType, type CommandItem } from 'src/types/commands';
 import { computed, ref, watch } from 'vue'
 

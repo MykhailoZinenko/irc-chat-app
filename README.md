@@ -69,8 +69,8 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
   - [ ] Logic - **MISSING: No kick/ban system or voting mechanism**
   - [ ] Visual - **MISSING: No UI for kick votes**
 - Invite back after ban in Public channels with **/invite [Username]**
-  - [ ] Logic - **MISSING: No ban tracking system**
-  - [ ] Visual - **MISSING: No UI to reinvite banned users**
+  - [x] Logic - **MISSING: No ban tracking system**
+  - [x] Visual - **MISSING: No UI to reinvite banned users**
 - Username and ChannelName are unique
   - [x] Logic - Database unique constraints + validation
   - [x] Visual - Error messages shown for duplicates
@@ -88,8 +88,8 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
 
 ### 6. Správu v kanáli je možné adresovať konkrétnemu používateľovi cez príkaz @nickname
 - Message can be addressed to user with **@[Username]**
-  - [ ] Logic - **MISSING: No @mention parsing or storage**
-  - [ ] Visual - **MISSING: No @mention autocomplete**
+  - [x] Logic - **MISSING: No @mention parsing or storage**
+  - [x] Visual - **MISSING: No @mention autocomplete**
 - Addressed message will be highlighted for user
   - [ ] Logic - **MISSING: No mention notification system**
   - [ ] Visual - **MISSING: No special styling for mentions**

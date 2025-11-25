@@ -630,6 +630,42 @@ export default class ChannelsController {
       message: 'Invitation sent successfully',
     })
   }
+  /**
+   * Invite user to channel by username
+   */
+  async inviteByName({ auth, params, request, response }: HttpContext) {
+    const { username } = request.body()
+
+    if (!username || typeof username !== 'string' || username.trim().length === 0) {
+      return response.status(400).json({
+        success: false,
+        message: 'Username is required',
+      })
+    }
+
+    const invitedUser = await User.query().where('nick_name', username.trim()).first()
+    
+    if (!invitedUser) {
+      return response.status(404).json({
+        success: false,
+        message: 'User does not exist',
+      })
+    }
+
+    const mockRequest = {
+      ...request,
+      validateUsing: async () => ({
+        userId: invitedUser.id,
+      }),
+    }
+
+    return await this.invite({
+      auth,
+      params,
+      request: mockRequest,
+      response,
+    } as any)
+  }
 
   /**
    * Accept invitation

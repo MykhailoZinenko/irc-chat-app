@@ -73,6 +73,7 @@ router
     router.post('join-by-name', [ChannelsController, 'joinByName'])
     router.post(':id/leave', [ChannelsController, 'leave'])
     router.post(':id/invite', [ChannelsController, 'invite'])
+    router.put(':id/invite-by-name', [ChannelsController, 'inviteByName'])
     router.post('invitations/:invitationId/accept', [ChannelsController, 'acceptInvitation'])
     router.post('invitations/:invitationId/decline', [ChannelsController, 'declineInvitation'])
     router.post(':id/messages', [MessagesController, 'sendMessage'])

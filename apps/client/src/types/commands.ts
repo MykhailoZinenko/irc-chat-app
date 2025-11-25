@@ -32,28 +32,28 @@ export const CMD_CANCEL = {
 
 export const CMD_INVITE_PRIVATE = {
   name: "invite",
-  description: "/invite [Username] - Invite a user to a channel"
+  description: "/invite @[Username] - Invite a user to a channel"
 } as const satisfies CommandItem
 
 export const CMD_INVITE_PUBLIC = {
   name: "invite",
-  description: "/invite [Username] - Invite a user to a channel or re-invite/unban it."
+  description: "/invite @[Username] - Invite a user to a channel or re-invite/unban it."
 } as const satisfies CommandItem
 
 export const CMD_INVITE_PUBLIC_ADMIN = {
   name: "invite",
-  description: "/invite [Username] - Invite a user to a channel or re-invite/unban it."
+  description: "/invite @[Username] - Invite a user to a channel or re-invite/unban it."
 } as const satisfies CommandItem
 
 
 export const CMD_REVOKE = {
   name: "revoke",
-  description: "/revoke [Username] - Kick a user from a private channel."
+  description: "/revoke @[Username] - Kick a user from a private channel."
 } as const satisfies CommandItem
 
 export const CMD_KICK = {
   name: "kick",
-  description: "/kick [Username] - Ban a user from a public channel. Requires 3 user votes or 1 admin vote."
+  description: "/kick @[Username] - Ban a user from a public channel. Requires 3 user votes or 1 admin vote."
 } as const satisfies CommandItem
 
 export const CMD_QUIT = {

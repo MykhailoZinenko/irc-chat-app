@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChannelMember, useChannelStore } from '@/stores/channel-store'
+import { type ChannelMember, useChannelStore } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useMessageStore } from '@/stores/message-store'
 import { getChatCommands, getMenuCommands, type CommandType } from '@/types/commands'
@@ -35,6 +35,8 @@ import ConsoleInput from '@/components/chat/ConsoleInput.vue'
 import { useCurrentChannel } from 'src/composables/useCurrentChannel'
 import { useAuthStore } from 'src/stores/auth-store'
 import { memberToSuggestion } from 'src/types/chat'
+import { api } from 'src/boot/axios'
+import { Notify } from 'quasar'
 
 const channelStore = useChannelStore()
 const authStore = useAuthStore()
@@ -74,16 +76,50 @@ const handleCommand = (cmd: CommandType, arg: string) => {
     case 'quit':
     case 'cancel':
       void handleCancel();
+      break;
     case 'join':
       void handleJoin(arg);
+      break;
+    case 'invite':
+      void handleInvite(arg);
+      break;
   }
 }
 const handleJoin = async (name: string) => {
-  const result = await channelStore.joinByName(name);
+  await channelStore.joinByName(name);
 }
 const handleCancel = async () => {
   if (!selectionStore.selectedChannelId) return
-  const result = await channelStore.leaveChannel(selectionStore.selectedChannelId)
+  await channelStore.leaveChannel(selectionStore.selectedChannelId)
+}
+const handleInvite = async (name: string) => {
+  const username = name.startsWith('@') ? name.slice(1) : name;
+  try {
+    if (!username || !username.trim()) throw new Error("Username is required");
+
+    const response = await api.put<{ success: boolean; message: string }>(
+      `/api/channels/${selectionStore.selectedChannelId}/invite-by-name`, {
+      username: username.trim(),
+    });
+    
+    if(response.data.success){
+      Notify.create({
+        type: 'positive',
+        message: `Invitation sent successfully`,
+      })
+    }
+    else{
+      Notify.create({
+        type: 'negative',
+        message: response.data.message || 'Failed to send invitation',
+      })
+    }
+  } catch (error: any) {
+    Notify.create({
+      type: 'negative',
+      message: error?.message || 'Failed to send invitation',
+    })
+  }
 }
 </script>
 
