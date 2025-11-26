@@ -60,6 +60,9 @@ export default class MessagesController {
 
     await message.load('sender')
 
+    // Update channel's lastActivityAt
+    await participant.channel.merge({ lastActivityAt: DateTime.now() }).save()
+
     // Create delivered status for all channel participants (including sender)
     const participants = participant.channel.participants
     const deliveredAt = DateTime.now()
