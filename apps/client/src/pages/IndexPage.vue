@@ -146,6 +146,13 @@ onMounted(async () => {
         if (channelStore.currentChannelDetails?.id === data.channelId) {
           channelStore.removeMember(data.userId)
         }
+        if (data.userId === authStore.user?.id && data.channelName && notificationStore.preferences.channelEvents) {
+          void notificationStore.maybeNotifyGeneric({
+            title: 'Removed from channel',
+            body: `You left ${data.channelName}`,
+            tag: `channel-left-${data.channelId}`,
+          })
+        }
         break
 
       case 'channel_deleted':
@@ -156,6 +163,13 @@ onMounted(async () => {
           position: 'top',
           timeout: 4000,
         })
+        if (notificationStore.preferences.channelEvents) {
+          void notificationStore.maybeNotifyGeneric({
+            title: 'Channel deleted',
+            body: data.reason === 'no_members' ? 'All members left' : 'No admins remain',
+            tag: `channel-deleted-${data.channelId}`,
+          })
+        }
         void channelStore.fetchChannels()
         if (selectionStore.selectedChannelId === data.channelId) {
           selectionStore.clearSelection()
@@ -193,6 +207,13 @@ onMounted(async () => {
           icon: 'mail',
           timeout: 3000,
         })
+        if (notificationStore.preferences.invites) {
+          void notificationStore.maybeNotifyGeneric({
+            title: 'Invitation received',
+            body: `${data.inviterFirstName || data.inviterNickName} invited you to ${data.channelName}`,
+            tag: `invitation-${data.invitationId}`,
+          })
+        }
         break
 
       case 'invitation_accepted':
@@ -203,6 +224,13 @@ onMounted(async () => {
           icon: 'check_circle',
           timeout: 2000,
         })
+        if (notificationStore.preferences.inviteResponses) {
+          void notificationStore.maybeNotifyGeneric({
+            title: 'Invitation accepted',
+            body: `${data.userFirstName || data.userNickName} accepted your invitation to ${data.channelName || ''}`.trim(),
+            tag: `invitation-accepted-${data.invitationId}`,
+          })
+        }
         break
 
       case 'invitation_declined':
@@ -213,6 +241,13 @@ onMounted(async () => {
           icon: 'info',
           timeout: 2000,
         })
+        if (notificationStore.preferences.inviteResponses) {
+          void notificationStore.maybeNotifyGeneric({
+            title: 'Invitation declined',
+            body: `${data.userFirstName || data.userNickName} declined your invitation to ${data.channelName || ''}`.trim(),
+            tag: `invitation-declined-${data.invitationId}`,
+          })
+        }
         break
 
       default:

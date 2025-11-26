@@ -22,6 +22,24 @@
           title="Mentions"
           description="Notify me when someone mentions me"
         />
+
+        <SettingsToggle
+          v-model="invites"
+          title="Invitations"
+          description="Notifications for invitations you receive"
+        />
+
+        <SettingsToggle
+          v-model="inviteResponses"
+          title="Invitation Responses"
+          description="When someone accepts or declines your invitation"
+        />
+
+        <SettingsToggle
+          v-model="channelEvents"
+          title="Channel Events"
+          description="Channel deleted / removed from channel notifications"
+        />
       </div>
     </div>
   </div>
@@ -47,6 +65,21 @@ const publicChannels = computed({
 const mentions = computed({
   get: () => notificationStore.preferences.mentions,
   set: (val: boolean) => notificationStore.setPreference('mentions', val),
+})
+
+const invites = computed({
+  get: () => notificationStore.preferences.invites,
+  set: (val: boolean) => notificationStore.setPreference('invites', val),
+})
+
+const inviteResponses = computed({
+  get: () => notificationStore.preferences.inviteResponses,
+  set: (val: boolean) => notificationStore.setPreference('inviteResponses', val),
+})
+
+const channelEvents = computed({
+  get: () => notificationStore.preferences.channelEvents,
+  set: (val: boolean) => notificationStore.setPreference('channelEvents', val),
 })
 </script>
 

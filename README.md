@@ -101,13 +101,13 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
 
 ### 8. Používateľ je informovaný o každej novej správe prostredníctvom notifikácie
 - Notification will send only if app not visible (use Quasar App Visibility)
-  - [ ] Logic - **MISSING: No visibility detection**
-  - [ ] Visual - **MISSING: No browser Notification API integration**
+  - [X] Logic - **MISSING: No visibility detection**
+  - [X] Visual - **MISSING: No browser Notification API integration**
 - Notification contains sender and part of message
   - [x] Logic - WebSocket events include sender info (for invitations)
-  - [ ] Visual - **MISSING: Desktop notifications not implemented**
+  - [X] Visual - **MISSING: Desktop notifications not implemented**
 - Setup to send only addressed messages
-  - [ ] Logic - **MISSING: No settings integration**
+  - [X] Logic - **MISSING: No settings integration**
   - [x] Visual - Settings UI exists but not functional
 
 ---
