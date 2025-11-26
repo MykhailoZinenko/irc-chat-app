@@ -11,51 +11,62 @@
       <!-- Header -->
       <ChannelHeaderContainer />
 
-      <!-- Messages -->
-      <MessageList
-        v-if="selectionStore.selectedChannelId"
-        ref="messageListRef"
-        :messages="displayedMessages"
-        @load-more="loadMoreMessages"
-        @user-click="handleUserClick"
-      />
-
-      <!-- Join button for non-member public channels -->
-      <div v-if="showJoinButton" class="p-4 border-t border-gray-200">
-        <q-btn
-          unelevated
-          color="primary"
-          class="full-width"
-          size="lg"
-          label="Join Channel"
-          @click="handleJoinChannel"
+      <!-- Main content: messages OR empty state -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <!-- Messages (when member) -->
+        <MessageList
+          v-if="selectionStore.selectedChannelId && !showJoinButton"
+          ref="messageListRef"
+          :messages="displayedMessages"
+          @load-more="loadMoreMessages"
+          @user-click="handleUserClick"
         />
-      </div>
 
-      <!-- Message input for members -->
-      <MessageInput
-        v-else-if="selectionStore.selectedChannelId"
-        @send="handleSendMessage"
-        @attach="handleAttach"
-        @emoji="handleEmoji"
-      />
-
-      <!-- Empty state -->
-      <div v-else class="flex-1 flex flex-col items-center justify-center">
-        <div class="lg:hidden absolute top-4 left-4">
-          <q-btn
-            flat
-            round
-            dense
-            icon="menu"
-            color="grey-7"
-            @click="selectionStore.toggleSidebar()"
-          />
+        <!-- Preview state (when not a member but viewing channel) -->
+        <div
+          v-else-if="showJoinButton"
+          class="flex-1 flex flex-col items-center justify-center relative bg-gray-50"
+        >
+          <div class="text-center">
+            <q-icon name="lock_open" size="64px" color="grey-5" class="q-mb-md" />
+            <p class="text-h6 text-grey-7 q-mb-sm">Public Channel Preview</p>
+            <p class="text-body2 text-grey-6 q-mb-lg">
+              Join this channel to participate
+            </p>
+            <q-btn
+              unelevated
+              color="primary"
+              size="lg"
+              label="Join Channel"
+              padding="12px 48px"
+              @click="handleJoinChannel"
+            />
+          </div>
         </div>
-        <div class="text-center">
-          <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
-          <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
-          <p class="text-body2 text-grey-6">Create a channel to start chatting</p>
+
+        <!-- Empty state (no channel selected) -->
+        <div
+          v-else
+          class="flex-1 flex flex-col items-center justify-center relative"
+        >
+          <div class="lg:hidden absolute top-4 left-4">
+            <q-btn
+              flat
+              round
+              dense
+              icon="menu"
+              color="grey-7"
+              @click="selectionStore.toggleSidebar()"
+            />
+          </div>
+
+          <div class="text-center">
+            <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
+            <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
+            <p class="text-body2 text-grey-6">
+              Create a channel to start chatting
+            </p>
+          </div>
         </div>
       </div>
     </template>
@@ -63,95 +74,105 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import MessageList from '@/components/chat/MessageList.vue'
-import MessageInput from '@/components/chat/MessageInput.vue'
 import ChannelHeaderContainer from './ChannelHeaderContainer.vue'
 import InvitationsView from '@/components/invitations/InvitationsView.vue'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useChannelStore } from '@/stores/channel-store'
-import { useChannelEvents } from '@/composables/useChannelEvents'
+import { useMessageStore } from '@/stores/message-store'
 
 const selectionStore = useSelectionStore()
 const channelStore = useChannelStore()
-const channelEvents = useChannelEvents()
+const messageStore = useMessageStore()
 
 const messageListRef = ref<any>(null)
 
-// Mock messages data
-const MESSAGES_PER_LOAD = 15
-const loadedCount = ref(MESSAGES_PER_LOAD)
-const allMessages = ref<any[]>([])
-
 const displayedMessages = computed(() => {
-  const start = Math.max(0, allMessages.value.length - loadedCount.value)
-  return allMessages.value.slice(start)
+  return messageStore.currentMessages
 })
 
 const showJoinButton = computed(() => {
-  if (!selectionStore.selectedChannelId) return false
-
-  const isMember = channelStore.channels.some((c) => c.id === selectionStore.selectedChannelId)
-  if (isMember) return false
-
-  return (
-    selectionStore.previewChannel && selectionStore.previewChannel.type === 'public'
-  )
+  if (!channelStore.currentChannelDetails) return false
+  return channelStore.currentChannelDetails.userRole === null
 })
 
-// Subscribe to channel events when selection changes
 watch(
   () => selectionStore.selectedChannelId,
-  async (newChannelId, oldChannelId) => {
-    if (oldChannelId) {
-      channelEvents.unsubscribeFromChannel(oldChannelId)
-    }
-
+  async (newChannelId) => {
     if (newChannelId) {
       const isMember = channelStore.channels.some((c) => c.id === newChannelId)
 
       if (isMember) {
+        // User is a member - fetch full details and messages
+        messageStore.setCurrentChannel(newChannelId)
         await channelStore.fetchChannelDetails(newChannelId)
+        await messageStore.fetchMessages(newChannelId, 1)
 
-        channelEvents.subscribeToChannel(newChannelId, {
-          onChannelDeleted: async (data) => {
-            if (selectionStore.selectedChannelId === data.channelId) {
-              selectionStore.clearSelection()
-              await channelStore.fetchChannels()
-            }
-          },
-        })
+        setTimeout(() => {
+          messageListRef.value?.scrollToBottom()
+        }, 300)
+      } else {
+        // Not a member - could be preview mode for public channel
+        messageStore.setCurrentChannel(null)
+        // Fetch channel details for preview (will show join button if public)
+        await channelStore.fetchChannelDetails(newChannelId)
       }
 
-      loadedCount.value = MESSAGES_PER_LOAD
-      messageListRef.value?.newChat()
+      setTimeout(() => {
+        messageListRef.value?.newChat()
+      }, 300)
+    } else {
+      messageStore.setCurrentChannel(null)
+      selectionStore.infoPanelOpen = false
     }
-  },
-  { immediate: true }
+  }
 )
 
-const loadMoreMessages = (done: (stop?: boolean) => void) => {
-  setTimeout(() => {
-    loadedCount.value += MESSAGES_PER_LOAD
-    if (loadedCount.value >= allMessages.value.length) {
-      done(true)
-    } else {
-      done()
+// Close info panel when switching to invitations view
+watch(
+  () => selectionStore.showInvitations,
+  (showInvitations) => {
+    if (showInvitations) {
+      selectionStore.infoPanelOpen = false
     }
-  }, 400)
-}
+  }
+)
 
-const handleSendMessage = (message: string) => {
-  console.log('Send message:', message)
+// Close info panel when component is unmounted (e.g., navigating to settings)
+onUnmounted(() => {
+  selectionStore.infoPanelOpen = false
+})
+
+const loadMoreMessages = async (done: (stop?: boolean) => void) => {
+  if (!selectionStore.selectedChannelId) {
+    done(true)
+    return
+  }
+
+  const isMember = channelStore.channels.some((c) => c.id === selectionStore.selectedChannelId)
+  if (!isMember) {
+    done(true)
+    return
+  }
+
+  const currentMessages = messageStore.currentMessages
+
+  if (currentMessages.length > 0 && currentMessages.length % 50 !== 0) {
+    done(true)
+    return
+  }
+
+  const nextPage = Math.floor(currentMessages.length / 50) + 1
+  const result = await messageStore.fetchMessages(selectionStore.selectedChannelId, nextPage)
+
+  done(!(result && result.hasMore))
 }
 
 const handleUserClick = (userNameOrId: string | number) => {
-  // TODO: When messages include userId, use that instead of userName
-  // For now, we need to look up the user by name from members
   if (typeof userNameOrId === 'number') {
     selectionStore.selectUser(userNameOrId)
   } else {
-    // Find user by name in current channel members
     const member = channelStore.currentChannelMembers.find(
       (m) => m.nickName === userNameOrId || `${m.firstName} ${m.lastName}` === userNameOrId
     )
@@ -161,13 +182,6 @@ const handleUserClick = (userNameOrId: string | number) => {
   }
 }
 
-const handleAttach = () => {
-  console.log('Attach file')
-}
-
-const handleEmoji = () => {
-  console.log('Open emoji picker')
-}
 
 const handleJoinChannel = async () => {
   if (!selectionStore.selectedChannelId) return
@@ -178,14 +192,12 @@ const handleJoinChannel = async () => {
     await channelStore.fetchChannels()
     await channelStore.fetchChannelDetails(channelId)
 
-    channelEvents.subscribeToChannel(channelId, {
-      onChannelDeleted: async (data) => {
-        if (selectionStore.selectedChannelId === data.channelId) {
-          selectionStore.clearSelection()
-          await channelStore.fetchChannels()
-        }
-      },
-    })
+    messageStore.setCurrentChannel(channelId)
+    await messageStore.fetchMessages(channelId, 1)
+
+    setTimeout(() => {
+      messageListRef.value?.scrollToBottom()
+    }, 300)
   }
 }
 </script>

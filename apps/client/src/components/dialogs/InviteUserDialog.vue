@@ -79,9 +79,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useChannelStore } from '@/stores/channel-store'
-import { useUserEvents } from '@/composables/useUserEvents'
+import { useInvitationStore } from '@/stores/invitation-store'
 import { api } from 'src/boot/axios'
 import { Notify } from 'quasar'
 
@@ -96,28 +96,13 @@ const emit = defineEmits<{
 }>()
 
 const channelStore = useChannelStore()
+const invitationStore = useInvitationStore()
 const searchQuery = ref('')
 const selectedChannels = ref(new Set<number>())
 const loading = ref(false)
 const sending = ref(false)
 const pendingInvitations = ref<Array<{ id: number; channelId: number }>>([])
 const userChannelIds = ref<number[]>([])
-
-// Set up real-time updates for user channel changes
-const { subscribeToUserEvents, unsubscribeFromUserEvents } = useUserEvents(undefined, {
-  onUserJoinedChannel: (data) => {
-    console.log('[InviteUserDialog] User joined channel:', data)
-    // Add channel to user's channel list to remove from invitable
-    if (!userChannelIds.value.includes(data.channelId)) {
-      userChannelIds.value.push(data.channelId)
-    }
-  },
-  onUserLeftChannel: (data) => {
-    console.log('[InviteUserDialog] User left channel:', data)
-    // Remove channel from user's channel list to add back to invitable
-    userChannelIds.value = userChannelIds.value.filter((id) => id !== data.channelId)
-  },
-})
 
 interface PendingInvitation {
   id: number
@@ -241,28 +226,27 @@ watch(isOpen, async (newValue) => {
         channelStore.fetchChannels(),
         fetchUserData()
       ])
-      // Subscribe to user events when dialog opens
-      subscribeToUserEvents(props.userId)
     } finally {
       loading.value = false
     }
-  } else {
-    // Unsubscribe when dialog closes
-    unsubscribeFromUserEvents()
   }
 })
 
-// Also watch userId changes in case dialog stays open but userId changes
-watch(() => props.userId, (newUserId, oldUserId) => {
-  if (isOpen.value && newUserId !== oldUserId) {
-    unsubscribeFromUserEvents()
+watch(() => props.userId, () => {
+  if (isOpen.value) {
     void fetchUserData()
-    subscribeToUserEvents(newUserId)
   }
 })
 
-// Clean up on component unmount
-onUnmounted(() => {
-  unsubscribeFromUserEvents()
-})
+watch(() => invitationStore.invitations, () => {
+  if (isOpen.value) {
+    void fetchUserData()
+  }
+}, { deep: true })
+
+watch(() => channelStore.channels, () => {
+  if (isOpen.value) {
+    void fetchUserData()
+  }
+}, { deep: true })
 </script>

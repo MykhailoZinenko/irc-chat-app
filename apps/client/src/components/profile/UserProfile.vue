@@ -130,26 +130,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileActionButton from '@/components/profile/ProfileActionButton.vue'
 import ProfileSection from '@/components/profile/ProfileSection.vue'
 import InviteUserDialog from '@/components/dialogs/InviteUserDialog.vue'
 import { api } from 'src/boot/axios'
 import { DateTime } from 'luxon'
-import { useUserEvents } from '@/composables/useUserEvents'
-
-// Subscribe to user events for real-time updates
-const { subscribeToUserEvents, unsubscribeFromUserEvents } = useUserEvents(undefined, {
-  onUserJoinedChannel: (data) => {
-    console.log('[UserProfile] User joined channel:', data)
-    void fetchCommonChannels()
-  },
-  onUserLeftChannel: (data) => {
-    console.log('[UserProfile] User left channel:', data)
-    void fetchCommonChannels()
-  },
-})
+import { useChannelStore } from '@/stores/channel-store'
 
 interface UserProfile {
   id: number
@@ -170,6 +158,7 @@ defineEmits<{
   back: []
 }>()
 
+const channelStore = useChannelStore()
 const userProfile = ref<UserProfile | null>(null)
 const loading = ref(false)
 const isMuted = ref(false)
@@ -232,42 +221,30 @@ const fetchCommonChannels = async () => {
 
 onMounted(() => {
   void fetchUserProfile()
-  subscribeToUserEvents(props.userId)
 })
 
-onUnmounted(() => {
-  unsubscribeFromUserEvents()
+watch(() => props.userId, () => {
+  void fetchUserProfile()
 })
 
-// Refetch when userId changes (when viewing different user's profile)
-watch(
-  () => props.userId,
-  (newUserId) => {
-    void fetchUserProfile()
-    // Resubscribe to new user's events
-    unsubscribeFromUserEvents()
-    subscribeToUserEvents(newUserId)
-  }
-)
+watch(() => channelStore.channels, () => {
+  void fetchCommonChannels()
+}, { deep: true })
 
 const handleMore = () => {
-  console.log('More options clicked')
 }
 
 const handleMessage = () => {
-  console.log('Message clicked')
 }
 
 const handleChannelClick = (channel: any) => {
-  console.log('Channel clicked:', channel)
+  console.log('Channel clicked:', channel);
 }
 
 const handleBlock = () => {
-  console.log('Block user')
 }
 
 const handleReport = () => {
-  console.log('Report user')
 }
 </script>
 

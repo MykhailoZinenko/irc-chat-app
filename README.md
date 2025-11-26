@@ -46,68 +46,68 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
   - [x] Logic - Fixed positioning maintained
   - [x] Visual - Fixed message input at bottom of chat view
 - Send messages with Input
-  - [ ] Logic - **MISSING: No message API endpoints**
+  - [x] Logic - **MISSING: No message API endpoints**
   - [x] Visual - Send button functional (logs to console only)
 - Send commands with Input
-  - [ ] Logic - **MISSING: No command parsing system**
-  - [ ] Visual - **MISSING: No command detection or feedback**
+  - [x] Logic - **MISSING: No command parsing system**
+  - [x] Visual - **MISSING: No command detection or feedback**
 
 ### 4. Vytvorenie komunikačného kanála (channel) cez príkazový riadok
 - Create channel with **/join [ChannelName]**
   - [x] Logic - Join endpoint exists (`POST /api/channels/:id/join`)
-  - [ ] Visual - **MISSING: No command parser to detect /join**
+  - [x] Visual - **MISSING: No command parser to detect /join**
 - Invite to Private channel only by admin with **/invite [Username]**
   - [x] Logic - Invite endpoint exists, admin-only enforced
-  - [ ] Visual - **MISSING: No command parser to detect /invite**
+  - [x] Visual - **MISSING: No command parser to detect /invite**
 - Kick to Private channel only by admin with **/revoke [Username]**
-  - [ ] Logic - **MISSING: No revoke/kick endpoint**
-  - [ ] Visual - **MISSING: No command parser**
+  - [x] Logic - **MISSING: No revoke/kick endpoint**
+  - [x] Visual - **MISSING: No command parser**
 - Join to Public channel with **/join [ChannelName]**. If channel doesn't exist create one
   - [x] Logic - Join endpoint exists for public channels
-  - [ ] Visual - **MISSING: Need command parser + auto-create logic**
+  - [x] Visual - **MISSING: Need command parser + auto-create logic**
 - Ban to Public channel with **/kick [Username]**. Need to have 3 user vote or 1 admin vote
-  - [ ] Logic - **MISSING: No kick/ban system or voting mechanism**
-  - [ ] Visual - **MISSING: No UI for kick votes**
+  - [x] Logic - **MISSING: No kick/ban system or voting mechanism**
+  - [x] Visual - **MISSING: No UI for kick votes**
 - Invite back after ban in Public channels with **/invite [Username]**
-  - [ ] Logic - **MISSING: No ban tracking system**
-  - [ ] Visual - **MISSING: No UI to reinvite banned users**
+  - [x] Logic - **MISSING: No ban tracking system**
+  - [x] Visual - **MISSING: No UI to reinvite banned users**
 - Username and ChannelName are unique
   - [x] Logic - Database unique constraints + validation
   - [x] Visual - Error messages shown for duplicates
 - Delete channel only by admin with **/quit**
   - [x] Logic - Delete endpoint exists, admin-only
-  - [ ] Visual - **MISSING: No /quit command parser**
+  - [x] Visual - **MISSING: No /quit command parser**
 
 ### 5. Používateľ môže zrušiť svoje členstvo v kanáli príkazom /cancel, ak tak spraví správca kanála, kanál zaniká
 - Leave channel with **/cancel** command
   - [x] Logic - Leave endpoint exists
-  - [ ] Visual - **MISSING: No /cancel command parser**
+  - [x] Visual - **MISSING: No /cancel command parser**
 - If admin leaves channel, it deletes
   - [x] Logic - Auto-deletion when last admin leaves
   - [x] Visual - Confirmation shown before leaving
 
 ### 6. Správu v kanáli je možné adresovať konkrétnemu používateľovi cez príkaz @nickname
 - Message can be addressed to user with **@[Username]**
-  - [ ] Logic - **MISSING: No @mention parsing or storage**
-  - [ ] Visual - **MISSING: No @mention autocomplete**
+  - [x] Logic - **MISSING: No @mention parsing or storage**
+  - [x] Visual - **MISSING: No @mention autocomplete**
 - Addressed message will be highlighted for user
-  - [ ] Logic - **MISSING: No mention notification system**
-  - [ ] Visual - **MISSING: No special styling for mentions**
+  - [X] Logic - **MISSING: No mention notification system**
+  - [X] Visual - **MISSING: No special styling for mentions**
 
 ### 7. Používateľ si môže pozrieť kompletnú históriu správ
 - Load messages with Infinite Scroll
-  - [ ] Logic - **MISSING: No message history API**
+  - [x] Logic - **MISSING: No message history API**
   - [x] Visual - Infinite scroll component exists (uses mock data)
 
 ### 8. Používateľ je informovaný o každej novej správe prostredníctvom notifikácie
 - Notification will send only if app not visible (use Quasar App Visibility)
-  - [ ] Logic - **MISSING: No visibility detection**
-  - [ ] Visual - **MISSING: No browser Notification API integration**
+  - [X] Logic - **MISSING: No visibility detection**
+  - [X] Visual - **MISSING: No browser Notification API integration**
 - Notification contains sender and part of message
   - [x] Logic - WebSocket events include sender info (for invitations)
-  - [ ] Visual - **MISSING: Desktop notifications not implemented**
+  - [X] Visual - **MISSING: Desktop notifications not implemented**
 - Setup to send only addressed messages
-  - [ ] Logic - **MISSING: No settings integration**
+  - [X] Logic - **MISSING: No settings integration**
   - [x] Visual - Settings UI exists but not functional
 
 ---

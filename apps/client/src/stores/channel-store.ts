@@ -2,50 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
-
-export interface ChannelMember {
-  id: number;
-  nickName: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string;
-  role: 'member' | 'admin';
-  joinedAt: string;
-}
-
-export interface Channel {
-  id: number;
-  type: 'private' | 'public';
-  name: string;
-  description: string | null;
-  createdBy: number;
-  role: 'member' | 'admin';
-  joinedAt: string;
-  lastActivityAt: string | null;
-  memberCount?: number;
-}
-
-export interface ChannelDetails {
-  id: number;
-  type: 'private' | 'public';
-  name: string;
-  description: string | null;
-  createdBy: number;
-  memberCount: number;
-  creator: {
-    id: number;
-    nickName: string;
-    firstName: string | null;
-    lastName: string | null;
-  };
-  userRole?: 'member' | 'admin' | undefined;
-}
-
-interface CreateChannelData {
-  type: 'private' | 'public';
-  name: string;
-  description?: string;
-}
+import { type ChannelDetails, type Channel, type ChannelMember, type CreateChannelData } from 'src/types/chat';
 
 export const useChannelStore = defineStore('channel', () => {
   const channels = ref<Channel[]>([]);
@@ -173,6 +130,30 @@ export const useChannelStore = defineStore('channel', () => {
     }
   };
 
+  const joinByName = async (name: string) => {
+    try {
+      const response = await api.post<{ success: boolean; message: string }>(
+        `/api/channels/join-by-name`, {name}
+      );
+      if (response.data.success) {
+        await fetchChannels();
+        Notify.create({
+          type: 'positive',
+          message: response.data.message,
+        });
+        return { success: true };
+      }
+      return { success: false };
+    } catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to join channel',
+      });
+      return { success: false };
+    }
+  };
+
+
   const createChannel = async (data: CreateChannelData) => {
     try {
       const response = await api.post<{ success: boolean; data: { channel: any } }>(
@@ -243,6 +224,64 @@ export const useChannelStore = defineStore('channel', () => {
     }
   };
 
+  const revokeUser = async (channelId: number, userId: number) => {
+    try {
+      const response = await api.post<{ success: boolean; message: string }>(
+        `/api/channels/${channelId}/revoke`,
+        { userId },
+      );
+
+      if (response.data.success) {
+        removeMember(userId);
+        Notify.create({
+          type: 'positive',
+          message: response.data.message || 'User removed from the channel',
+        });
+        return { success: true };
+      }
+      return { success: false };
+    } catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to remove user',
+      });
+      return { success: false };
+    }
+  };
+
+  const kickUser = async (channelId: number, userId: number, reason?: string) => {
+    try {
+      const response = await api.post<{
+        success: boolean;
+        message: string;
+        memberCount?: number;
+        votes?: number;
+      }>(`/api/channels/${channelId}/kick`, {
+        userId,
+        reason,
+      });
+
+      if (response.data.success) {
+        if (typeof response.data.memberCount === 'number') {
+          updateMemberCount(channelId, response.data.memberCount);
+          removeMember(userId);
+        }
+        Notify.create({
+          type: 'positive',
+          message: response.data.message || 'Kick vote recorded',
+        });
+        return { success: true, votes: response.data.votes };
+      }
+      return { success: false };
+    } catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to kick user',
+      });
+      return { success: false };
+    }
+  };
+
   return {
     channels,
     currentChannelDetails,
@@ -252,10 +291,15 @@ export const useChannelStore = defineStore('channel', () => {
     fetchChannelDetails,
     createChannel,
     joinChannel,
+    joinByName,
     leaveChannel,
     deleteChannel,
+    revokeUser,
+    kickUser,
     updateMemberCount,
     addMember,
     removeMember,
   };
 });
+export { ChannelMember };
+

@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'fixed lg:relative z-30 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 h-full',
+      'fixed lg:relative z-50 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 h-full',
       isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
     ]"
   >
@@ -255,7 +255,6 @@ const selectResult = (result: SearchResult) => {
   if (result.resultType === 'user') {
     emit('select-user', result.id)
   } else {
-    // For channels, select the chat
     emit('select-chat', result.id)
   }
   clearSearch()

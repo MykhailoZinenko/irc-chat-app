@@ -18,23 +18,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { DateTime } from 'luxon'
 import ChatSidebar from '@/components/chat/ChatSidebar.vue'
 import InvitationsButton from '@/components/invitations/InvitationsButton.vue'
 import { useChannelStore } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
-import { useSearchStore } from '@/stores/search-store'
 import { useInvitationStore } from '@/stores/invitation-store'
+import { useMessageStore } from '@/stores/message-store'
+import { useAuthStore } from '@/stores/auth-store'
 
 const channelStore = useChannelStore()
 const selectionStore = useSelectionStore()
-const searchStore = useSearchStore()
 const invitationStore = useInvitationStore()
-
-onMounted(() => {
-  void invitationStore.fetchInvitations()
-})
+const messageStore = useMessageStore()
+const authStore = useAuthStore()
 
 const formattedChats = computed(() => {
   return channelStore.channels.map((channel) => {
@@ -57,6 +55,11 @@ const formattedChats = computed(() => {
       }
     }
 
+    // Get unread count for this channel
+    const unreadCount = authStore.user
+      ? messageStore.getUnreadCount(channel.id, authStore.user.id)
+      : 0
+
     return {
       id: channel.id,
       name: channel.name,
@@ -64,7 +67,7 @@ const formattedChats = computed(() => {
       avatar,
       lastMessage: channel.description || 'No description',
       time,
-      unread: 0,
+      unread: unreadCount,
       description: channel.description,
       memberCount: channel.memberCount || 0,
       subscriberCount: channel.memberCount || 0,
@@ -73,26 +76,7 @@ const formattedChats = computed(() => {
 })
 
 const handleSelectChat = (chatId: number) => {
-  const userChannel = channelStore.channels.find((c) => c.id === chatId)
-
-  if (userChannel) {
-    selectionStore.selectChannel(chatId)
-  } else {
-    const publicChannel = searchStore.publicChannels.find((c) => c.id === chatId)
-
-    if (publicChannel) {
-      selectionStore.selectChannel(chatId, {
-        id: publicChannel.id,
-        name: publicChannel.name,
-        type: 'public',
-        description: publicChannel.description,
-        memberCount: publicChannel.memberCount || 0,
-      })
-    } else {
-      selectionStore.selectChannel(chatId)
-    }
-  }
-
+  selectionStore.selectChannel(chatId)
   selectionStore.sidebarOpen = false
 }
 

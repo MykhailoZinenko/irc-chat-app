@@ -4,7 +4,7 @@
       <!-- Sidebar -->
       <div
         :class="[
-          'fixed lg:relative z-30 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 h-full',
+          'fixed lg:relative z-50 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 h-full',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         ]"
       >
@@ -69,7 +69,7 @@
       <!-- Overlay for mobile -->
       <div
         v-if="sidebarOpen"
-        class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
+        class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
         @click="sidebarOpen = false"
       />
 
