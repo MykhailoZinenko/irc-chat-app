@@ -118,7 +118,7 @@ export const useNotificationStore = defineStore('notification', () => {
     if (typeof Notification !== 'undefined') {
       new Notification(title, {
         body,
-        // tag: `channel-${message.channelId}`, // disabled coz caused chrome to ignore new messages
+         tag: `channel-${message.channelId}-msg-${message.id}`,
       })
     } else {
       Notify.create({
