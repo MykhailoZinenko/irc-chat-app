@@ -32,6 +32,7 @@ export const useCurrentChannel = () => {
   })
 
   return {
+    channelStore,
     currentChannelId,
     currentChannel,
     currentChannelDetails,
