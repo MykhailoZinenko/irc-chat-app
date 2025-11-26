@@ -258,6 +258,120 @@ onMounted(async () => {
 
 onUnmounted(() => {
   userSubscription?.unsubscribe()
+})
+
+// Watch route params and update selection store
+watch(
+  () => route.path,
+  (path) => {
+    // Don't handle 404 or settings routes
+    if (path === '/404' || path === '/settings') {
+      return
+    }
+
+    if (path.startsWith('/chat/')) {
+      const channelId = parseInt(route.params.id as string)
+      if (!isNaN(channelId) && selectionStore.selectedChannelId !== channelId) {
+        selectionStore.selectChannel(channelId)
+      }
+    } else if (path.startsWith('/profile/')) {
+      const userId = parseInt(route.params.id as string)
+      if (!isNaN(userId) && selectionStore.selectedUserId !== userId) {
+        selectionStore.selectUser(userId)
+      }
+    } else if (path === '/invitations') {
+      if (!selectionStore.showInvitations) {
+        selectionStore.selectInvitations()
+      }
+    } else if (path === '/chat') {
+      // On /chat without ID, select first channel if available
+      if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
+        const firstChannel = channelStore.channels[0]
+        if (firstChannel) {
+          void router.push(`/chat/${firstChannel.id}`)
+        }
+      }
+    }
+  }
+)
+
+// Watch selection store and update route
+watch(
+  () => selectionStore.selectedChannelId,
+  (channelId) => {
+    if (channelId && route.path !== `/chat/${channelId}`) {
+      void router.push(`/chat/${channelId}`)
+    }
+  }
+)
+
+watch(
+  () => selectionStore.selectedUserId,
+  (userId) => {
+    if (userId && route.path !== `/profile/${userId}`) {
+      void router.push(`/profile/${userId}`)
+    } else if (!userId && route.path.startsWith('/profile/')) {
+      // User closed profile, go back to chat
+      if (selectionStore.selectedChannelId) {
+        void router.push(`/chat/${selectionStore.selectedChannelId}`)
+      } else {
+        void router.push('/chat')
+      }
+    }
+  }
+)
+
+watch(
+  () => selectionStore.showInvitations,
+  (show) => {
+    if (show && route.path !== '/invitations') {
+      void router.push('/invitations')
+    } else if (!show && route.path === '/invitations') {
+      // User closed invitations, go back to chat
+      if (selectionStore.selectedChannelId) {
+        void router.push(`/chat/${selectionStore.selectedChannelId}`)
+      } else {
+        void router.push('/chat')
+      }
+    }
+  }
+)
+
+const currentChannel = computed(() => {
+  if (!selectionStore.selectedChannelId) return null
+  return channelStore.channels.find((c) => c.id === selectionStore.selectedChannelId)
+})
+
+const currentChatData = computed(() => {
+  if (!currentChannel.value) return null
+  const channel = currentChannel.value
+  const avatar = channel.type === 'public' ? '📢' : '🔒'
+  return {
+    id: channel.id,
+    name: channel.name,
+    type: channel.type === 'private' ? ('group' as const) : ('channel' as const),
+    avatar,
+    description: channel.description,
+    memberCount: channel.memberCount || 0,
+    subscriberCount: channel.memberCount || 0,
+  }
+})
+
+const handleCloseInfoPanel = () => {
+  selectionStore.infoPanelOpen = false
+}
+
+const handleUserClick = (userId: number) => {
+  selectionStore.selectUser(userId)
+  selectionStore.infoPanelOpen = false
+}
+
+const handleLeaveChannel = async () => {
+  if (!selectionStore.selectedChannelId) return
+  const leavingChannelId = selectionStore.selectedChannelId
+
+  // Close info panel and clear selection to prevent watches from firing
+  selectionStore.infoPanelOpen = false
   selectionStore.clearSelection()
 })
 
