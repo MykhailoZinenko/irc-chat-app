@@ -46,6 +46,7 @@ import { useSelectionStore } from '@/stores/selection-store'
 import { useAuthStore } from '@/stores/auth-store'
 import { useMessageStore } from '@/stores/message-store'
 import { useInvitationStore } from '@/stores/invitation-store'
+import { useNotificationStore } from '@/stores/notification-store'
 import { transmitService } from '@/services/transmit'
 import { Notify } from 'quasar'
 import ChannelSidebarContainer from '@/containers/ChannelSidebarContainer.vue'
@@ -60,6 +61,7 @@ const selectionStore = useSelectionStore()
 const authStore = useAuthStore()
 const messageStore = useMessageStore()
 const invitationStore = useInvitationStore()
+const notificationStore = useNotificationStore()
 
 let userSubscription: { unsubscribe: () => void } | null = null
 
@@ -100,6 +102,16 @@ onMounted(async () => {
     switch (type) {
       case 'new_message':
         messageStore.addMessageFromRealTime(data)
+        {
+          const channel = channelStore.channels.find((c) => c.id === data.channelId)
+          void notificationStore.maybeNotifyMessage({
+            message: data,
+            channelType: channel?.type || 'public',
+            activeChannelId: selectionStore.selectedChannelId,
+            currentUserId: authStore.user?.id,
+            currentUserNick: authStore.user?.nickName,
+          })
+        }
         break
       case 'message_delivered':
         messageStore.handleMessageDelivered(data)

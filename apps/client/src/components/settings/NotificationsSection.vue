@@ -5,38 +5,48 @@
       <p class="settings-section__subtitle">Manage how you receive notifications</p>
       
       <div class="settings-list">
-       
         <SettingsToggle
-          v-model="notifications.groups"
+          v-model="privateChannels"
           title="Private Channels"
-          description="Get notified for private channels activity"
+          description="Get notified for private channel activity"
         />
         
         <SettingsToggle
-          v-model="notifications.channels"
-          title="Private Channels"
-          description="Get notified for public channels activity"
+          v-model="publicChannels"
+          title="Public Channels"
+          description="Get notified for public channel activity"
         />
         
         <SettingsToggle
-          v-model="notifications.mentions"
+          v-model="mentions"
           title="Mentions"
-          description="When someone mentions you"
+          description="Notify me when someone mentions me"
         />
-        
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import SettingsToggle from './SettingsToggle.vue'
+import { useNotificationStore } from '@/stores/notification-store'
 
-const notifications = ref({
-  groups: true,
-  channels: false,
-  mentions: true,
+const notificationStore = useNotificationStore()
+
+const privateChannels = computed({
+  get: () => notificationStore.preferences.privateChannels,
+  set: (val: boolean) => notificationStore.setPreference('privateChannels', val),
+})
+
+const publicChannels = computed({
+  get: () => notificationStore.preferences.publicChannels,
+  set: (val: boolean) => notificationStore.setPreference('publicChannels', val),
+})
+
+const mentions = computed({
+  get: () => notificationStore.preferences.mentions,
+  set: (val: boolean) => notificationStore.setPreference('mentions', val),
 })
 </script>
 
