@@ -3,9 +3,13 @@ import Channel from '#models/channel'
 import ChannelParticipant from '#models/channel_participant'
 import Invitation from '#models/invitation'
 import User from '#models/user'
+import ChannelBan from '#models/channel_ban'
+import KickVote from '#models/kick_vote'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
 import transmit from '@adonisjs/transmit/services/main'
+
+const KICK_VOTE_THRESHOLD = 3
 
 const createChannelSchema = vine.compile(
   vine.object({
@@ -25,6 +29,13 @@ const updateChannelSchema = vine.compile(
 const inviteSchema = vine.compile(
   vine.object({
     userId: vine.number(),
+  })
+)
+
+const kickSchema = vine.compile(
+  vine.object({
+    userId: vine.number(),
+    reason: vine.string().trim().maxLength(255).optional(),
   })
 )
 
@@ -296,6 +307,20 @@ export default class ChannelsController {
       })
     }
 
+    // Block banned users from joining
+    const activeBan = await ChannelBan.query()
+      .where('channel_id', channelId)
+      .where('user_id', user.id)
+      .whereNull('lifted_at')
+      .first()
+
+    if (activeBan) {
+      return response.status(403).json({
+        success: false,
+        message: 'You are banned from this channel',
+      })
+    }
+
     // Check if user is currently a member
     const activeParticipant = await ChannelParticipant.query()
       .where('channel_id', channelId)
@@ -557,10 +582,10 @@ export default class ChannelsController {
 
     const channel = await Channel.findOrFail(channelId)
 
-    if (participant.role !== 'admin') {
+    if (channel.type === 'private' && participant.role !== 'admin') {
       return response.status(403).json({
         success: false,
-        message: 'Only admins can invite users to channels',
+        message: 'Only admins can invite users to private channels',
       })
     }
 
@@ -583,6 +608,31 @@ export default class ChannelsController {
         success: false,
         message: 'User is already a member of this channel',
       })
+    }
+
+    // Handle existing bans for public channels
+    const activeBan = await ChannelBan.query()
+      .where('channel_id', channelId)
+      .where('user_id', data.userId)
+      .whereNull('lifted_at')
+      .first()
+
+    if (activeBan) {
+      if (participant.role !== 'admin') {
+        return response.status(403).json({
+          success: false,
+          message: 'Only admins can re-invite a banned user',
+        })
+      }
+
+      activeBan.liftedAt = DateTime.now()
+      await activeBan.save()
+
+      // Clear any previous votes for this user
+      await KickVote.query()
+        .where('channel_id', channelId)
+        .where('target_user_id', data.userId)
+        .delete()
     }
 
     const existingInvitation = await Invitation.query()
@@ -668,6 +718,94 @@ export default class ChannelsController {
   }
 
   /**
+   * Revoke (remove) a user from a private channel (admin only)
+   */
+  async revoke({ auth, params, request, response }: HttpContext) {
+    const user = auth.user!
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
+    const { userId: targetUserId } = await request.validateUsing(inviteSchema)
+
+    const channel = await Channel.findOrFail(channelId)
+
+    if (channel.type !== 'private') {
+      return response.status(403).json({
+        success: false,
+        message: 'Revoke is only available for private channels',
+      })
+    }
+
+    const actorParticipant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .where('user_id', user.id)
+      .whereNull('left_at')
+      .first()
+
+    if (!actorParticipant || actorParticipant.role !== 'admin') {
+      return response.status(403).json({
+        success: false,
+        message: 'Only admins can revoke users from this channel',
+      })
+    }
+
+    const targetParticipant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .where('user_id', targetUserId)
+      .whereNull('left_at')
+      .first()
+
+    if (!targetParticipant) {
+      return response.status(404).json({
+        success: false,
+        message: 'User is not a member of this channel',
+      })
+    }
+
+    if (targetParticipant.role === 'admin') {
+      return response.status(422).json({
+        success: false,
+        message: 'You cannot revoke another admin from the channel',
+      })
+    }
+
+    targetParticipant.leftAt = DateTime.now()
+    await targetParticipant.save()
+
+    const remainingMembers = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .whereNull('left_at')
+
+    const memberLeftPayload = {
+      type: 'member_left',
+      data: {
+        channelId,
+        userId: targetUserId,
+        memberCount: remainingMembers.length,
+      },
+    }
+
+    for (const member of remainingMembers) {
+      transmit.broadcast(`users/${member.userId}`, memberLeftPayload)
+    }
+
+    transmit.broadcast(`users/${targetUserId}`, {
+      type: 'user_left_channel',
+      data: {
+        userId: targetUserId,
+        channelId,
+        channelName: channel.name,
+      },
+    })
+
+    return response.json({
+      success: true,
+      message: 'User removed from the channel',
+    })
+  }
+
+  /**
    * Accept invitation
    */
   async acceptInvitation({ auth, params, response }: HttpContext) {
@@ -689,6 +827,20 @@ export default class ChannelsController {
       return response.status(404).json({
         success: false,
         message: 'Invitation not found or already processed',
+      })
+    }
+
+    // If user is banned from the channel, block acceptance
+    const activeBan = await ChannelBan.query()
+      .where('channel_id', invitation.channelId)
+      .where('user_id', user.id)
+      .whereNull('lifted_at')
+      .first()
+
+    if (activeBan) {
+      return response.status(403).json({
+        success: false,
+        message: 'You are banned from this channel',
       })
     }
 
@@ -853,5 +1005,204 @@ export default class ChannelsController {
       success: true,
       message: 'Invitation declined',
     })
+  }
+
+  /**
+   * Kick/ban logic for public channels
+   */
+  async kick({ auth, params, request, response }: HttpContext) {
+    const user = auth.user!
+    const { id: channelId } = await vine.validate({
+      schema: channelIdParamsSchema,
+      data: params,
+    })
+    const { userId: targetUserId, reason } = await request.validateUsing(kickSchema)
+
+    if (targetUserId === user.id) {
+      return response.status(422).json({
+        success: false,
+        message: 'You cannot kick yourself',
+      })
+    }
+
+    const channel = await Channel.findOrFail(channelId)
+
+    if (channel.type !== 'public') {
+      return response.status(403).json({
+        success: false,
+        message: 'Kick is only available for public channels',
+      })
+    }
+
+    const actorParticipant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .where('user_id', user.id)
+      .whereNull('left_at')
+      .first()
+
+    if (!actorParticipant) {
+      return response.status(403).json({
+        success: false,
+        message: 'You are not a member of this channel',
+      })
+    }
+
+    const targetParticipant = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .where('user_id', targetUserId)
+      .whereNull('left_at')
+      .first()
+
+    if (!targetParticipant) {
+      return response.status(404).json({
+        success: false,
+        message: 'User is not an active member of this channel',
+      })
+    }
+
+    // Block kicking other admins unless current user is admin
+    if (targetParticipant.role === 'admin' && actorParticipant.role !== 'admin') {
+      return response.status(403).json({
+        success: false,
+        message: 'You cannot kick an admin',
+      })
+    }
+
+    const activeBan = await ChannelBan.query()
+      .where('channel_id', channelId)
+      .where('user_id', targetUserId)
+      .whereNull('lifted_at')
+      .first()
+
+    if (activeBan) {
+      return response.status(422).json({
+        success: false,
+        message: 'User is already banned from this channel',
+      })
+    }
+
+    // Admin can ban immediately
+    if (actorParticipant.role === 'admin') {
+      const memberCount = await this.banUserFromPublicChannel(channel, targetParticipant, user.id, reason)
+
+      return response.json({
+        success: true,
+        message: 'User has been banned from the channel',
+        memberCount,
+      })
+    }
+
+    // Record kick vote
+    try {
+      await KickVote.create({
+        channelId,
+        targetUserId,
+        voterId: user.id,
+      })
+    } catch (error: any) {
+      if (error.code === '23505') {
+        return response.status(422).json({
+          success: false,
+          message: 'You have already voted to kick this user',
+        })
+      }
+      throw error
+    }
+
+    const voteCount = await KickVote.query()
+      .where('channel_id', channelId)
+      .where('target_user_id', targetUserId)
+      .count('* as total')
+
+    const totalVotes = Number(voteCount[0].$extras.total)
+
+    if (totalVotes >= KICK_VOTE_THRESHOLD) {
+      const memberCount = await this.banUserFromPublicChannel(
+        channel,
+        targetParticipant,
+        null,
+        reason || 'Reached vote threshold'
+      )
+
+      return response.json({
+        success: true,
+        message: 'User has been banned after reaching the vote threshold',
+        memberCount,
+      })
+    }
+
+    return response.json({
+      success: true,
+      message: `Kick vote recorded (${totalVotes}/${KICK_VOTE_THRESHOLD})`,
+      votes: totalVotes,
+    })
+  }
+
+  /**
+   * Shared ban helper for public channels
+   */
+  private async banUserFromPublicChannel(
+    channel: Channel,
+    targetParticipant: ChannelParticipant,
+    bannedBy: number | null,
+    reason?: string
+  ) {
+    const existingBan = await ChannelBan.query()
+      .where('channel_id', channel.id)
+      .where('user_id', targetParticipant.userId)
+      .first()
+
+    if (existingBan) {
+      existingBan.bannedBy = bannedBy
+      existingBan.reason = reason || existingBan.reason
+      existingBan.liftedAt = null
+      existingBan.bannedAt = DateTime.now()
+      await existingBan.save()
+    } else {
+      await ChannelBan.create({
+        channelId: channel.id,
+        userId: targetParticipant.userId,
+        bannedBy,
+        reason: reason || null,
+        bannedAt: DateTime.now(),
+        liftedAt: null,
+      })
+    }
+
+    targetParticipant.leftAt = DateTime.now()
+    await targetParticipant.save()
+
+    await KickVote.query()
+      .where('channel_id', channel.id)
+      .where('target_user_id', targetParticipant.userId)
+      .delete()
+
+    const remainingMembers = await ChannelParticipant.query()
+      .where('channel_id', channel.id)
+      .whereNull('left_at')
+
+    const memberLeftPayload = {
+      type: 'member_left',
+      data: {
+        channelId: channel.id,
+        userId: targetParticipant.userId,
+        memberCount: remainingMembers.length,
+      },
+    }
+
+    for (const member of remainingMembers) {
+      transmit.broadcast(`users/${member.userId}`, memberLeftPayload)
+    }
+
+    transmit.broadcast(`users/${targetParticipant.userId}`, {
+      type: 'user_left_channel',
+      data: {
+        userId: targetParticipant.userId,
+        channelId: channel.id,
+        channelName: channel.name,
+      },
+    })
+
+    return remainingMembers.length
   }
 }

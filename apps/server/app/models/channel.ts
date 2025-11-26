@@ -4,6 +4,8 @@ import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
 import ChannelParticipant from './channel_participant.js'
 import Message from './message.js'
+import ChannelBan from './channel_ban.js'
+import KickVote from './kick_vote.js'
 
 export type ChannelType = 'private' | 'public'
 
@@ -43,4 +45,10 @@ export default class Channel extends BaseModel {
 
   @hasMany(() => Message)
   declare messages: HasMany<typeof Message>
+
+  @hasMany(() => ChannelBan)
+  declare bans: HasMany<typeof ChannelBan>
+
+  @hasMany(() => KickVote)
+  declare kickVotes: HasMany<typeof KickVote>
 }

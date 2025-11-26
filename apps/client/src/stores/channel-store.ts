@@ -224,6 +224,64 @@ export const useChannelStore = defineStore('channel', () => {
     }
   };
 
+  const revokeUser = async (channelId: number, userId: number) => {
+    try {
+      const response = await api.post<{ success: boolean; message: string }>(
+        `/api/channels/${channelId}/revoke`,
+        { userId },
+      );
+
+      if (response.data.success) {
+        removeMember(userId);
+        Notify.create({
+          type: 'positive',
+          message: response.data.message || 'User removed from the channel',
+        });
+        return { success: true };
+      }
+      return { success: false };
+    } catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to remove user',
+      });
+      return { success: false };
+    }
+  };
+
+  const kickUser = async (channelId: number, userId: number, reason?: string) => {
+    try {
+      const response = await api.post<{
+        success: boolean;
+        message: string;
+        memberCount?: number;
+        votes?: number;
+      }>(`/api/channels/${channelId}/kick`, {
+        userId,
+        reason,
+      });
+
+      if (response.data.success) {
+        if (typeof response.data.memberCount === 'number') {
+          updateMemberCount(channelId, response.data.memberCount);
+          removeMember(userId);
+        }
+        Notify.create({
+          type: 'positive',
+          message: response.data.message || 'Kick vote recorded',
+        });
+        return { success: true, votes: response.data.votes };
+      }
+      return { success: false };
+    } catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to kick user',
+      });
+      return { success: false };
+    }
+  };
+
   return {
     channels,
     currentChannelDetails,
@@ -236,6 +294,8 @@ export const useChannelStore = defineStore('channel', () => {
     joinByName,
     leaveChannel,
     deleteChannel,
+    revokeUser,
+    kickUser,
     updateMemberCount,
     addMember,
     removeMember,

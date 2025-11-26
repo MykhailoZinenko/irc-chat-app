@@ -46,7 +46,7 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
   - [x] Logic - Fixed positioning maintained
   - [x] Visual - Fixed message input at bottom of chat view
 - Send messages with Input
-  - [ ] Logic - **MISSING: No message API endpoints**
+  - [x] Logic - **MISSING: No message API endpoints**
   - [x] Visual - Send button functional (logs to console only)
 - Send commands with Input
   - [x] Logic - **MISSING: No command parsing system**

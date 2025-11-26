@@ -4,7 +4,7 @@
       <ChannelSidebarContainer />
       <div
         v-if="selectionStore.sidebarOpen"
-        class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
+        class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
         @click="selectionStore.sidebarOpen = false"
       />
       <div class="flex flex-col flex-1 min-w-0 relative">

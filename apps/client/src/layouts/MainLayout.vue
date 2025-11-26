@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { type ChannelMember, useChannelStore } from '@/stores/channel-store'
+import { type ChannelMember } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useMessageStore } from '@/stores/message-store'
 import { getChatCommands, getMenuCommands, type CommandType } from '@/types/commands'
@@ -38,7 +38,6 @@ import { memberToSuggestion } from 'src/types/chat'
 import { api } from 'src/boot/axios'
 import { Notify } from 'quasar'
 
-const channelStore = useChannelStore()
 const authStore = useAuthStore()
 const selectionStore = useSelectionStore()
 const messageStore = useMessageStore()
@@ -83,14 +82,20 @@ const handleCommand = (cmd: CommandType, arg: string) => {
     case 'invite':
       void handleInvite(arg);
       break;
+    case 'revoke':
+      void handleRevoke(arg);
+      break;
+    case 'kick':
+      void handleKick(arg);
+      break;
   }
 }
 const handleJoin = async (name: string) => {
-  await channelStore.joinByName(name);
+  await currentChannel.channelStore.joinByName(name);
 }
 const handleCancel = async () => {
   if (!selectionStore.selectedChannelId) return
-  await channelStore.leaveChannel(selectionStore.selectedChannelId)
+  await currentChannel.channelStore.leaveChannel(selectionStore.selectedChannelId)
 }
 const handleInvite = async (name: string) => {
   const username = name.startsWith('@') ? name.slice(1) : name;
@@ -117,9 +122,58 @@ const handleInvite = async (name: string) => {
   } catch (error: any) {
     Notify.create({
       type: 'negative',
-      message: error?.message || 'Failed to send invitation',
+      message: error.response?.data?.message  || 'Failed to send invitation',
     })
   }
+}
+
+const parseUserAndReason = (arg: string) => {
+  const parts = arg.trim().split(/\s+/).filter(Boolean)
+  const userPart = parts.shift() || ''
+  const reason = parts.join(' ').trim()
+  const username = userPart.startsWith('@') ? userPart.slice(1) : userPart
+  return { username, reason }
+}
+
+const findMemberId = (username: string) => {
+  if (!username) return null
+  const members = currentChannel.currentChannelMembers.value || []
+  const match = members.find(
+    (m) => m.nickName?.toLowerCase() === username.toLowerCase()
+  )
+  return match?.id ?? null
+}
+
+const handleRevoke = async (arg: string) => {
+  if (!selectionStore.selectedChannelId) {
+    Notify.create({ type: 'negative', message: 'No channel selected' })
+    return
+  }
+
+  const { username } = parseUserAndReason(arg)
+  const memberId = findMemberId(username)
+  if (!memberId) {
+    Notify.create({ type: 'negative', message: 'User not found in this channel' })
+    return
+  }
+
+  await currentChannel.channelStore.revokeUser(selectionStore.selectedChannelId, memberId)
+}
+
+const handleKick = async (arg: string) => {
+  if (!selectionStore.selectedChannelId) {
+    Notify.create({ type: 'negative', message: 'No channel selected' })
+    return
+  }
+
+  const { username, reason } = parseUserAndReason(arg)
+  const memberId = findMemberId(username)
+  if (!memberId) {
+    Notify.create({ type: 'negative', message: 'User not found in this channel' })
+    return
+  }
+
+  await currentChannel.channelStore.kickUser(selectionStore.selectedChannelId, memberId, reason || undefined)
 }
 </script>
 
