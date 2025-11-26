@@ -91,8 +91,8 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
   - [x] Logic - **MISSING: No @mention parsing or storage**
   - [x] Visual - **MISSING: No @mention autocomplete**
 - Addressed message will be highlighted for user
-  - [ ] Logic - **MISSING: No mention notification system**
-  - [ ] Visual - **MISSING: No special styling for mentions**
+  - [X] Logic - **MISSING: No mention notification system**
+  - [X] Visual - **MISSING: No special styling for mentions**
 
 ### 7. Používateľ si môže pozrieť kompletnú históriu správ
 - Load messages with Infinite Scroll

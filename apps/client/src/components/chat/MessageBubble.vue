@@ -27,9 +27,7 @@
         <div
           :class="[
             'rounded-2xl px-3 py-2 sm:px-4 sm:py-2',
-            displayMessage.own
-              ? 'bg-blue-500 text-white rounded-br-md'
-              : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
+            bubbleClasses
           ]"
         >
           <p class="text-sm sm:text-base">
@@ -138,6 +136,24 @@ const showAvatar = computed(() => {
 
 const hasReactions = computed(() => {
   return false // No reactions for now
+})
+
+const bubbleClasses = computed(() => {
+  const base = displayMessage.value.own
+    ? 'bg-blue-500 text-white rounded-br-md'
+    : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
+
+  const content = props.message.content || ''
+  const ownNick = authStore.user?.nickName?.toLowerCase()
+  const mentionsMe =
+    !!ownNick &&
+    new RegExp(`(^|\\s|[^\\w])@${ownNick}\\b`, 'i').test(content)
+
+  if (mentionsMe && !displayMessage.value.own) {
+    return `${base} ring-2 ring-orange-300`
+  }
+
+  return base
 })
 
 type TextSegment = { text: string; class?: string }
