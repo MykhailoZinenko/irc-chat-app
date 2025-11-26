@@ -32,7 +32,11 @@
               : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
           ]"
         >
-          <p class="text-sm sm:text-base">{{ displayMessage.text }}</p>
+          <p class="text-sm sm:text-base">
+            <span v-for="(segment, idx) in highlightedText" :key="idx" :class="segment.class">
+              {{ segment.text }}
+            </span>
+          </p>
           <div class="flex items-center gap-1 justify-end mt-1">
             <p :class="['text-xs', displayMessage.own ? 'text-blue-100' : 'text-gray-500']">
               {{ displayMessage.time }}
@@ -67,6 +71,7 @@
 import { type ChannelMessage } from '@/stores/message-store'
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth-store'
+import { useChannelStore } from '@/stores/channel-store'
 import { DateTime } from 'luxon'
 
 interface Props {
@@ -80,6 +85,7 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
+const channelStore = useChannelStore()
 
 interface DisplayMessage {
   sender: string
@@ -133,10 +139,88 @@ const showAvatar = computed(() => {
 const hasReactions = computed(() => {
   return false // No reactions for now
 })
+
+type TextSegment = { text: string; class?: string }
+
+const highlightedText = computed<TextSegment[]>(() => {
+  const content = props.message.content || ''
+  if (!content) return []
+
+  const segments: TextSegment[] = []
+  const ownNick = authStore.user?.nickName?.toLowerCase()
+
+  // Build a set of usernames in the channel for quick matching
+  const memberNames = new Set<string>(
+    (channelStore.currentChannelMembers || [])
+      .map((m) => m.nickName?.toLowerCase())
+      .filter((name): name is string => Boolean(name))
+  )
+
+  const parts = content.split(/(\s+)/) // keep spaces
+  const isOwnMessage = displayMessage.value.own
+
+  for (const part of parts) {
+    if (!part.startsWith('@') || part.trim().length <= 1) {
+      segments.push({ text: part })
+      continue
+    }
+
+    const handle = part.slice(1)
+    const lowerHandle = handle.toLowerCase()
+    const isKnown = memberNames.has(lowerHandle)
+    const isOwn = ownNick && lowerHandle === ownNick
+
+    const className = isOwn
+      ? isOwnMessage
+        ? 'mention-own-self'
+        : 'mention-self'
+      : isKnown
+        ? isOwnMessage
+          ? 'mention-own'
+          : 'mention'
+        : isOwnMessage
+          ? 'mention-own-unknown'
+          : 'mention-unknown'
+
+    segments.push({ text: part, class: className })
+  }
+
+  return segments
+})
 </script>
 
 <style scoped>
 .bg-gradient-to-br {
   background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
+}
+
+.mention {
+  color: #0ea5e9;
+  font-weight: 600;
+}
+
+.mention-own {
+  color: #dbeafe; /* light blue on dark bubble */
+  font-weight: 600;
+}
+
+.mention-self {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.mention-own-self {
+  color: #bbf7d0; /* light green on dark bubble */
+  font-weight: 700;
+}
+
+.mention-unknown {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.mention-own-unknown {
+  color: #e5e7eb; /* light gray on dark bubble */
+  font-weight: 600;
 }
 </style>
