@@ -60,14 +60,14 @@ A real-time chat application built with AdonisJS (backend) and Vue 3 + Quasar (f
   - [x] Logic - Invite endpoint exists, admin-only enforced
   - [x] Visual - **MISSING: No command parser to detect /invite**
 - Kick to Private channel only by admin with **/revoke [Username]**
-  - [ ] Logic - **MISSING: No revoke/kick endpoint**
-  - [ ] Visual - **MISSING: No command parser**
+  - [x] Logic - **MISSING: No revoke/kick endpoint**
+  - [x] Visual - **MISSING: No command parser**
 - Join to Public channel with **/join [ChannelName]**. If channel doesn't exist create one
   - [x] Logic - Join endpoint exists for public channels
   - [x] Visual - **MISSING: Need command parser + auto-create logic**
 - Ban to Public channel with **/kick [Username]**. Need to have 3 user vote or 1 admin vote
-  - [ ] Logic - **MISSING: No kick/ban system or voting mechanism**
-  - [ ] Visual - **MISSING: No UI for kick votes**
+  - [x] Logic - **MISSING: No kick/ban system or voting mechanism**
+  - [x] Visual - **MISSING: No UI for kick votes**
 - Invite back after ban in Public channels with **/invite [Username]**
   - [x] Logic - **MISSING: No ban tracking system**
   - [x] Visual - **MISSING: No UI to reinvite banned users**
