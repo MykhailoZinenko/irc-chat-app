@@ -258,6 +258,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   userSubscription?.unsubscribe()
+  selectionStore.clearSelection()
 })
 
 // Watch route params and update selection store
