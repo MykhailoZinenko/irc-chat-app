@@ -123,7 +123,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store'
 import ProfileSection from '@/components/settings/ProfileSection.vue'
 import AccountSection from '@/components/settings/AccountSection.vue'
-import PrivacySection from '@/components/settings/PrivacySection.vue'
 import NotificationsSection from '@/components/settings/NotificationsSection.vue'
 import AppearanceSection from '@/components/settings/AppearanceSection.vue'
 import DevicesSection from '@/components/settings/DevicesSection.vue'
@@ -137,7 +136,6 @@ const selectedSection = ref('profile')
 const menuItems = [
   { id: 'profile', icon: 'person', label: 'Profile', description: 'Manage your personal information' },
   { id: 'account', icon: 'lock', label: 'Account', description: 'Security and account settings' },
-  { id: 'privacy', icon: 'shield', label: 'Privacy', description: 'Control your privacy' },
   { id: 'notifications', icon: 'notifications', label: 'Notifications', description: 'Manage notifications' },
   { id: 'appearance', icon: 'palette', label: 'Appearance', description: 'Customize your experience' },
   { id: 'devices', icon: 'smartphone', label: 'Devices', description: 'Manage active sessions' },
@@ -152,7 +150,6 @@ const renderSection = computed(() => {
   const sections: Record<string, any> = {
     profile: ProfileSection,
     account: AccountSection,
-    privacy: PrivacySection,
     notifications: NotificationsSection,
     appearance: AppearanceSection,
     devices: DevicesSection,

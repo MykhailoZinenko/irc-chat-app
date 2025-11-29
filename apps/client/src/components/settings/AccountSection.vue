@@ -3,84 +3,63 @@
     <div>
       <h3 class="text-lg font-semibold text-gray-800 mb-4">Account Information</h3>
       <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-          <q-input
-            v-model="email"
-            outlined
-            type="email"
-            class="custom-input"
-          >
-            <template #prepend>
-              <q-icon name="mail" color="grey-5" />
-            </template>
-          </q-input>
-        </div>
-        <q-btn
-          unelevated
-          color="blue"
-          label="Update Email"
-          class="w-full"
-          padding="12px"
-          :loading="isLoadingEmail"
-          @click="handleUpdateEmail"
+        <InputField
+          v-model="email"
+          label="Email Address"
+          icon="mail"
+          type="email"
+          @enter="handleUpdateEmail"
         />
+        <Button
+          :loading="isLoadingEmail"
+          :disabled="isLoadingEmail"
+          @click="handleUpdateEmail"
+          variant="solid"
+        >
+          Update Email
+        </Button>
       </div>
     </div>
     <div class="border-t border-gray-200 pt-6">
       <h3 class="text-lg font-semibold text-gray-800 mb-4">Change Password</h3>
       <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-          <q-input
-            v-model="currentPassword"
-            outlined
-            type="password"
-            placeholder="••••••••"
-            class="custom-input"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-          <q-input
-            v-model="newPassword"
-            outlined
-            type="password"
-            placeholder="••••••••"
-            class="custom-input"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-          <q-input
-            v-model="confirmPassword"
-            outlined
-            type="password"
-            placeholder="••••••••"
-            class="custom-input"
-          />
-        </div>
-        <q-btn
-          unelevated
-          color="blue"
-          label="Update Password"
-          class="w-full"
-          padding="12px"
-          :loading="isLoadingPassword"
-          @click="handleUpdatePassword"
+        <PasswordField
+          v-model="currentPassword"
+          label="Current Password"
+          placeholder="••••••••"
         />
+        <PasswordField
+          v-model="newPassword"
+          label="New Password"
+          placeholder="••••••••"
+        />
+        <PasswordField
+          v-model="confirmPassword"
+          label="Confirm New Password"
+          placeholder="••••••••"
+          @enter="handleUpdatePassword"
+        />
+        <Button
+          :loading="isLoadingPassword"
+          :disabled="isLoadingPassword"
+          @click="handleUpdatePassword"
+          variant="solid"
+        >
+          Update Password
+        </Button>
       </div>
     </div>
     <div class="border-t border-gray-200 pt-6">
       <h3 class="text-lg font-semibold text-red-600 mb-2">Danger Zone</h3>
       <p class="text-sm text-gray-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-      <q-btn
-        outline
-        color="red"
-        label="Delete Account"
-        padding="12px 24px"
+      <Button
+        variant="outline"
+        tone="danger"
+        :full-width="false"
         @click="showDeleteConfirmation"
-      />
+      >
+        Delete Account
+      </Button>
     </div>
   </div>
 </template>
@@ -88,6 +67,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store'
+import InputField from '@/components/ui/InputField.vue'
+import PasswordField from '@/components/ui/PasswordField.vue'
+import Button from '@/components/ui/CustomButton.vue'
 import { Notify, useQuasar } from 'quasar'
 
 const router = useRouter()
@@ -278,20 +260,6 @@ const showDeleteConfirmation = () => {
 }
 .text-red-600 {
   color: #dc2626;
-}
-.custom-input :deep(.q-field__control) {
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  min-height: 48px;
-}
-.custom-input :deep(.q-field__control):before {
-  border-color: #d1d5db;
-}
-.custom-input :deep(.q-field__control):hover:before {
-  border-color: #3b82f6;
-}
-.custom-input :deep(.q-field__control):after {
-  border-color: #3b82f6;
 }
 .w-full {
   width: 100%;

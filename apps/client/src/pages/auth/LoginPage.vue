@@ -41,26 +41,19 @@
       </div>
 
       <!-- Login Button -->
-      <PrimaryButton @click="handleSubmit">
+      <Button @click="handleSubmit">
         Sign In
-      </PrimaryButton>
+      </Button>
     </div>
-
-    <!-- Social Login -->
-    <SocialLogin 
-      @google="handleGoogleLogin"
-      @facebook="handleFacebookLogin"
-    />
   </AuthPageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import AuthPageLayout from '@/components/auth/AuthPageLayout.vue';
-import InputField from '@/components/auth/InputField.vue';
-import PasswordField from '@/components/auth/PasswordField.vue';
-import PrimaryButton from '@/components/auth/PrimaryButton.vue';
-import SocialLogin from '@/components/auth/SocialLogin.vue';
+import InputField from '@/components/ui/InputField.vue';
+import PasswordField from '@/components/ui/PasswordField.vue';
+import Button from '@/components/ui/CustomButton.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store';
 
@@ -83,14 +76,6 @@ const handleSubmit = async () => {
   } else {
     console.log('Login failed:', result.message)
   }
-};
-
-const handleGoogleLogin = () => {
-  console.log('Google login');
-};
-
-const handleFacebookLogin = () => {
-  console.log('Facebook login');
 };
 </script>
 

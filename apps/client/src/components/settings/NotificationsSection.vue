@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import SettingsToggle from './SettingsToggle.vue'
+import SettingsToggle from '../ui/SettingsToggle.vue'
 import { useNotificationStore } from '@/stores/notification-store'
 
 const notificationStore = useNotificationStore()

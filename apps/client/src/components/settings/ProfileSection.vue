@@ -21,49 +21,47 @@
     <!-- Profile Fields -->
     <div class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-        <q-input
+        <InputField
           v-model="firstName"
-          outlined
-          class="custom-input"
+          label="First Name"
+          icon="person"
           placeholder="John"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-        <q-input
+        <InputField
           v-model="lastName"
-          outlined
-          class="custom-input"
+          label="Last Name"
+          icon="badge"
           placeholder="Doe"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Nickname</label>
-        <q-input
+        <InputField
           v-model="nickName"
-          outlined
-          class="custom-input"
+          label="Nickname"
+          icon="alternate_email"
           placeholder="johndoe"
         />
         <p class="text-xs text-gray-500 mt-1">Your unique username for the platform</p>
       </div>
     </div>
-    <q-btn
-      unelevated
-      color="blue"
-      label="Save Changes"
-      class="w-full"
-      padding="12px"
+    <Button
       :loading="isLoading"
+      :disabled="isLoading"
       @click="handleSaveProfile"
-    />
+      variant="solid"
+    >
+      Save Changes
+    </Button>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from 'src/stores/auth-store'
 import { Notify } from 'quasar'
+import InputField from '@/components/ui/InputField.vue'
+import Button from '@/components/ui/CustomButton.vue'
 
 const authStore = useAuthStore()
 
@@ -164,20 +162,6 @@ const handleSaveProfile = async () => {
 }
 .text-gray-400 {
   color: #9ca3af;
-}
-.custom-input :deep(.q-field__control) {
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  min-height: 48px;
-}
-.custom-input :deep(.q-field__control):before {
-  border-color: #d1d5db;
-}
-.custom-input :deep(.q-field__control):hover:before {
-  border-color: #3b82f6;
-}
-.custom-input :deep(.q-field__control):after {
-  border-color: #3b82f6;
 }
 .w-full {
   width: 100%;

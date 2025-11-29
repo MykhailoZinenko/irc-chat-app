@@ -40,16 +40,16 @@
             >
               Current
             </span>
-            <q-btn
+            <Button
               v-else
-              flat
-              no-caps
-              color="red"
-              label="Terminate"
-              size="sm"
-              class="font-medium"
+              variant="outline"
+              tone="danger"
+              :full-width="false"
+              padding="6px 10px"
               @click="handleRevokeSession(session.id)"
-            />
+            >
+              Terminate
+            </Button>
           </div>
         </div>
 
@@ -58,15 +58,15 @@
         </div>
       </div>
     </div>
-    <q-btn
-      outline
-      color="red"
-      label="Terminate All Other Sessions"
-      class="w-full"
-      padding="12px"
+    <Button
+      variant="outline"
+      tone="danger"
+      :full-width="true"
       :disable="authStore.sessions.length <= 1"
       @click="handleLogoutAll"
-    />
+    >
+      Terminate All Other Sessions
+    </Button>
   </div>
 </template>
 <script setup lang="ts">
@@ -74,6 +74,7 @@ import { onMounted } from 'vue'
 import { useAuthStore } from 'src/stores/auth-store'
 import { DateTime } from 'luxon'
 import { useQuasar } from 'quasar'
+import Button from '@/components/ui/CustomButton.vue'
 
 const authStore = useAuthStore()
 const $q = useQuasar()

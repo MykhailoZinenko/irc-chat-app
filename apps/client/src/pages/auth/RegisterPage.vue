@@ -67,26 +67,20 @@
       </q-checkbox>
 
       <!-- Register Button -->
-      <PrimaryButton @click="handleSubmit" :disabled="!agreeToTerms">
+      <Button @click="handleSubmit" :disabled="!agreeToTerms">
         Create Account
-      </PrimaryButton>
+      </Button>
     </div>
 
-    <!-- Social Login -->
-    <SocialLogin 
-      @google="handleGoogleLogin"
-      @facebook="handleFacebookLogin"
-    />
   </AuthPageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import AuthPageLayout from '@/components/auth/AuthPageLayout.vue';
-import InputField from '@/components/auth/InputField.vue';
-import PasswordField from '@/components/auth/PasswordField.vue';
-import PrimaryButton from '@/components/auth/PrimaryButton.vue';
-import SocialLogin from '@/components/auth/SocialLogin.vue';
+import InputField from '@/components/ui/InputField.vue';
+import PasswordField from '@/components/ui/PasswordField.vue';
+import Button from '@/components/ui/CustomButton.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store';
 import { Notify } from 'quasar';
@@ -137,14 +131,6 @@ const handleSubmit = async () => {
     // Errors are already shown by the auth store
     console.log('Registration failed:', result.errors || "Unknown error")
   }
-};
-
-const handleGoogleLogin = () => {
-  console.log('Google register');
-};
-
-const handleFacebookLogin = () => {
-  console.log('Facebook register');
 };
 </script>
 
