@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
+import { transmitService } from '@/services/transmit';
 
 export interface MessageStatus {
   sent?: boolean;
@@ -95,20 +96,13 @@ export const useMessageStore = defineStore('message', () => {
   const sendMessage = async (channelId: number, content: string) => {
     sending.value = true;
     try {
-      const response = await api.post<{
-        success: boolean;
-        data: ChannelMessage;
-      }>(`/api/channels/${channelId}/messages`, { content });
-
-      if (response.data.success) {
-        // Add message to local state (it's already broadcasted via WebSocket)
-        addMessageFromRealTime(response.data.data);
-        return { success: true, message: response.data.data };
-      }
+      const message = await transmitService.emit<ChannelMessage>('message:send', { channelId, content });
+      addMessageFromRealTime(message);
+      return { success: true, message };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to send message',
+        message: error?.message || error.response?.data?.message || 'Failed to send message',
       });
       return { success: false };
     } finally {
@@ -118,8 +112,7 @@ export const useMessageStore = defineStore('message', () => {
 
   const markMessageAsRead = async (messageId: number) => {
     try {
-      await api.post(`/api/channels/messages/${messageId}/read`);
-      // Status will be updated via WebSocket broadcast
+      await transmitService.emit('message:markRead', { messageId });
     } catch (error: any) {
       console.error('Failed to mark message as read:', error);
     }
@@ -127,8 +120,7 @@ export const useMessageStore = defineStore('message', () => {
 
   const markMessageAsDelivered = async (messageId: number) => {
     try {
-      await api.post(`/api/channels/messages/${messageId}/delivered`);
-      // Status will be updated via WebSocket broadcast
+      await transmitService.emit('message:markDelivered', { messageId });
     } catch (error: any) {
       console.error('Failed to mark message as delivered:', error);
     }

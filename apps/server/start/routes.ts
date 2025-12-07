@@ -8,10 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import transmit from '@adonisjs/transmit/services/main'
 import { middleware } from './kernel.js'
-
-transmit.registerRoutes()
 
 router.get('api/test', async () => {
   return {

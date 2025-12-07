@@ -373,7 +373,24 @@ const handleLeaveChannel = async () => {
   // Close info panel and clear selection to prevent watches from firing
   selectionStore.infoPanelOpen = false
   selectionStore.clearSelection()
-})
+
+  // Leave the channel
+  const result = await channelStore.leaveChannel(leavingChannelId)
+  if (result.success) {
+    // Fetch updated channel list
+    await channelStore.fetchChannels()
+
+    // Navigate to next channel
+    if (channelStore.channels.length > 0) {
+      const firstChannel = channelStore.channels[0]
+      if (firstChannel) {
+        await router.push(`/chat/${firstChannel.id}`)
+      }
+    } else {
+      await router.push('/chat')
+    }
+  }
+}
 
 // Watch route params and update selection store
 watch(
@@ -446,62 +463,6 @@ watch(
     }
   }
 )
-
-const currentChannel = computed(() => {
-  if (!selectionStore.selectedChannelId) return null
-  return channelStore.channels.find((c) => c.id === selectionStore.selectedChannelId)
-})
-
-const currentChatData = computed(() => {
-  if (!currentChannel.value) return null
-  const channel = currentChannel.value
-  const avatar = channel.type === 'public' ? '📢' : '🔒'
-  return {
-    id: channel.id,
-    name: channel.name,
-    type: channel.type === 'private' ? ('group' as const) : ('channel' as const),
-    avatar,
-    description: channel.description,
-    memberCount: channel.memberCount || 0,
-    subscriberCount: channel.memberCount || 0,
-  }
-})
-
-const handleCloseInfoPanel = () => {
-  selectionStore.infoPanelOpen = false
-}
-
-const handleUserClick = (userId: number) => {
-  selectionStore.selectUser(userId)
-  selectionStore.infoPanelOpen = false
-}
-
-const handleLeaveChannel = async () => {
-  if (!selectionStore.selectedChannelId) return
-  const leavingChannelId = selectionStore.selectedChannelId
-
-  // Close info panel and clear selection to prevent watches from firing
-  selectionStore.infoPanelOpen = false
-  selectionStore.clearSelection()
-
-  // Leave the channel
-  const result = await channelStore.leaveChannel(leavingChannelId)
-  if (result.success) {
-    // Fetch updated channel list (this removes the left channel from the list)
-    await channelStore.fetchChannels()
-
-    // Navigate to next channel which will trigger selection change via route watch
-    if (channelStore.channels.length > 0) {
-      const firstChannel = channelStore.channels[0]
-      if (firstChannel) {
-        await router.push(`/chat/${firstChannel.id}`)
-      }
-    } else {
-      // No channels left - navigate to empty chat state
-      await router.push('/chat')
-    }
-  }
-}
 </script>
 
 <style scoped>

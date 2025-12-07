@@ -47,7 +47,6 @@ export default defineConfig({
     () => import('@adonisjs/cors/cors_provider'),
     () => import('@adonisjs/lucid/database_provider'),
     () => import('@adonisjs/auth/auth_provider'),
-    () => import('@adonisjs/transmit/transmit_provider'),
     {
       file: () => import('adonisjs-scheduler/scheduler_provider'),
       environment: ['console'],
@@ -62,7 +61,7 @@ export default defineConfig({
   | List of modules to import before starting the application.
   |
   */
-  preloads: [() => import('#start/routes'), () => import('#start/kernel'), {
+  preloads: [() => import('#start/routes'), () => import('#start/kernel'), () => import('#start/socket'), {
     file: () => import('#start/scheduler'),
     environment: ['console'],
   }],

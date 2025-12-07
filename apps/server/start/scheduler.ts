@@ -1,7 +1,7 @@
 import scheduler from 'adonisjs-scheduler/services/main'
 import Channel from '#models/channel'
 import { DateTime } from 'luxon'
-import transmit from '@adonisjs/transmit/services/main'
+import { emitToUsers } from '#services/realtime'
 
 // Clean up inactive channels after 30 days of inactivity
 scheduler
@@ -20,16 +20,17 @@ scheduler
 
     for (const channel of inactiveChannels) {
       // Notify all participants that the channel is being deleted
-      for (const participant of channel.participants) {
-        transmit.broadcast(`users/${participant.userId}`, {
+      emitToUsers(
+        channel.participants.map((p) => p.userId),
+        {
           type: 'channel_deleted',
           data: {
             channelId: channel.id,
             channelName: channel.name,
             reason: 'inactivity',
           },
-        })
-      }
+        }
+      )
 
       // Delete the channel (cascade will handle participants, messages, etc.)
       await channel.delete()

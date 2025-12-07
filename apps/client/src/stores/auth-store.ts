@@ -1,6 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { api } from 'boot/axios';
 import { Notify } from 'quasar';
+import { transmitService } from '@/services/transmit';
 
 export interface User {
   id: number;
@@ -84,6 +85,7 @@ export const useAuthStore = defineStore('auth', {
           this.token = response.data.data.token.token;
           localStorage.setItem('auth_token', this.token);
           this.setAuthHeaders();
+          transmitService.setAuthToken(this.token);
 
           Notify.create({
             type: 'positive',
@@ -115,6 +117,7 @@ export const useAuthStore = defineStore('auth', {
           this.token = response.data.data.token.token;
           localStorage.setItem('auth_token', this.token);
           this.setAuthHeaders();
+          transmitService.setAuthToken(this.token);
 
           Notify.create({
             type: 'positive',
@@ -178,6 +181,9 @@ export const useAuthStore = defineStore('auth', {
         console.log(response);
         if (response.data.success && response.data.data) {
           this.user = response.data.data;
+          if (this.token) {
+            transmitService.setAuthToken(this.token);
+          }
           return true;
         } else {
           this.clearAuthData();
@@ -233,6 +239,7 @@ export const useAuthStore = defineStore('auth', {
       this.sessions = [];
       localStorage.removeItem('auth_token');
       delete api.defaults.headers.common['Authorization'];
+      transmitService.setAuthToken(null);
     },
 
     async initAuth() {
@@ -241,6 +248,8 @@ export const useAuthStore = defineStore('auth', {
 
         if (!success) {
           this.clearAuthData();
+        } else {
+          transmitService.setAuthToken(this.token);
         }
       }
     },
