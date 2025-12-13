@@ -246,21 +246,6 @@ const showDeleteConfirmation = () => {
 .border-t {
   border-top-width: 1px;
 }
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-.text-gray-800 {
-  color: #1f2937;
-}
-.text-gray-700 {
-  color: #374151;
-}
-.text-gray-600 {
-  color: #4b5563;
-}
-.text-red-600 {
-  color: #dc2626;
-}
 .w-full {
   width: 100%;
 }

@@ -93,38 +93,11 @@ const chatBg = ref('gray')
 .border-b {
   border-bottom-width: 1px;
 }
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-.text-gray-800 {
-  color: #1f2937;
-}
-.text-gray-600 {
-  color: #4b5563;
-}
-.text-gray-500 {
-  color: #6b7280;
-}
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-.bg-blue-50 {
-  background-color: #eff6ff;
-}
-.bg-purple-50 {
-  background-color: #faf5ff;
-}
-.bg-green-50 {
-  background-color: #f0fdf4;
-}
-.border-blue-500 {
-  border-color: #3b82f6;
-}
 .border-transparent {
   border-color: transparent;
 }
 .hover\:border-gray-300:hover {
-  border-color: #d1d5db;
+  border-color: var(--app-border-strong);
 }
 .grid {
   display: grid;

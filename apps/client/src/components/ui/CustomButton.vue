@@ -96,13 +96,13 @@ const buttonClasses = computed(() => {
 }
 
 .btn-gradient {
-  color: #fff;
-  background: linear-gradient(90deg, #3b82f6, #a855f7);
+  color: var(--app-surface);
+  background: linear-gradient(90deg, var(--app-gradient-start), var(--app-gradient-end));
   border: none !important;
 }
 
 .btn-solid {
-  color: #fff;
+  color: var(--app-surface);
 }
 
 .btn-outline {

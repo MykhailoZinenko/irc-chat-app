@@ -48,7 +48,7 @@ defineEmits<{
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .settings-toggle:last-child {
@@ -64,7 +64,7 @@ defineEmits<{
 
 .settings-toggle__icon {
   margin-top: 0.25rem;
-  color: #6b7280;
+  color: var(--app-text-muted);
   width: 1.25rem;
   height: 1.25rem;
 }
@@ -75,14 +75,14 @@ defineEmits<{
 
 .settings-toggle__title {
   font-weight: 500;
-  color: #1f2937;
+  color: var(--app-text-strong);
   margin: 0;
   font-size: 0.9375rem;
 }
 
 .settings-toggle__description {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin: 0.25rem 0 0 0;
 }
 

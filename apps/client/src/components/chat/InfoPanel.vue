@@ -234,56 +234,7 @@ const statusText = computed(() => {
 </script>
 
 <style scoped>
-.bg-white {
-  background-color: white;
-}
-
-.border-l,
-.border-b {
-  border-color: #e5e7eb;
-}
-
-.border-l {
-  border-left-width: 1px;
-}
-
-.border-b {
-  border-bottom-width: 1px;
-}
-
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.bg-gray-200 {
-  background-color: #e5e7eb;
-}
-
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.text-gray-600 {
-  color: #4b5563;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
-.text-blue-500 {
-  color: #3b82f6;
-}
-
 .space-y-1 > * + * {
   margin-top: 0.25rem;
-}
-
-.border-gray-200 {
-  border-color: #e5e7eb;
 }
 </style>

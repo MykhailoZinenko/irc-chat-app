@@ -394,13 +394,4 @@ const handleLeaveChannel = async () => {
 .index-page {
   padding: 0;
 }
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-.bg-black {
-  background-color: black;
-}
-.bg-opacity-50 {
-  opacity: 0.5;
-}
 </style>

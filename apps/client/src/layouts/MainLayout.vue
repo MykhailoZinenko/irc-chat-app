@@ -191,9 +191,9 @@ const handleKick = async (arg: string) => {
 }
 
 .console-wrapper {
-  background: white;
+  background: var(--app-surface);
   border-radius: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--app-shadow-soft);
   overflow: hidden;
   margin: 12px auto;
   max-width: 900px;

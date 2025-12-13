@@ -136,6 +136,6 @@ const handleSubmit = async () => {
 
 <style scoped>
 input[type="checkbox"] {
-  accent-color: #3b82f6;
+  accent-color: var(--app-primary);
 }
 </style>

@@ -82,7 +82,7 @@ const onOKClick = () => {
 }
 
 .text-gray-700 {
-  color: #374151;
+  color: var(--app-text);
 }
 
 :deep(.channel-type-options .q-radio) {

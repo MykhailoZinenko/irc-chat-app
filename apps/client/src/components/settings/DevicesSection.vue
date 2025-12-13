@@ -18,7 +18,7 @@
             <div class="flex gap-3">
               <div :class="[
                 'w-10 h-10 rounded-lg flex items-center justify-center',
-                session.isCurrent ? 'bg-blue-100' : 'bg-gray-100'
+                session.isCurrent ? 'bg-blue-1' : 'bg-grey-2'
               ]">
                 <q-icon
                   :name="getDeviceIcon(session.deviceType)"
@@ -36,7 +36,7 @@
             </div>
             <span
               v-if="session.isCurrent"
-              class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"
+              class="text-xs bg-green-1 text-green-7 px-2 py-1 rounded-full"
             >
               Current
             </span>
@@ -145,39 +145,6 @@ const handleLogoutAll = () => {
 }
 .border {
   border-width: 1px;
-}
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-.text-gray-800 {
-  color: #1f2937;
-}
-.text-gray-600 {
-  color: #4b5563;
-}
-.text-gray-500 {
-  color: #6b7280;
-}
-.text-gray-400 {
-  color: #9ca3af;
-}
-.text-red-600 {
-  color: #dc2626;
-}
-.text-red-700 {
-  color: #b91c1c;
-}
-.text-green-700 {
-  color: #15803d;
-}
-.bg-blue-100 {
-  background-color: #dbeafe;
-}
-.bg-gray-100 {
-  background-color: #f3f4f6;
-}
-.bg-green-100 {
-  background-color: #dcfce7;
 }
 .w-full {
   width: 100%;

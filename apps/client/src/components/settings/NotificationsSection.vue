@@ -96,20 +96,20 @@ const channelEvents = computed({
 .settings-section__title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--app-text-strong);
   margin: 0 0 0.25rem 0;
 }
 
 .settings-section__subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin: 0 0 1.5rem 0;
 }
 
 .settings-list {
-  background: white;
+  background: var(--app-surface);
   border-radius: 0.5rem;
   padding: 0 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--app-shadow-soft);
 }
 </style>

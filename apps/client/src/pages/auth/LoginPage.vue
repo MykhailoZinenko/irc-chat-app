@@ -80,43 +80,12 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* Tailwind-like utilities using standard CSS */
-.min-h-screen {
-  min-height: 100vh;
-}
-
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-
-.from-blue-50 {
-  --tw-gradient-from: #eff6ff;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 246, 255, 0));
-}
-
-.to-purple-50 {
-  --tw-gradient-to: #faf5ff;
-}
-
-.from-blue-500 {
-  --tw-gradient-from: #3b82f6;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0));
-}
-
-.to-purple-500 {
-  --tw-gradient-to: #a855f7;
-}
-
-.bg-gradient-to-r {
-  background-image: linear-gradient(to right, var(--tw-gradient-stops));
-}
-
 input:focus {
   outline: none;
 }
 
 input[type="checkbox"] {
-  accent-color: #3b82f6;
+  accent-color: var(--app-primary);
 }
 
 button:active {

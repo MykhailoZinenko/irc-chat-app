@@ -3,7 +3,7 @@
     <!-- Profile Header -->
     <div class="flex items-center gap-6 pb-6 border-b border-gray-200">
       <div class="relative">
-        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-4xl">
+        <div class="w-24 h-24 rounded-full app-gradient flex items-center justify-center text-4xl">
           😊
         </div>
         <q-icon
@@ -141,27 +141,6 @@ const handleSaveProfile = async () => {
 }
 .space-y-4 > * + * {
   margin-top: 1rem;
-}
-.border-b {
-  border-bottom-width: 1px;
-}
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
-}
-.text-gray-800 {
-  color: #1f2937;
-}
-.text-gray-700 {
-  color: #374151;
-}
-.text-gray-500 {
-  color: #6b7280;
-}
-.text-gray-400 {
-  color: #9ca3af;
 }
 .w-full {
   width: 100%;

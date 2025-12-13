@@ -16,8 +16,8 @@
       <!-- Scrollable Content -->
       <div class="flex-1 overflow-y-auto">
         <!-- Profile Header -->
-        <div class="flex flex-col items-center py-8 px-4 bg-gradient-to-b from-gray-50 to-white">
-          <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-6xl mb-4 shadow-lg">
+        <div class="flex flex-col items-center py-8 px-4 app-gradient-surface">
+          <div class="w-32 h-32 rounded-full app-gradient flex items-center justify-center text-6xl mb-4 shadow-lg">
             👤
           </div>
           <h2 class="text-2xl font-bold text-gray-800 mb-1">{{ displayName }}</h2>
@@ -92,7 +92,7 @@
               @click="handleChannelClick(channel)"
               class="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
             >
-              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-2xl flex-shrink-0">
+              <div class="w-12 h-12 rounded-full app-gradient flex items-center justify-center text-2xl flex-shrink-0">
                 {{ channel.type === 'public' ? '📢' : '🔒' }}
               </div>
               <div class="flex-1 text-left min-w-0">
@@ -248,30 +248,3 @@ const handleReport = () => {
 }
 </script>
 
-<style scoped>
-.bg-gradient-to-b {
-  background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
-}
-
-.from-gray-50 {
-  --tw-gradient-from: #f9fafb;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(249, 250, 251, 0));
-}
-
-.to-white {
-  --tw-gradient-to: #ffffff;
-}
-
-.from-blue-400 {
-  --tw-gradient-from: #60a5fa;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(96, 165, 250, 0));
-}
-
-.to-purple-500 {
-  --tw-gradient-to: #a855f7;
-}
-
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-</style>
