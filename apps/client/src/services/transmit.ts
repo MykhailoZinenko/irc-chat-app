@@ -54,6 +54,7 @@ class SocketService {
         this.socket.off('connect');
         this.socket.off('connect_error');
         this.socket.disconnect();
+        this.socket = null;
       }
       return;
     }

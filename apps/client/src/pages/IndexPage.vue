@@ -47,6 +47,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useMessageStore } from '@/stores/message-store'
 import { useInvitationStore } from '@/stores/invitation-store'
 import { useNotificationStore } from '@/stores/notification-store'
+import { usePresenceStore } from '@/stores/presence-store'
 import { transmitService } from '@/services/transmit'
 import { Notify } from 'quasar'
 import ChannelSidebarContainer from '@/containers/ChannelSidebarContainer.vue'
@@ -62,6 +63,7 @@ const authStore = useAuthStore()
 const messageStore = useMessageStore()
 const invitationStore = useInvitationStore()
 const notificationStore = useNotificationStore()
+const presenceStore = usePresenceStore()
 
 let userSubscription: { unsubscribe: () => void } | null = null
 
@@ -83,18 +85,14 @@ onMounted(async () => {
   } else if (route.path === '/invitations') {
     selectionStore.selectInvitations()
   } else if (route.path === '/chat') {
-    // On /chat without ID, select first channel if available
-    if (channelStore.channels.length > 0) {
-      const firstChannel = channelStore.channels[0]
-      if (firstChannel) {
-        void router.push(`/chat/${firstChannel.id}`)
-      }
-    }
+    selectionStore.clearSelection()
   }
 
   if (!authStore.user) return
 
-  void invitationStore.fetchInvitations()
+  if (!presenceStore.isOffline) {
+    void invitationStore.fetchInvitations()
+  }
 
   userSubscription = transmitService.subscribeToUser(authStore.user.id, (message: any) => {
     const { type, data } = message
@@ -291,13 +289,7 @@ watch(
         selectionStore.selectInvitations()
       }
     } else if (path === '/chat') {
-      // On /chat without ID, select first channel if available
-      if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
-        const firstChannel = channelStore.channels[0]
-        if (firstChannel) {
-          void router.push(`/chat/${firstChannel.id}`)
-        }
-      }
+      selectionStore.clearSelection()
     }
   }
 )
@@ -369,6 +361,10 @@ const handleCloseInfoPanel = () => {
 }
 
 const handleUserClick = (userId: number) => {
+  if (authStore.user?.id === userId) {
+    Notify.create({ type: 'info', message: 'This is you' })
+    return
+  }
   selectionStore.selectUser(userId)
   selectionStore.infoPanelOpen = false
 }
@@ -388,16 +384,49 @@ const handleLeaveChannel = async () => {
     await channelStore.fetchChannels()
 
     // Navigate to next channel
-    if (channelStore.channels.length > 0) {
-      const firstChannel = channelStore.channels[0]
-      if (firstChannel) {
-        await router.push(`/chat/${firstChannel.id}`)
-      }
-    } else {
-      await router.push('/chat')
-    }
+    await router.push('/chat')
   }
 }
+
+const anyNotificationPrefEnabled = computed(() => {
+  const prefs = notificationStore.preferences
+  return (
+    prefs.privateChannels ||
+    prefs.publicChannels ||
+    prefs.mentions ||
+    prefs.invites ||
+    prefs.inviteResponses ||
+    prefs.channelEvents
+  )
+})
+
+const refreshActiveChannelMessages = async () => {
+  const channelId = selectionStore.selectedChannelId
+  if (!channelId) return
+  const isMember = channelStore.channels.some((c) => c.id === channelId)
+  if (!isMember) return
+  await channelStore.fetchChannelDetails(channelId)
+  await messageStore.fetchMessages(channelId, 1)
+}
+
+const refreshAllOnOnline = async () => {
+  await channelStore.fetchChannels()
+  await refreshActiveChannelMessages()
+}
+
+watch(
+  () => presenceStore.status,
+  async (newStatus, oldStatus) => {
+    if (newStatus === 'online') {
+      if (anyNotificationPrefEnabled.value) {
+        void notificationStore.ensurePermission()
+      }
+      if (oldStatus !== 'online') {
+        await refreshAllOnOnline()
+      }
+    }
+  }
+)
 
 // Watch route params and update selection store
 watch(
@@ -418,13 +447,7 @@ watch(
         selectionStore.selectInvitations()
       }
     } else if (path === '/chat') {
-      // On /chat without ID, select first channel if available
-      if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
-        const firstChannel = channelStore.channels[0]
-        if (firstChannel) {
-          void router.push(`/chat/${firstChannel.id}`)
-        }
-      }
+      selectionStore.clearSelection()
     }
   }
 )

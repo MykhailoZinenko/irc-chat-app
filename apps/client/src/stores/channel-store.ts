@@ -4,12 +4,22 @@ import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
 import { type ChannelDetails, type Channel, type ChannelMember, type CreateChannelData } from 'src/types/chat';
 import { transmitService } from '@/services/transmit';
+import { usePresenceStore } from './presence-store';
 
 export const useChannelStore = defineStore('channel', () => {
   const channels = ref<Channel[]>([]);
   const currentChannelDetails = ref<ChannelDetails | null>(null);
   const currentChannelMembers = ref<ChannelMember[]>([]);
   const loading = ref(false);
+  const presenceStore = usePresenceStore();
+
+  const ensureOnline = () => {
+    if (presenceStore.isOffline) {
+      Notify.create({ type: 'negative', message: 'You are offline. Go online to perform this action.' });
+      return false;
+    }
+    return true;
+  };
 
   const fetchChannels = async () => {
     loading.value = true;
@@ -124,6 +134,7 @@ export const useChannelStore = defineStore('channel', () => {
   };
 
   const joinChannel = async (channelId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
       await transmitService.emit('channel:join', { channelId });
       await fetchChannels();
@@ -142,6 +153,7 @@ export const useChannelStore = defineStore('channel', () => {
   };
 
   const joinByName = async (name: string) => {
+    if (!ensureOnline()) return { success: false };
     try {
       await transmitService.emit('channel:joinByName', { name });
       await fetchChannels();
@@ -161,6 +173,7 @@ export const useChannelStore = defineStore('channel', () => {
 
 
   const createChannel = async (data: CreateChannelData) => {
+    if (!ensureOnline()) return { success: false };
     try {
       const result = await transmitService.emit<{ channel: any }>('channel:create', data);
       await fetchChannels();
@@ -179,6 +192,7 @@ export const useChannelStore = defineStore('channel', () => {
   };
 
   const leaveChannel = async (channelId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
       await transmitService.emit('channel:leave', { channelId });
       await fetchChannels();
@@ -197,6 +211,7 @@ export const useChannelStore = defineStore('channel', () => {
   };
 
   const deleteChannel = async (channelId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
       await transmitService.emit('channel:delete', { channelId });
       await fetchChannels();
@@ -215,6 +230,7 @@ export const useChannelStore = defineStore('channel', () => {
   };
 
   const revokeUser = async (channelId: number, userId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
       const data = await transmitService.emit<{ memberCount?: number }>('channel:revoke', {
         channelId,
@@ -240,6 +256,7 @@ export const useChannelStore = defineStore('channel', () => {
   };
 
   const kickUser = async (channelId: number, userId: number, reason?: string) => {
+    if (!ensureOnline()) return { success: false };
     try {
       const data = await transmitService.emit<{
         memberCount?: number;

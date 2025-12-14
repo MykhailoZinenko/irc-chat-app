@@ -89,7 +89,7 @@ export const useAuthStore = defineStore('auth', {
           localStorage.setItem('auth_token', this.token);
           this.setAuthHeaders();
           transmitService.setAuthToken(this.token);
-          presenceStore.hydrateStatus(response.data.data.user.status || 'online');
+          await presenceStore.syncWithServer(response.data.data.user.status || 'online');
 
           Notify.create({
             type: 'positive',
@@ -123,7 +123,7 @@ export const useAuthStore = defineStore('auth', {
           localStorage.setItem('auth_token', this.token);
           this.setAuthHeaders();
           transmitService.setAuthToken(this.token);
-          presenceStore.hydrateStatus(response.data.data.user.status || 'online');
+          await presenceStore.syncWithServer(response.data.data.user.status || 'online');
 
           Notify.create({
             type: 'positive',
@@ -191,7 +191,7 @@ export const useAuthStore = defineStore('auth', {
           if (this.token) {
             transmitService.setAuthToken(this.token);
           }
-          presenceStore.hydrateStatus(response.data.data.status || 'online');
+          await presenceStore.syncWithServer(response.data.data.status || 'online');
           return true;
         } else {
           this.clearAuthData();
@@ -275,7 +275,7 @@ export const useAuthStore = defineStore('auth', {
 
       if (response.data.success && response.data.data) {
         this.user = response.data.data.user;
-        presenceStore.hydrateStatus(response.data.data.user.status || 'online');
+        await presenceStore.syncWithServer(response.data.data.user.status || 'online');
         return { success: true };
       } else {
         return { success: false, errors: response.data.errors };

@@ -95,7 +95,11 @@ const handleJoin = async (name: string) => {
 }
 const handleCancel = async () => {
   if (!selectionStore.selectedChannelId) return
-  await currentChannel.channelStore.leaveChannel(selectionStore.selectedChannelId)
+  const channelId = selectionStore.selectedChannelId
+  const result = await currentChannel.channelStore.leaveChannel(channelId)
+  if (result.success && selectionStore.selectedChannelId === channelId) {
+    selectionStore.clearSelection()
+  }
 }
 const handleInvite = async (name: string) => {
   const username = name.startsWith('@') ? name.slice(1) : name;

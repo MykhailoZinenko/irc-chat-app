@@ -334,10 +334,18 @@ function bootSocketsWhenReady() {
     io.on('connection', async (socket) => {
       const user = socket.data.user as User
 
-      await setUserStatus(user.id, user.status || 'online')
+      const initialStatus = user.status || 'online'
+      await setUserStatus(user.id, initialStatus)
+      socket.data.user.status = initialStatus
 
       socket.on('disconnect', () => {
-        void setUserStatus(user.id, 'offline')
+        const currentStatus = socket.data.user?.status || initialStatus
+        if (currentStatus === 'online') {
+          void setUserStatus(user.id, 'offline')
+        } else {
+          // Preserve explicit DND/offline preference on disconnect
+          void setUserStatus(user.id, currentStatus, { broadcast: false })
+        }
       })
 
       // Join the personal room

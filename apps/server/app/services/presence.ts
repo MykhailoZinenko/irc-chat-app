@@ -1,6 +1,6 @@
 import ChannelParticipant from '#models/channel_participant'
 import User from '#models/user'
-import { emitToUsers } from './realtime.js'
+import { emitToUsers, getIO } from './realtime.js'
 
 export type PresenceStatus = 'online' | 'dnd' | 'offline'
 
@@ -19,17 +19,21 @@ export async function setUserStatus(
   await user.save()
 
   if (broadcast) {
-    const channelIds = await ChannelParticipant.query()
+    const channelRows = await ChannelParticipant.query()
       .where('user_id', userId)
       .whereNull('left_at')
-      .pluck('channel_id')
+      .select('channel_id')
+
+    const channelIds = channelRows.map((row: any) => Number(row.channelId ?? row.channel_id))
 
     if (channelIds.length) {
-      const audience = await ChannelParticipant.query()
+      const audienceRows = await ChannelParticipant.query()
         .whereIn('channel_id', channelIds)
         .whereNull('left_at')
         .whereNot('user_id', userId)
-        .pluck('user_id')
+        .select('user_id')
+
+      const audience = audienceRows.map((row: any) => Number(row.userId ?? row.user_id))
 
       const recipients = uniq(audience)
       if (recipients.length) {
@@ -38,6 +42,14 @@ export async function setUserStatus(
           data: { userId, status },
         })
       }
+    }
+  }
+
+  if (status === 'offline') {
+    try {
+      getIO().in(`users:${userId}`).disconnectSockets(true)
+    } catch {
+      /* ignore if IO not ready */
     }
   }
 

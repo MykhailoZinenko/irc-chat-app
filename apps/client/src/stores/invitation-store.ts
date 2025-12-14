@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { api } from 'src/boot/axios'
+import { usePresenceStore } from './presence-store'
 
 export interface Invitation {
   id: number
@@ -24,8 +25,12 @@ export interface Invitation {
 
 export const useInvitationStore = defineStore('invitation', () => {
   const invitations = ref<Invitation[]>([])
+  const presenceStore = usePresenceStore()
 
   const fetchInvitations = async () => {
+    if (presenceStore.isOffline) {
+      return { success: false }
+    }
     try {
       const response = await api.get<{
         success: boolean
@@ -34,10 +39,12 @@ export const useInvitationStore = defineStore('invitation', () => {
 
       if (response.data.success) {
         invitations.value = response.data.data.invitations
+        return { success: true }
       }
     } catch (error) {
       console.error('Failed to fetch invitations:', error)
     }
+    return { success: false }
   }
 
   const addInvitation = (invitation: Invitation) => {
