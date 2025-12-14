@@ -69,23 +69,23 @@ const handleClick = () => {
   width: 40px;
   height: 40px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #60a5fa, #a855f7);
+  background: linear-gradient(135deg, var(--app-gradient-start), var(--app-gradient-end));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: white;
+  color: var(--app-surface);
 }
 
 .member-list-item {
   padding: 6px 8px;
-  background: #f9fafb;
+  background: var(--app-surface-muted);
   transition: background 0.15s ease;
 }
 
 .member-list-item:hover {
-  background: #eef2ff;
+  background: var(--app-surface-muted-strong);
 }
 
 .status-dot {
@@ -96,14 +96,14 @@ const handleClick = () => {
 }
 
 .status-dot.online {
-  background: #10b981;
+  background: var(--app-status-online);
 }
 
 .status-dot.dnd {
-  background: #f59e0b;
+  background: var(--app-status-dnd);
 }
 
 .status-dot.offline {
-  background: #9ca3af;
+  background: var(--app-status-offline);
 }
 </style>

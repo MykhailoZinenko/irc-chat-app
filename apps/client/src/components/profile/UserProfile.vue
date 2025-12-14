@@ -288,17 +288,17 @@ const handleReport = () => {
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #0b713b;
-  background: #ecfdf3;
+  color: var(--app-status-online);
+  background: color-mix(in srgb, var(--app-status-online) 10%, var(--app-surface));
   margin-bottom: 0.35rem;
 }
 .status-pill.dnd {
-  background: #fff7ed;
-  color: #c2410c;
+  background: color-mix(in srgb, var(--app-status-dnd) 15%, var(--app-surface));
+  color: var(--app-status-dnd);
 }
 .status-pill.offline {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: color-mix(in srgb, var(--app-status-offline) 20%, var(--app-surface));
+  color: var(--app-text-muted);
 }
 .status-dot {
   width: 8px;
@@ -307,13 +307,13 @@ const handleReport = () => {
   display: inline-block;
 }
 .status-dot.online {
-  background: #10b981;
+  background: var(--app-status-online);
 }
 .status-dot.dnd {
-  background: #f59e0b;
+  background: var(--app-status-dnd);
 }
 .status-dot.offline {
-  background: #9ca3af;
+  background: var(--app-status-offline);
 }
 </style>
 

@@ -24,6 +24,8 @@
   --app-accent-soft: color-mix(in srgb, var(--q-accent) 12%, var(--app-surface) 88%);
   --app-gradient-start: #{qvars.$blue-5};
   --app-gradient-end: #{qvars.$purple-6};
+  --app-accent-start: #{qvars.$blue-5};
+  --app-accent-end: #{qvars.$purple-6};
 
   /* Status */
   --app-danger: var(--q-negative);
@@ -31,6 +33,10 @@
   --app-positive-soft: #{qvars.$green-1};
   --app-info-soft: #{qvars.$blue-2};
   --app-overlay: color-mix(in srgb, var(--q-dark) 50%, transparent);
+  --app-status-online: #{qvars.$green-6};
+  --app-status-dnd: #{qvars.$orange-6};
+  --app-status-offline: #{qvars.$grey-6};
+  --app-surface-muted-strong: #{qvars.$blue-2};
 
   /* Effects */
   --app-shadow-soft: 0 2px 8px rgb(0 0 0 / 8%);
