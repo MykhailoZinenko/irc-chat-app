@@ -55,8 +55,8 @@
           <p class="text-sm text-gray-600 mb-2">Channel Link</p>
           <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
             <q-icon name="link" size="16px" color="grey-5" />
-            <span class="text-sm text-blue-500 flex-1">t.me/{{ chat.name.toLowerCase().replace(/\s+/g, '') }}</span>
-            <q-btn flat dense size="sm" label="Copy" color="blue-5" />
+            <span class="text-sm text-blue-500 flex-1 truncate">{{ channelLink }}</span>
+            <q-btn flat dense size="sm" label="Copy" color="blue-5" @click="handleCopyLink" />
           </div>
         </div>
 
@@ -145,6 +145,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Notify, copyToClipboard } from 'quasar'
 import MemberListItem from '@/components/ui/MemberListItem.vue'
 import { type ChannelMember } from '@/types/chat'
 
@@ -212,6 +213,31 @@ const statusText = computed(() => {
   if (props.chat.type === 'channel') return `${props.chat.memberCount || 0} members`
   return ''
 })
+
+const channelLink = computed(() => {
+  const baseUrl = window.location.origin
+  const channelName = props.chat.name.toLowerCase().replace(/\s+/g, '-')
+  return `${baseUrl}/c/${channelName}`
+})
+
+const handleCopyLink = async () => {
+  try {
+    await copyToClipboard(channelLink.value)
+    Notify.create({
+      type: 'positive',
+      message: 'Channel link copied to clipboard',
+      position: 'top',
+      timeout: 2000,
+    })
+  } catch (error) {
+    Notify.create({
+      type: 'negative',
+      message: 'Failed to copy link',
+      position: 'top',
+      timeout: 2000,
+    })
+  }
+}
 
 </script>
 

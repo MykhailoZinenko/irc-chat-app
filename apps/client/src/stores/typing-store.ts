@@ -27,7 +27,7 @@ export const useTypingStore = defineStore('typing', () => {
     if (!typingByChannel.value[channelId]) {
       typingByChannel.value[channelId] = new Map();
     }
-    typingByChannel.value[channelId]!.set(user.id, user);
+    typingByChannel.value[channelId].set(user.id, user);
     // Trigger reactivity - Vue doesn't track Map mutations
     typingByChannel.value = { ...typingByChannel.value };
   };
@@ -47,9 +47,9 @@ export const useTypingStore = defineStore('typing', () => {
   const updateTypingContent = (channelId: number, userId: number, content: string) => {
     const channelTyping = typingByChannel.value[channelId];
     const user = channelTyping?.get(userId);
-    if (user) {
+    if (user && channelTyping) {
       user.content = content;
-      channelTyping!.set(userId, { ...user });
+      channelTyping.set(userId, { ...user });
       // Trigger reactivity
       typingByChannel.value = { ...typingByChannel.value };
     }

@@ -200,8 +200,8 @@ const channelEvents = computed({
 }
 
 .status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   margin: 1rem 0 0.5rem;
 }

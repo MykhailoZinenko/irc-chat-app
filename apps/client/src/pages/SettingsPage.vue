@@ -126,7 +126,6 @@ import AccountSection from '@/components/settings/AccountSection.vue'
 import NotificationsSection from '@/components/settings/NotificationsSection.vue'
 import AppearanceSection from '@/components/settings/AppearanceSection.vue'
 import DevicesSection from '@/components/settings/DevicesSection.vue'
-import HelpSection from '@/components/settings/HelpSection.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -139,7 +138,6 @@ const menuItems = [
   { id: 'notifications', icon: 'notifications', label: 'Notifications', description: 'Manage notifications' },
   { id: 'appearance', icon: 'palette', label: 'Appearance', description: 'Customize your experience' },
   { id: 'devices', icon: 'smartphone', label: 'Devices', description: 'Manage active sessions' },
-  { id: 'help', icon: 'help', label: 'Help', description: 'Get support and feedback' },
 ]
 
 const currentSection = computed(() => {
@@ -153,7 +151,6 @@ const renderSection = computed(() => {
     notifications: NotificationsSection,
     appearance: AppearanceSection,
     devices: DevicesSection,
-    help: HelpSection,
   }
   return sections[selectedSection.value] || ProfileSection
 })

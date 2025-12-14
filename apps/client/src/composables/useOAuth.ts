@@ -29,7 +29,7 @@ export function useOAuth() {
     }
 
     // Listen for the OAuth callback
-    const handleMessage = async (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent) => {
       // Verify origin for security
       if (event.origin !== window.location.origin) {
         return;
@@ -44,24 +44,24 @@ export function useOAuth() {
         localStorage.setItem('auth_token', event.data.token);
         authStore.setAuthHeaders();
 
-        const success = await authStore.fetchUser();
-
-        if (success) {
-          Notify.create({
-            type: 'positive',
-            message: `Logged in successfully with ${provider}`,
-            position: 'top',
-            timeout: 3000,
-          });
-          void router.push('/chat');
-        } else {
-          Notify.create({
-            type: 'negative',
-            message: 'Failed to fetch user data',
-            position: 'top',
-            timeout: 4000,
-          });
-        }
+        void authStore.fetchUser().then((success) => {
+          if (success) {
+            Notify.create({
+              type: 'positive',
+              message: `Logged in successfully with ${provider}`,
+              position: 'top',
+              timeout: 3000,
+            });
+            void router.push('/chat');
+          } else {
+            Notify.create({
+              type: 'negative',
+              message: 'Failed to fetch user data',
+              position: 'top',
+              timeout: 4000,
+            });
+          }
+        });
       } else if (event.data.type === 'oauth_error') {
         popup.close();
         window.removeEventListener('message', handleMessage);

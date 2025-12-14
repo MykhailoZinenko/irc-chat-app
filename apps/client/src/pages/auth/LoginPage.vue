@@ -43,13 +43,13 @@
       </div>
 
       <!-- Login Button -->
-      <PrimaryButton @click="handleSubmit" :disabled="authStore.isLoading">
+      <Button @click="handleSubmit" :disabled="authStore.isLoading">
         <span v-if="!authStore.isLoading">Sign In</span>
         <span v-else class="flex items-center justify-center">
           <q-spinner size="20px" color="white" class="mr-2" />
           Signing in...
         </span>
-      </PrimaryButton>
+      </Button>
     </div>
 
     <!-- Social Login -->
@@ -66,6 +66,7 @@ import AuthPageLayout from '@/components/auth/AuthPageLayout.vue';
 import InputField from '@/components/ui/InputField.vue';
 import PasswordField from '@/components/ui/PasswordField.vue';
 import Button from '@/components/ui/CustomButton.vue';
+import SocialLogin from '@/components/auth/SocialLogin.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store';
 import { Notify } from 'quasar';

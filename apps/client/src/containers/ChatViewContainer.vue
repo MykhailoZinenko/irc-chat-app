@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import MessageList from '@/components/chat/MessageList.vue'
 import ChannelHeaderContainer from './ChannelHeaderContainer.vue'
@@ -108,7 +108,7 @@ const hasChannels = computed(() => channelStore.channels.length > 0)
 
 watch(
   () => selectionStore.selectedChannelId,
-  async (newChannelId) => {
+  async (newChannelId, oldChannelId) => {
     if (newChannelId) {
       if (presenceStore.isOffline) {
         Notify.create({ type: 'negative', message: 'You are offline. Go online to sync this chat.' })
@@ -130,9 +130,16 @@ watch(
 
         await messageStore.fetchMessages(newChannelId, 1)
 
-        setTimeout(() => {
+        // Wait for DOM to update with new messages
+        await nextTick()
+
+        // Only scroll if we're switching channels, not on initial load
+        if (oldChannelId !== undefined) {
+          messageListRef.value?.newChat()
+        } else {
+          // Initial load - just scroll without animation
           messageListRef.value?.scrollToBottom()
-        }, 300)
+        }
       } else {
         // Not a member - could be preview mode for public channel
         messageStore.setCurrentChannel(null)
@@ -146,10 +153,6 @@ watch(
           return
         }
       }
-
-      setTimeout(() => {
-        messageListRef.value?.newChat()
-      }, 300)
     } else {
       messageStore.setCurrentChannel(null)
       selectionStore.infoPanelOpen = false
@@ -223,9 +226,9 @@ const handleJoinChannel = async () => {
     messageStore.setCurrentChannel(channelId)
     await messageStore.fetchMessages(channelId, 1)
 
-    setTimeout(() => {
-      messageListRef.value?.scrollToBottom()
-    }, 300)
+    // Wait for DOM to update
+    await nextTick()
+    messageListRef.value?.newChat()
   }
 }
 </script>

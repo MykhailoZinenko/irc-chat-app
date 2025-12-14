@@ -270,9 +270,7 @@ const newChat = () => {
 }
 
 const scrollToBottom = () => {
-  setTimeout(() => {
-    scrollAreaRef.value?.setScrollPosition('vertical', 999999, 300)
-  }, 100)
+  scrollAreaRef.value?.setScrollPosition('vertical', 999999, 300)
 }
 
 const scrollToBottomWithAnimation = () => {

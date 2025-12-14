@@ -134,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileActionButton from '@/components/profile/ProfileActionButton.vue'
@@ -144,6 +144,8 @@ import { api } from 'src/boot/axios'
 import { DateTime } from 'luxon'
 import { useChannelStore } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
+import { useAuthStore } from '@/stores/auth-store'
+import { transmitService } from '@/services/transmit'
 
 interface UserProfile {
   id: number
@@ -161,18 +163,20 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   back: []
 }>()
 
 const router = useRouter()
 const channelStore = useChannelStore()
 const selectionStore = useSelectionStore()
+const authStore = useAuthStore()
 const userProfile = ref<UserProfile | null>(null)
 const loading = ref(false)
 const isMuted = ref(false)
 const showInviteDialog = ref(false)
 const commonChannels = ref<any[]>([])
+let statusSubscription: { unsubscribe: () => void } | null = null
 
 const displayName = computed(() => {
   if (!userProfile.value) return ''
@@ -243,6 +247,23 @@ const fetchCommonChannels = async () => {
 
 onMounted(() => {
   void fetchUserProfile()
+
+  // Subscribe to real-time status updates
+  if (authStore.user) {
+    statusSubscription = transmitService.subscribeToUser(authStore.user.id, (message) => {
+      if (message.type === 'user_status_changed' && message.data.userId === props.userId) {
+        if (userProfile.value) {
+          userProfile.value.status = message.data.status
+        }
+      }
+    })
+  }
+})
+
+onUnmounted(() => {
+  if (statusSubscription) {
+    statusSubscription.unsubscribe()
+  }
 })
 
 watch(() => props.userId, () => {
@@ -260,7 +281,8 @@ const handleMessage = () => {
 }
 
 const handleChannelClick = (channel: any) => {
-  console.log('Channel clicked:', channel);
+  selectionStore.selectChannel(channel.id)
+  emit('back')
 }
 
 const handleBlock = () => {

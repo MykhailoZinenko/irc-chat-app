@@ -68,13 +68,13 @@
       </q-checkbox>
 
       <!-- Register Button -->
-      <PrimaryButton @click="handleSubmit" :disabled="authStore.isLoading">
+      <Button @click="handleSubmit" :disabled="authStore.isLoading">
         <span v-if="!authStore.isLoading">Create Account</span>
         <span v-else class="flex items-center justify-center">
           <q-spinner size="20px" color="white" class="mr-2" />
           Creating account...
         </span>
-      </PrimaryButton>
+      </Button>
     </div>
 
     <!-- Social Login -->
@@ -91,6 +91,7 @@ import AuthPageLayout from '@/components/auth/AuthPageLayout.vue';
 import InputField from '@/components/ui/InputField.vue';
 import PasswordField from '@/components/ui/PasswordField.vue';
 import Button from '@/components/ui/CustomButton.vue';
+import SocialLogin from '@/components/auth/SocialLogin.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store';
 import { Notify } from 'quasar';
@@ -227,7 +228,7 @@ const handleSubmit = async () => {
   } else {
     // Handle server-side validation errors
     if (result.errors) {
-      const serverErrors = result.errors as any;
+      const serverErrors = result.errors;
 
       // Map server errors to form fields
       if (serverErrors.email) {

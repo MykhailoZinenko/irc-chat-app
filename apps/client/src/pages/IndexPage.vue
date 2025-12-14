@@ -515,7 +515,8 @@ watch(
       if (anyNotificationPrefEnabled.value) {
         void notificationStore.ensurePermission()
       }
-      if (oldStatus !== 'online') {
+      // Only refresh if we were actually offline before (not on initial load)
+      if (oldStatus === 'offline' || oldStatus === 'dnd') {
         await refreshAllOnOnline()
       }
     }
