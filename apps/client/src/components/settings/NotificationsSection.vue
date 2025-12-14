@@ -238,18 +238,18 @@ const channelEvents = computed({
 }
 
 .status-card__icon[data-tone='online'] {
-  background: #e6f4ff;
-  color: #0b72e7;
+  background: color-mix(in srgb, var(--app-status-online) 12%, var(--app-surface));
+  color: var(--app-status-online);
 }
 
 .status-card__icon[data-tone='dnd'] {
-  background: #fff2e7;
-  color: #d86b05;
+  background: color-mix(in srgb, var(--app-status-dnd) 12%, var(--app-surface));
+  color: var(--app-status-dnd);
 }
 
 .status-card__icon[data-tone='offline'] {
-  background: #f1f5f9;
-  color: #6b7280;
+  background: color-mix(in srgb, var(--app-status-offline) 10%, var(--app-surface));
+  color: var(--app-status-offline);
 }
 
 .status-card__body {
@@ -276,8 +276,8 @@ const channelEvents = computed({
   font-size: 0.75rem;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
-  background: #e6f4ff;
-  color: #0b72e7;
+  background: color-mix(in srgb, var(--app-status-online) 14%, var(--app-surface));
+  color: var(--app-status-online);
 }
 
 .status-hint {
@@ -287,14 +287,14 @@ const channelEvents = computed({
   padding: 0.75rem 0.9rem;
   margin-top: 0.75rem;
   border-radius: 0.5rem;
-  background: #fff8e6;
-  color: #8a5a00;
+  background: color-mix(in srgb, var(--app-status-dnd) 14%, var(--app-surface));
+  color: color-mix(in srgb, var(--app-status-dnd) 75%, #000);
   font-size: 0.9rem;
 }
 
 .status-hint--offline {
-  background: #f1f5f9;
-  color: #111827;
+  background: color-mix(in srgb, var(--app-status-offline) 12%, var(--app-surface));
+  color: var(--app-text-strong);
 }
 
 .muted-note {

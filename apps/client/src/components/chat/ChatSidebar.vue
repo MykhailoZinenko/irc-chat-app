@@ -1,12 +1,12 @@
 <template>
   <div
     :class="[
-      'fixed lg:relative z-50 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 h-full',
+      'fixed lg:relative z-50 w-80 app-surface border-r app-border flex flex-col transition-transform duration-300 h-full',
       isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
     ]"
   >
     <!-- Sidebar Header -->
-    <div class="bg-white border-b border-gray-200 px-4 flex items-center justify-between h-16">
+    <div class="app-surface border-b app-border px-4 flex items-center justify-between h-16">
       <h1 class="text-xl font-semibold text-gray-800">Messages</h1>
       <div class="flex items-center gap-2">
         <q-btn flat round dense icon="add" color="grey-7" @click="showCreateChannelDialog" />
@@ -24,7 +24,7 @@
     </div>
 
     <!-- Search Bar -->
-    <div class="p-3 sm:p-4 border-b border-gray-200">
+    <div class="p-3 sm:p-4 border-b app-border">
       <q-input
         v-model="searchQuery"
         outlined
@@ -51,7 +51,7 @@
       <!-- Search Results Dropdown -->
       <div
         v-if="showSearchResults"
-        class="absolute left-3 right-3 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+        class="absolute left-3 right-3 mt-2 app-surface border app-border rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
       >
         <div v-if="searchStore.loading" class="p-4 text-center text-gray-500">
           <q-spinner size="24px" color="primary" />

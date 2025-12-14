@@ -4,12 +4,12 @@
       <!-- Sidebar -->
       <div
         :class="[
-          'fixed lg:relative z-50 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 h-full',
+          'fixed lg:relative z-50 w-80 app-surface border-r app-border flex flex-col transition-transform duration-300 h-full',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         ]"
       >
         <!-- Sidebar Header -->
-        <div class="bg-white border-b border-gray-200 px-4 flex items-center justify-between h-16">
+        <div class="app-surface border-b app-border px-4 flex items-center justify-between h-16">
           <h1 class="text-xl font-semibold text-gray-800">Settings</h1>
           <q-btn
             flat
@@ -39,7 +39,7 @@
               <q-icon
                 :name="item.icon"
                 size="20px"
-                :color="selectedSection === item.id ? 'blue-6' : 'grey-6'"
+                :color="selectedSection === item.id ? 'primary' : 'grey-6'"
               />
               <div class="flex-1 text-left">
                 <p class="font-medium">{{ item.label }}</p>
@@ -52,7 +52,7 @@
         </q-scroll-area>
 
         <!-- Logout Button -->
-        <div class="p-3 border-t border-gray-200">
+        <div class="p-3 border-t app-border">
           <q-btn
             flat
             no-caps
@@ -76,7 +76,7 @@
       <!-- Main Content -->
       <div class="flex-1 flex flex-col min-w-0">
         <!-- Header -->
-        <div class="bg-white border-b border-gray-200 px-4 flex items-center justify-between h-16">
+        <div class="app-surface border-b app-border px-4 flex items-center justify-between h-16">
           <div class="flex items-center gap-3">
             <q-btn
               flat

@@ -1,0 +1,40 @@
+Architektúra aplikácie
+======================
+
+Celková architektúra systému
+- Monorepo s dvomi hlavnými časťami: `apps/client` (front-end SPA) a `apps/server` (back-end API + realtime). Zdieľané spúšťanie cez rootové skripty a docker-compose.
+- Komunikácia prebieha kombináciou REST (HTTP) a WebSocketov (Socket.IO) pre realtime udalosti.
+- Perzistencia dát je cez PostgreSQL (Lucid ORM na backende). Front-end ukladá stav v Pinia store a vybrané preferencie (napr. token, vzhľad) v `localStorage`.
+
+Architektúra backendu
+- Postavené na AdonisJS 6 (TypeScript). Štruktúra MVC: kontroléry v `app/controllers`, modely v `app/models`, middleware v `app/middleware`.
+- Autentifikácia a autorizácia cez @adonisjs/auth; tokeny sú validované na HTTP aj v Socket.IO (`start/socket.ts`).
+- Realtime vrstva: `start/socket.ts` spúšťa Socket.IO server, autentifikuje sockety, počúva na vlastné eventy (napr. `message:send`, `typing:start/stop`, pozvánky, hlasovania o kicku) a publikuje cez helpery `emitToUser/emitToUsers` v `app/services/realtime.ts`.
+- Perzistencia: Lucid modely (User, Channel, ChannelParticipant, Message, Invitation, KickVote, MessageRead, ChannelBan). Migrácie v `database/migrations/*`.
+- Plánovač a cron úlohy dostupné cez `adonisjs-scheduler` (pozri `start/scheduler.ts`).
+
+Architektúra frontendu
+- Postavené na Vue 3 + Quasar (Vite build). Entry a layouty v `apps/client/src`, router v `src/router`, globálne štýly v `src/css`.
+- Stav riadený Pinia (stores pre auth, channels, messages, typing, presence, notifications, selection). UI skladané z Quasar komponentov plus vlastné komponenty (chat, profily, nastavenia).
+- Dizajnový systém: CSS premenné v `src/css/app.scss` + Tailwind utility vrstvy. Témy a farby sa aplikujú cez custom `appearance-store` a Quasar `Dark` mód.
+
+Komunikácia medzi frontendom a backendom
+- HTTP/REST: axios boot (`src/boot/axios.ts`) s API base URL; používa sa na login/registráciu, načítanie kanálov, správ, členov, pozvánok a profilové operácie.
+- WebSocket (Socket.IO klient v `src/services/transmit.ts`): prenáša realtime udalosti (nové správy, doručenie/čítanie, typing, zmeny členov, pozvánky). Token sa posiela v `auth` handshaku; reconnect a event handlery sú zabudované.
+- Stav prítomnosti synchronizovaný cez presence store, ktorý využíva websocketové udalosti a HTTP podľa potreby.
+
+Návrhové rozhodnutia
+====================
+
+Použité technológie a knižnice
+- Back-end: AdonisJS 6, Lucid ORM, Socket.IO, PostgreSQL, VineJS validácia, Adonis Ally (OAuth), Scheduler.
+- Front-end: Vue 3, Quasar (komponenty + Dark mód), Vite, Pinia, Vue Router, Luxon, Tailwind utility vrstvy.
+- Dev tooling: TypeScript, ESLint/Prettier, Vite plugin checker, Turborepo-ish skripty.
+
+Zdôvodnenie architektonických rozhodnutí
+- AdonisJS poskytuje integrovaný balík (HTTP, auth, ORM, validator, IoC) v TypeScripte, čo znižuje potrebu lepiť viaceré knižnice a uľahčuje konzistentné spracovanie requestov aj websocket autentifikácie.
+- Socket.IO bol zvolený pre obojsmernú realtime komunikáciu (typing, doručenie/čítanie správ, pozvánky) s fallbackmi a jednoduchým namespacingom/room manažmentom (kanálové miestnosti).
+- Lucid ORM a migrácie zabezpečujú konzistentný model kanálov, účastníkov, správ a stavov čítania, čo je kritické pre IRC-like funkcionalitu (členstvo, bany, kick hlasovania).
+- Na frontende Quasar urýchľuje tvorbu UI (pripravené komponenty, theming) a zároveň umožňuje vlastné témy (appearance store, CSS premenné). Pinia udržiava predvídateľný stav a umožňuje jednoduchú hydratačnú logiku po reconnecte.
+- Rozdelenie zodpovedností: REST pre init/CRUD (auth, fetch kanálov, messages pagination) a WebSocket pre push udalosti minimalizuje latenciu chatového UX bez nadmerného polling-u.
+- Perzistencia preferencií (token, témy) v `localStorage` udržiava konzistentné UX naprieč relódu stránky, pričom citlivé akcie ostávajú autorizované cez bearer tokeny a server-side validácie.

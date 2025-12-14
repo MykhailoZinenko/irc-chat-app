@@ -9,7 +9,7 @@
         <q-icon
           name="edit"
           size="14px"
-          color="blue-5"
+          color="primary"
           class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5"
         />
       </div>

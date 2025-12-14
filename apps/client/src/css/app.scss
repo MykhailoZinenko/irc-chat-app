@@ -54,6 +54,39 @@
   --app-mention-own-unknown: var(--app-border);
 }
 
+body {
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+#q-app {
+  background: transparent;
+  color: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--app-primary) 16%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--app-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--app-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--app-scrollbar-thumb-hover);
+}
+
 /* Utility overrides (keep tailwind-like names but route through theme vars) */
 .bg-white {
   background-color: var(--app-surface);
@@ -93,7 +126,7 @@
 
 .bg-gradient-to-br {
   background: linear-gradient(to bottom right, var(--app-gradient-start), var(--app-gradient-end));
-  color: var(--app-surface);
+  color: #fff;
 }
 
 .bg-black {
@@ -194,7 +227,7 @@
 
 .app-gradient {
   background: linear-gradient(to bottom right, var(--app-gradient-start), var(--app-gradient-end));
-  color: var(--app-surface);
+  color: #fff;
 }
 
 .app-gradient-surface {
@@ -211,4 +244,64 @@
 
 .border-blue-200 {
   border-color: var(--app-primary-soft);
+}
+
+/* Override Quasar component colors to use theme colors */
+:deep(.q-btn-toggle) {
+  .q-btn--active {
+    background-color: var(--app-primary) !important;
+    color: white !important;
+  }
+}
+
+:deep(.q-radio__inner),
+:deep(.q-checkbox__inner),
+:deep(.q-toggle__inner) {
+  color: var(--app-primary) !important;
+}
+
+:deep(.q-radio__inner--truthy),
+:deep(.q-checkbox__inner--truthy),
+:deep(.q-toggle__inner--truthy) {
+  color: var(--app-primary) !important;
+}
+
+:deep(.q-radio__bg),
+:deep(.q-checkbox__bg),
+:deep(.q-toggle__track) {
+  color: var(--app-primary) !important;
+}
+
+:deep(.q-field--focused .q-field__control::before),
+:deep(.q-field--focused .q-field__control::after) {
+  border-color: var(--app-primary) !important;
+}
+
+:deep(.q-field--focused .q-field__label) {
+  color: var(--app-primary) !important;
+}
+
+/* Override hardcoded blue text colors to use theme primary */
+.text-blue-600 {
+  color: var(--app-primary) !important;
+}
+
+.text-blue-500 {
+  color: var(--app-primary);
+}
+
+.bg-blue-50 {
+  background-color: var(--app-primary-soft);
+}
+
+.bg-blue-500 {
+  background-color: var(--app-primary);
+}
+
+.border-blue-500 {
+  border-color: var(--app-primary);
+}
+
+.border-l-4 {
+  border-left-width: 4px;
 }

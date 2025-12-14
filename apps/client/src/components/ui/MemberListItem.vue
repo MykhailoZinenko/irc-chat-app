@@ -13,7 +13,12 @@
     <q-item-section>
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-gray-800">{{ displayName }}</span>
-        <q-badge v-if="member.role === 'admin'" color="yellow-7" text-color="black" label="Admin" />
+        <q-badge
+          v-if="member.role === 'admin'"
+          color="primary"
+          text-color="white"
+          label="Admin"
+        />
       </div>
       <div class="flex items-center gap-2 text-xs text-gray-500">
         <span class="status-dot" :class="member.status"></span>
@@ -75,7 +80,7 @@ const handleClick = () => {
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: var(--app-surface);
+  color: #fff;
 }
 
 .member-list-item {

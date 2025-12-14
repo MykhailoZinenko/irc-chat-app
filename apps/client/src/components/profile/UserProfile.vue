@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 flex flex-col bg-white h-full">
+  <div class="flex-1 flex flex-col profile-surface h-full">
     <div v-if="loading" class="flex-1 flex items-center justify-center">
       <q-spinner size="48px" color="primary" />
     </div>
@@ -68,14 +68,14 @@
               v-for="channel in commonChannels"
               :key="channel.id"
               @click="handleChannelClick(channel)"
-              class="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+              class="channel-card"
             >
-              <div class="w-12 h-12 rounded-full app-gradient flex items-center justify-center text-2xl flex-shrink-0">
+              <div class="channel-card__avatar">
                 {{ channel.type === 'public' ? '📢' : '🔒' }}
               </div>
-              <div class="flex-1 text-left min-w-0">
-                <p class="text-sm font-medium text-gray-800 truncate">{{ channel.name }}</p>
-                <p class="text-xs text-gray-500">{{ channel.type }} channel</p>
+              <div class="channel-card__body">
+                <p class="channel-card__title">{{ channel.name }}</p>
+                <p class="channel-card__subtitle">{{ channel.type }} channel</p>
               </div>
             </button>
           </div>
@@ -240,6 +240,12 @@ const handleChannelClick = (channel: any) => {
   flex: 1;
 }
 
+.profile-surface {
+  background: var(--app-surface);
+  color: var(--app-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
 .profile-shell__inner {
   width: 100%;
   max-width: 860px;
@@ -261,6 +267,57 @@ const handleChannelClick = (channel: any) => {
 .w-full {
   width: 100%;
 }
+
+.channel-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-muted);
+  border-radius: 0.75rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.25s ease;
+  cursor: pointer;
+}
+
+.channel-card:hover {
+  border-color: var(--app-primary);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.channel-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--app-gradient-start), var(--app-gradient-end));
+  color: #fff;
+  flex-shrink: 0;
+  font-size: 1.5rem;
+}
+
+.channel-card__body {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.channel-card__title {
+  margin: 0;
+  color: var(--app-text-strong);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.channel-card__subtitle {
+  margin: 0.1rem 0 0;
+  color: var(--app-text-muted);
+  font-size: 0.82rem;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;

@@ -12,7 +12,7 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['axios', 'presence'],
+    boot: ['appearance', 'axios', 'presence'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['tailwind.css', 'app.scss'],
@@ -90,7 +90,19 @@ export default defineConfig((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: {},
+      config: {
+        brand: {
+          primary: '#3b82f6',
+          secondary: '#8b5cf6',
+          accent: '#8b5cf6',
+          dark: '#0f172a',
+          'dark-page': '#0b1220',
+          positive: '#22c55e',
+          negative: '#ef4444',
+          info: '#06b6d4',
+          warning: '#f59e0b'
+        }
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack

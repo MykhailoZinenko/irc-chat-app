@@ -42,8 +42,6 @@
     <div v-if="showScrollToBottom" class="scroll-to-bottom-container">
       <q-btn
         unelevated
-        color="primary"
-        text-color="white"
         class="scroll-btn"
         icon="keyboard_arrow_down"
         @click="scrollToBottomWithAnimation"
@@ -311,24 +309,6 @@ defineExpose({
   pointer-events: none;
 }
 
-.scroll-to-bottom-container .q-btn {
-  pointer-events: auto;
-  opacity: 1;
-  transition: opacity 0.2s ease;
-  min-width: 48px;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  border-radius: 50%;
-  background: var(--q-primary);
-  color: white;
-  border: none;
-}
-
-.scroll-to-bottom-container .q-btn:hover {
-  opacity: 1;
-}
-
 .scroll-btn {
   border: 1px solid var(--app-border);
   box-shadow: var(--app-shadow-soft);
@@ -337,8 +317,10 @@ defineExpose({
   min-width: 56px;
   border-radius: 999px 999px 20px 20px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, var(--app-surface) 92%, transparent) !important;
   backdrop-filter: blur(8px);
+  color: var(--app-primary) !important;
+  pointer-events: auto;
 }
 
 .scroll-btn:hover {
