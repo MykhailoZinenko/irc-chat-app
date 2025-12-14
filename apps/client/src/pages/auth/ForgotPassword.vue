@@ -28,9 +28,9 @@
       </div>
 
       <!-- Submit Button -->
-      <PrimaryButton @click="handleSubmit">
+      <Button @click="handleSubmit">
         Send Reset Link
-      </PrimaryButton>
+      </Button>
     </div>
   </AuthPageLayout>
 </template>
@@ -38,8 +38,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AuthPageLayout from '@/components/auth/AuthPageLayout.vue';
-import InputField from '@/components/auth/InputField.vue';
-import PrimaryButton from '@/components/auth/PrimaryButton.vue';
+import InputField from '@/components/ui/InputField.vue';
+import Button from '@/components/ui/CustomButton.vue';
 
 const email = ref('');
 

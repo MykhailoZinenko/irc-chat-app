@@ -3,12 +3,25 @@ import { ref } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
 import { type ChannelDetails, type Channel, type ChannelMember, type CreateChannelData } from 'src/types/chat';
+import { transmitService } from '@/services/transmit';
+import { usePresenceStore } from './presence-store';
+import { useAuthStore } from './auth-store';
 
 export const useChannelStore = defineStore('channel', () => {
   const channels = ref<Channel[]>([]);
   const currentChannelDetails = ref<ChannelDetails | null>(null);
   const currentChannelMembers = ref<ChannelMember[]>([]);
   const loading = ref(false);
+  const presenceStore = usePresenceStore();
+  const authStore = useAuthStore();
+
+  const ensureOnline = () => {
+    if (presenceStore.isOffline) {
+      Notify.create({ type: 'negative', message: 'You are offline. Go online to perform this action.' });
+      return false;
+    }
+    return true;
+  };
 
   const fetchChannels = async () => {
     loading.value = true;
@@ -41,7 +54,16 @@ export const useChannelStore = defineStore('channel', () => {
           ...response.data.data.channel,
           userRole: response.data.data.userRole,
         };
-        currentChannelMembers.value = response.data.data.members;
+        currentChannelMembers.value = response.data.data.members.map((member) => {
+          const statusOverride =
+            authStore.user && member.id === authStore.user.id
+              ? authStore.user.status || presenceStore.status
+              : member.status;
+          return {
+            ...member,
+            status: statusOverride || 'offline',
+          };
+        });
 
         // Update member count in channel list - create new object for reactivity
         const channelIndex = channels.value.findIndex((c) => c.id === channelId);
@@ -107,51 +129,79 @@ export const useChannelStore = defineStore('channel', () => {
     }
   };
 
+  const updateMemberStatus = (userId: number, status: ChannelMember['status']) => {
+    const member = currentChannelMembers.value.find((m) => m.id === userId);
+    if (member) {
+      member.status = status;
+      currentChannelMembers.value = [...currentChannelMembers.value];
+    }
+  };
+
   const removeMember = (userId: number) => {
     currentChannelMembers.value = currentChannelMembers.value.filter((m) => m.id !== userId);
   };
 
+  const ensureChannelMembers = async (channelId: number) => {
+    // Only use cached data if it's for the same channel
+    if (
+      currentChannelDetails.value?.id === channelId &&
+      currentChannelMembers.value.length > 0
+    ) {
+      console.debug('[channel-store] using cached members', {
+        channelId,
+        count: currentChannelMembers.value.length
+      })
+      return { success: true, members: currentChannelMembers.value, data: currentChannelDetails.value }
+    }
+    console.debug('[channel-store] fetching members for channel', channelId)
+    return fetchChannelDetails(channelId)
+  }
+
   const joinChannel = async (channelId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}/join`,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      await transmitService.emit('channel:join', { channelId });
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Joined channel successfully',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to join channel',
+        message: error?.message || error.response?.data?.message || 'Failed to join channel',
       });
       return { success: false };
     }
   };
 
   const joinByName = async (name: string) => {
+    if (!ensureOnline()) return { success: false };
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/join-by-name`, {name}
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      const result = await transmitService.emit<{
+        channel?: Channel;
+        channelId?: number;
+        created?: boolean;
+        alreadyJoined?: boolean;
+      }>('channel:joinByName', { name });
+      await fetchChannels();
+
+      const message = result?.created
+        ? 'Channel created and joined'
+        : result?.alreadyJoined
+          ? 'You are already a member'
+          : 'Joined channel successfully';
+
+      Notify.create({
+        type: 'positive',
+        message,
+      });
+      return { success: true, data: result };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to join channel',
+        message: error?.message || error.response?.data?.message || 'Failed to join channel',
       });
       return { success: false };
     }
@@ -159,128 +209,113 @@ export const useChannelStore = defineStore('channel', () => {
 
 
   const createChannel = async (data: CreateChannelData) => {
+    if (!ensureOnline()) return { success: false };
     try {
-      const response = await api.post<{ success: boolean; data: { channel: any } }>(
-        '/api/channels',
-        data,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: 'Channel created successfully',
-        });
-        return { success: true, channel: response.data.data.channel };
-      }
-      return { success: false };
+      const result = await transmitService.emit<{ channel: any }>('channel:create', data);
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Channel created successfully',
+      });
+      return { success: true, channel: result?.channel ?? result };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to create channel',
+        message: error?.message || error.response?.data?.message || 'Failed to create channel',
       });
       return { success: false };
     }
   };
 
   const leaveChannel = async (channelId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}/leave`,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      await transmitService.emit('channel:leave', { channelId });
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Left channel successfully',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to leave channel',
+        message: error?.message || error.response?.data?.message || 'Failed to leave channel',
       });
       return { success: false };
     }
   };
 
   const deleteChannel = async (channelId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
-      const response = await api.delete<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}`,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      await transmitService.emit('channel:delete', { channelId });
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Channel deleted',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to delete channel',
+        message: error?.message || error.response?.data?.message || 'Failed to delete channel',
       });
       return { success: false };
     }
   };
 
   const revokeUser = async (channelId: number, userId: number) => {
+    if (!ensureOnline()) return { success: false };
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}/revoke`,
-        { userId },
-      );
+      const data = await transmitService.emit<{ memberCount?: number }>('channel:revoke', {
+        channelId,
+        userId,
+      });
 
-      if (response.data.success) {
-        removeMember(userId);
-        Notify.create({
-          type: 'positive',
-          message: response.data.message || 'User removed from the channel',
-        });
-        return { success: true };
+      if (typeof data?.memberCount === 'number') {
+        updateMemberCount(channelId, data.memberCount);
       }
-      return { success: false };
+      removeMember(userId);
+      Notify.create({
+        type: 'positive',
+        message: 'User removed from the channel',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to remove user',
+        message: error?.message || error.response?.data?.message || 'Failed to remove user',
       });
       return { success: false };
     }
   };
 
   const kickUser = async (channelId: number, userId: number, reason?: string) => {
+    if (!ensureOnline()) return { success: false };
     try {
-      const response = await api.post<{
-        success: boolean;
-        message: string;
+      const data = await transmitService.emit<{
         memberCount?: number;
         votes?: number;
-      }>(`/api/channels/${channelId}/kick`, {
+      }>('channel:kick', {
+        channelId,
         userId,
         reason,
       });
 
-      if (response.data.success) {
-        if (typeof response.data.memberCount === 'number') {
-          updateMemberCount(channelId, response.data.memberCount);
-          removeMember(userId);
-        }
-        Notify.create({
-          type: 'positive',
-          message: response.data.message || 'Kick vote recorded',
-        });
-        return { success: true, votes: response.data.votes };
+      if (typeof data?.memberCount === 'number') {
+        updateMemberCount(channelId, data.memberCount);
+        removeMember(userId);
       }
-      return { success: false };
+      Notify.create({
+        type: 'positive',
+        message: 'Kick action processed',
+      });
+      return { success: true, votes: data?.votes };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to kick user',
+        message: error?.message || error.response?.data?.message || 'Failed to kick user',
       });
       return { success: false };
     }
@@ -303,6 +338,8 @@ export const useChannelStore = defineStore('channel', () => {
     updateMemberCount,
     addMember,
     removeMember,
+    updateMemberStatus,
+    ensureChannelMembers,
   };
 });
 export { ChannelMember };

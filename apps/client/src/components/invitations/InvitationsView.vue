@@ -38,7 +38,7 @@
           >
             <!-- Channel Info -->
             <div class="flex items-start gap-3 mb-3">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-2xl flex-shrink-0">
+              <div class="w-12 h-12 rounded-full app-gradient flex items-center justify-center text-2xl flex-shrink-0">
                 {{ invitation.channel.type === 'public' ? '📢' : '🔒' }}
               </div>
               <div class="flex-1 min-w-0">
@@ -93,12 +93,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { api } from 'src/boot/axios'
 import { Notify } from 'quasar'
 import { DateTime } from 'luxon'
 import { useChannelStore } from '@/stores/channel-store'
 import { useInvitationStore } from '@/stores/invitation-store'
 import { useSelectionStore } from '@/stores/selection-store'
+import { transmitService } from '@/services/transmit'
 
 const channelStore = useChannelStore()
 const invitationStore = useInvitationStore()
@@ -122,25 +122,26 @@ const handleAccept = async (invitationId: number) => {
   const invitation = invitations.value.find((inv) => inv.id === invitationId)
 
   try {
-    const response = await api.post(`/api/channels/invitations/${invitationId}/accept`)
+    await transmitService.emit('channel:acceptInvitation', { invitationId })
 
-    if (response.data.success) {
-      Notify.create({
-        type: 'positive',
-        message: 'Invitation accepted! You joined the channel.',
-      })
+    Notify.create({
+      type: 'positive',
+      message: 'Invitation accepted! You joined the channel.',
+    })
 
-      // Remove from store
-      invitationStore.removeInvitation(invitationId)
+    // Remove from store
+    invitationStore.removeInvitation(invitationId)
 
-      // Refresh channels list to include new channel
-      await channelStore.fetchChannels()
+    // Refresh channels list to include new channel
+    await channelStore.fetchChannels()
 
-      // Select the new channel and go back to chat view
+    const remaining = invitationStore.invitations.length
+    if (remaining === 0) {
+      // Select the new channel and go back to chat view only when no more invites
       if (invitation) {
         selectionStore.selectChannel(invitation.channelId)
-        emit('back')
       }
+      emit('back')
     }
   } catch (error: any) {
     Notify.create({
@@ -155,16 +156,19 @@ const handleAccept = async (invitationId: number) => {
 const handleDecline = async (invitationId: number) => {
   processingInvitation.value = invitationId
   try {
-    const response = await api.post(`/api/channels/invitations/${invitationId}/decline`)
+    await transmitService.emit('channel:declineInvitation', { invitationId })
 
-    if (response.data.success) {
-      Notify.create({
-        type: 'info',
-        message: 'Invitation declined',
-      })
+    Notify.create({
+      type: 'info',
+      message: 'Invitation declined',
+    })
 
-      // Remove from store
-      invitationStore.removeInvitation(invitationId)
+    // Remove from store
+    invitationStore.removeInvitation(invitationId)
+
+    // If no more invites left, leave the invitations view
+    if (invitationStore.invitations.length === 0) {
+      emit('back')
     }
   } catch (error: any) {
     Notify.create({
@@ -203,18 +207,5 @@ const formatDate = (dateString: string) => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-
-.from-blue-400 {
-  --tw-gradient-from: #60a5fa;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(96, 165, 250, 0));
-}
-
-.to-purple-500 {
-  --tw-gradient-to: #a855f7;
 }
 </style>

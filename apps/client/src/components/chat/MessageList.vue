@@ -32,20 +32,31 @@
       </div>
     </q-scroll-area>
 
+    <!-- Typing Indicator -->
+    <TypingIndicator
+      :typing-users="typingUsers"
+      @open-preview="openTypingPreview"
+    />
+
     <!-- Scroll to bottom button -->
     <div v-if="showScrollToBottom" class="scroll-to-bottom-container">
-      <button
-        @click="scrollToBottomWithAnimation"
+      <q-btn
+        round
+        unelevated
+        size="md"
+        color="grey-1"
+        text-color="grey-7"
         class="scroll-btn"
+        icon="keyboard_arrow_down"
+        @click="scrollToBottomWithAnimation"
       >
-        <q-icon name="keyboard_arrow_down" size="20px" />
         <q-badge
           v-if="unreadCount > 0"
           color="red"
           :label="unreadCount > 99 ? '99+' : unreadCount"
-          floating
+          class="scroll-btn__badge"
         />
-      </button>
+      </q-btn>
     </div>
   </div>
 </template>
@@ -53,9 +64,14 @@
 <script setup lang="ts">
 import { type ChannelMessage } from '@/stores/message-store'
 import MessageBubble from './MessageBubble.vue'
-import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
+import TypingIndicator from './TypingIndicator.vue'
+import TypingPreviewDialog from './TypingPreviewDialog.vue'
+import { onMounted, onUnmounted, ref, watch, nextTick, computed } from 'vue'
 import { useMessageStore } from '@/stores/message-store'
 import { useAuthStore } from '@/stores/auth-store'
+import { useTypingStore } from '@/stores/typing-store'
+import { useSelectionStore } from '@/stores/selection-store'
+import { useQuasar } from 'quasar'
 
 interface Props {
   messages: ChannelMessage[]
@@ -69,6 +85,27 @@ const emit = defineEmits<{
 
 const messageStore = useMessageStore()
 const authStore = useAuthStore()
+const typingStore = useTypingStore()
+const selectionStore = useSelectionStore()
+const $q = useQuasar()
+
+const typingUsers = computed(() => {
+  console.log('typingUsers', typingStore.typingByChannel)
+  if (!selectionStore.selectedChannelId) return []
+
+  console.log('getTypingUsers', typingStore.getTypingUsers(selectionStore.selectedChannelId))
+  return typingStore.getTypingUsers(selectionStore.selectedChannelId)
+})
+
+const openTypingPreview = () => {
+  if (!selectionStore.selectedChannelId) return
+  $q.dialog({
+    component: TypingPreviewDialog,
+    componentProps: {
+      channelId: selectionStore.selectedChannelId,
+    },
+  })
+}
 
 const noMoreMessages = ref(false)
 const scrollAreaRef = ref<any>(null)
@@ -233,9 +270,7 @@ const newChat = () => {
 }
 
 const scrollToBottom = () => {
-  setTimeout(() => {
-    scrollAreaRef.value?.setScrollPosition('vertical', 999999, 300)
-  }, 100)
+  scrollAreaRef.value?.setScrollPosition('vertical', 999999, 300)
 }
 
 const scrollToBottomWithAnimation = () => {
@@ -258,19 +293,11 @@ defineExpose({
   flex-direction: column;
 }
 
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
 .messages-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   padding-bottom: 90px; /* Console input height + extra space */
-}
-
-.text-gray-500 {
-  color: #6b7280;
 }
 
 .scroll-to-bottom-container {
@@ -281,22 +308,19 @@ defineExpose({
 }
 
 .scroll-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-soft);
   transition: all 0.2s;
-  color: #6b7280;
+  position: relative;
 }
 
 .scroll-btn:hover {
-  background-color: #f9fafb;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--app-shadow-strong);
+}
+
+.scroll-btn__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
 }
 </style>

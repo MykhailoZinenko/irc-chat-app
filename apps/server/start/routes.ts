@@ -8,10 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import transmit from '@adonisjs/transmit/services/main'
 import { middleware } from './kernel.js'
-
-transmit.registerRoutes()
 
 router.get('api/test', async () => {
   return {
@@ -48,6 +45,12 @@ router
   })
   .prefix('api/auth')
 
+// OAuth routes
+router.get('auth/google', [AuthController, 'googleRedirect'])
+router.get('auth/google/callback', [AuthController, 'googleCallback'])
+router.get('auth/github', [AuthController, 'githubRedirect'])
+router.get('auth/github/callback', [AuthController, 'githubCallback'])
+
 router
   .group(() => {
     router.get(':id/profile', [UserController, 'profile'])
@@ -55,6 +58,7 @@ router
     router.get(':id/channels', [UserController, 'userChannels'])
     router.get(':id/invitations', [UserController, 'userInvitations'])
     router.get('invitations', [UserController, 'myInvitations'])
+    router.put('status', [UserController, 'updateStatus'])
     router.put('profile', [UserController, 'updateProfile'])
     router.put('password', [UserController, 'updatePassword'])
     router.delete('account', [UserController, 'deleteAccount'])

@@ -24,36 +24,6 @@
         </div>
       </div>
     </div>
-
-    <div class="flex items-center gap-1 flex-shrink-0">
-      <q-btn flat round dense icon="search" class="hidden sm:flex" color="grey-7" />
-      <q-btn flat round dense icon="notifications" class="hidden sm:flex" color="grey-7" />
-      <q-btn flat round dense icon="more_vert" color="grey-7">
-        <q-menu>
-          <q-list style="min-width: 200px">
-            <q-item clickable v-close-popup>
-              <q-item-section avatar>
-                <q-icon name="search" />
-              </q-item-section>
-              <q-item-section>Search</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section avatar>
-                <q-icon name="notifications_off" />
-              </q-item-section>
-              <q-item-section>Mute</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup class="text-red-600">
-              <q-item-section avatar>
-                <q-icon name="block" color="red" />
-              </q-item-section>
-              <q-item-section>Block</q-item-section>
-            </q-item>
-          </q-list>
-        </q-menu>
-      </q-btn>
-    </div>
   </div>
 </template>
 
@@ -89,34 +59,6 @@ const chatStatus = computed(() => {
 </script>
 
 <style scoped>
-.bg-white {
-  background-color: white;
-}
-
-.border-b {
-  border-bottom-width: 1px;
-}
-
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
 @media (min-width: 1024px) {
   .burger-btn-responsive {
     display: none !important;

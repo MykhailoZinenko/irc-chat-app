@@ -10,10 +10,14 @@
       :placeholder="placeholder || ''"
       @keypress.enter="$emit('enter')"
       outlined
+      :error="!!error"
+      :error-message="error"
+      :hide-bottom-space="!error"
       class="auth-input"
+      :class="{ 'has-error': !!error }"
     >
       <template v-slot:prepend>
-        <q-icon name="lock" size="20px" class="text-gray-400" />
+        <q-icon name="lock" size="20px" :class="error ? 'text-red-500' : 'text-gray-400'" />
       </template>
       <template v-slot:append>
         <q-icon
@@ -34,6 +38,7 @@ defineProps<{
   modelValue: string;
   label?: string;
   placeholder?: string;
+  error?: string;
 }>();
 
 const emit = defineEmits<{
@@ -56,15 +61,30 @@ const handleUpdate = (value: string | number | null) => {
 }
 
 :deep(.auth-input .q-field__control:before) {
-  border-color: #d1d5db;
+  border-color: var(--app-border-strong);
 }
 
 :deep(.auth-input.q-field--focused .q-field__control:before),
 :deep(.auth-input.q-field--focused .q-field__control:after) {
-  border-color: #3b82f6;
+  border-color: var(--app-primary);
+}
+
+:deep(.auth-input.has-error .q-field__control:before) {
+  border-color: #ef4444 !important;
+}
+
+:deep(.auth-input.has-error.q-field--focused .q-field__control:before),
+:deep(.auth-input.has-error.q-field--focused .q-field__control:after) {
+  border-color: #dc2626 !important;
 }
 
 :deep(.auth-input .q-field__control:after) {
   transition: all 0.3s;
+}
+
+:deep(.auth-input .q-field__messages) {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 4px;
 }
 </style>

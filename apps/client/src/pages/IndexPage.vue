@@ -33,7 +33,47 @@
         @close="handleCloseInfoPanel"
         @user-click="handleUserClick"
         @leave="handleLeaveChannel"
+        @show-members="openMembersModal"
       />
+
+      <q-dialog v-model="selectionStore.showMembersModal" :key="`members-${selectionStore.selectedChannelId || 'none'}`">
+        <q-card style="width: 520px; max-width: 90vw;">
+          <q-card-section class="row items-center justify-between">
+            <div>
+              <div class="text-base font-semibold text-gray-800">Members ({{ modalMembers.length }})</div>
+              <div class="text-sm text-gray-500" v-if="currentChatData">{{ currentChatData.name }}</div>
+            </div>
+            <q-btn flat round dense icon="close" color="grey-7" @click="selectionStore.showMembersModal = false" />
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section style="max-height: 60vh; min-height: 160px;" class="scroll">
+            <q-list>
+              <template v-if="modalMembers.length">
+                <MemberListItem
+                  v-for="member in modalMembers"
+                  :key="member.id"
+                  :member="member"
+                  clickable
+                  @select="handleUserClick"
+                />
+              </template>
+              <q-item v-else dense>
+                <q-item-section class="text-grey-6">
+                  {{ channelStore.loading ? 'Loading members...' : 'No members found for this channel.' }}
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right">
+            <q-btn flat color="primary" label="Close" @click="selectionStore.showMembersModal = false" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </div>
   </q-page>
 </template>
@@ -47,12 +87,15 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useMessageStore } from '@/stores/message-store'
 import { useInvitationStore } from '@/stores/invitation-store'
 import { useNotificationStore } from '@/stores/notification-store'
+import { useTypingStore } from '@/stores/typing-store'
+import { usePresenceStore } from '@/stores/presence-store'
 import { transmitService } from '@/services/transmit'
 import { Notify } from 'quasar'
 import ChannelSidebarContainer from '@/containers/ChannelSidebarContainer.vue'
 import ChatViewContainer from '@/containers/ChatViewContainer.vue'
 import InfoPanel from '@/components/chat/InfoPanel.vue'
 import UserProfile from '@/components/profile/UserProfile.vue'
+import MemberListItem from '@/components/ui/MemberListItem.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -62,6 +105,8 @@ const authStore = useAuthStore()
 const messageStore = useMessageStore()
 const invitationStore = useInvitationStore()
 const notificationStore = useNotificationStore()
+const typingStore = useTypingStore()
+const presenceStore = usePresenceStore()
 
 let userSubscription: { unsubscribe: () => void } | null = null
 
@@ -83,18 +128,14 @@ onMounted(async () => {
   } else if (route.path === '/invitations') {
     selectionStore.selectInvitations()
   } else if (route.path === '/chat') {
-    // On /chat without ID, select first channel if available
-    if (channelStore.channels.length > 0) {
-      const firstChannel = channelStore.channels[0]
-      if (firstChannel) {
-        void router.push(`/chat/${firstChannel.id}`)
-      }
-    }
+    selectionStore.clearSelection()
   }
 
   if (!authStore.user) return
 
-  void invitationStore.fetchInvitations()
+  if (!presenceStore.isOffline) {
+    void invitationStore.fetchInvitations()
+  }
 
   userSubscription = transmitService.subscribeToUser(authStore.user.id, (message: any) => {
     const { type, data } = message
@@ -129,6 +170,7 @@ onMounted(async () => {
             firstName: data.user.firstName,
             lastName: data.user.lastName,
             email: data.user.email,
+            status: data.user.status || 'online',
             role: data.role || 'member',
             joinedAt: new Date().toISOString(),
           })
@@ -145,6 +187,7 @@ onMounted(async () => {
         channelStore.updateMemberCount(data.channelId, data.memberCount)
         if (channelStore.currentChannelDetails?.id === data.channelId) {
           channelStore.removeMember(data.userId)
+          typingStore.removeTypingUser(data.channelId, data.userId)
         }
         if (data.userId === authStore.user?.id && data.channelName && notificationStore.preferences.channelEvents) {
           void notificationStore.maybeNotifyGeneric({
@@ -250,6 +293,31 @@ onMounted(async () => {
         }
         break
 
+      case 'user_typing_start':
+        typingStore.addTypingUser(data.channelId, {
+          id: data.user.id,
+          nickName: data.user.nickName,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          content: '',
+        })
+        break
+
+      case 'user_typing_stop':
+        typingStore.removeTypingUser(data.channelId, data.userId)
+        break
+
+      case 'user_typing_update':
+        typingStore.updateTypingContent(data.channelId, data.userId, data.content)
+        break
+        
+      case 'user_status_changed':
+        if (channelStore.currentChannelDetails) {
+          channelStore.updateMemberStatus(data.userId, data.status)
+        }
+        break
+
       default:
         break
     }
@@ -284,13 +352,7 @@ watch(
         selectionStore.selectInvitations()
       }
     } else if (path === '/chat') {
-      // On /chat without ID, select first channel if available
-      if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
-        const firstChannel = channelStore.channels[0]
-        if (firstChannel) {
-          void router.push(`/chat/${firstChannel.id}`)
-        }
-      }
+      selectionStore.clearSelection()
     }
   }
 )
@@ -357,11 +419,25 @@ const currentChatData = computed(() => {
   }
 })
 
+const modalMembers = computed(() => {
+  if (!channelStore.currentChannelMembers?.length) return []
+  // Sort members: admins first, then by nickname
+  return [...channelStore.currentChannelMembers].sort((a, b) => {
+    if (a.role === 'admin' && b.role !== 'admin') return -1
+    if (a.role !== 'admin' && b.role === 'admin') return 1
+    return (a.nickName || '').localeCompare(b.nickName || '')
+  })
+})
+
 const handleCloseInfoPanel = () => {
   selectionStore.infoPanelOpen = false
 }
 
 const handleUserClick = (userId: number) => {
+  if (authStore.user?.id === userId) {
+    Notify.create({ type: 'info', message: 'This is you' })
+    return
+  }
   selectionStore.selectUser(userId)
   selectionStore.infoPanelOpen = false
 }
@@ -373,7 +449,79 @@ const handleLeaveChannel = async () => {
   // Close info panel and clear selection to prevent watches from firing
   selectionStore.infoPanelOpen = false
   selectionStore.clearSelection()
+
+  // Leave the channel
+  const result = await channelStore.leaveChannel(leavingChannelId)
+  if (result.success) {
+    // Fetch updated channel list
+    await channelStore.fetchChannels()
+
+    // Navigate to next channel
+    await router.push('/chat')
+  }
+}
+
+const openMembersModal = async () => {
+  if (!selectionStore.selectedChannelId) return
+  if (presenceStore.isOffline) {
+    Notify.create({ type: 'negative', message: 'You are offline. Go online to view members.' })
+    return
+  }
+
+  const result = await channelStore.ensureChannelMembers(selectionStore.selectedChannelId)
+
+  if (!result?.success) {
+    Notify.create({ type: 'negative', message: 'Unable to load members for this channel.' })
+    return
+  }
+
+  if (!result.members?.length) {
+    Notify.create({ type: 'info', message: 'No members found for this channel yet.' })
+  }
+
+  selectionStore.showMembersModal = true
+}
+
+const anyNotificationPrefEnabled = computed(() => {
+  const prefs = notificationStore.preferences
+  return (
+    prefs.privateChannels ||
+    prefs.publicChannels ||
+    prefs.mentions ||
+    prefs.invites ||
+    prefs.inviteResponses ||
+    prefs.channelEvents
+  )
 })
+
+const refreshActiveChannelMessages = async () => {
+  const channelId = selectionStore.selectedChannelId
+  if (!channelId) return
+  const isMember = channelStore.channels.some((c) => c.id === channelId)
+  if (!isMember) return
+  await channelStore.fetchChannelDetails(channelId)
+  await messageStore.fetchMessages(channelId, 1)
+}
+
+const refreshAllOnOnline = async () => {
+  await channelStore.fetchChannels()
+  await refreshActiveChannelMessages()
+}
+
+watch(
+  () => presenceStore.status,
+  async (newStatus, oldStatus) => {
+    if (newStatus === 'online') {
+      if (anyNotificationPrefEnabled.value) {
+        void notificationStore.ensurePermission()
+      }
+      // Only refresh if we were actually offline before (not on initial load)
+      if (oldStatus === 'offline' || oldStatus === 'dnd') {
+        await refreshAllOnOnline()
+      }
+    }
+  }
+)
 
 // Watch route params and update selection store
 watch(
@@ -394,13 +542,7 @@ watch(
         selectionStore.selectInvitations()
       }
     } else if (path === '/chat') {
-      // On /chat without ID, select first channel if available
-      if (channelStore.channels.length > 0 && !selectionStore.selectedChannelId) {
-        const firstChannel = channelStore.channels[0]
-        if (firstChannel) {
-          void router.push(`/chat/${firstChannel.id}`)
-        }
-      }
+      selectionStore.clearSelection()
     }
   }
 )
@@ -447,74 +589,18 @@ watch(
   }
 )
 
-const currentChannel = computed(() => {
-  if (!selectionStore.selectedChannelId) return null
-  return channelStore.channels.find((c) => c.id === selectionStore.selectedChannelId)
-})
-
-const currentChatData = computed(() => {
-  if (!currentChannel.value) return null
-  const channel = currentChannel.value
-  const avatar = channel.type === 'public' ? '📢' : '🔒'
-  return {
-    id: channel.id,
-    name: channel.name,
-    type: channel.type === 'private' ? ('group' as const) : ('channel' as const),
-    avatar,
-    description: channel.description,
-    memberCount: channel.memberCount || 0,
-    subscriberCount: channel.memberCount || 0,
-  }
-})
-
-const handleCloseInfoPanel = () => {
-  selectionStore.infoPanelOpen = false
-}
-
-const handleUserClick = (userId: number) => {
-  selectionStore.selectUser(userId)
-  selectionStore.infoPanelOpen = false
-}
-
-const handleLeaveChannel = async () => {
-  if (!selectionStore.selectedChannelId) return
-  const leavingChannelId = selectionStore.selectedChannelId
-
-  // Close info panel and clear selection to prevent watches from firing
-  selectionStore.infoPanelOpen = false
-  selectionStore.clearSelection()
-
-  // Leave the channel
-  const result = await channelStore.leaveChannel(leavingChannelId)
-  if (result.success) {
-    // Fetch updated channel list (this removes the left channel from the list)
-    await channelStore.fetchChannels()
-
-    // Navigate to next channel which will trigger selection change via route watch
-    if (channelStore.channels.length > 0) {
-      const firstChannel = channelStore.channels[0]
-      if (firstChannel) {
-        await router.push(`/chat/${firstChannel.id}`)
-      }
-    } else {
-      // No channels left - navigate to empty chat state
-      await router.push('/chat')
+watch(
+  () => selectionStore.selectedChannelId,
+  (val) => {
+    if (!val) {
+      selectionStore.showMembersModal = false
     }
   }
-}
+)
 </script>
 
 <style scoped>
 .index-page {
   padding: 0;
-}
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-.bg-black {
-  background-color: black;
-}
-.bg-opacity-50 {
-  opacity: 0.5;
 }
 </style>

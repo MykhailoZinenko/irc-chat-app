@@ -62,31 +62,13 @@
 .border-t {
   border-top-width: 1px;
 }
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-.text-gray-800 {
-  color: #1f2937;
-}
-.text-gray-600 {
-  color: #4b5563;
-}
-.text-gray-500 {
-  color: #6b7280;
-}
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-.hover\:bg-gray-50:hover {
-  background-color: #f9fafb;
-}
 .w-full {
   width: 100%;
 }
 
 .help-item-btn {
   width: 100%;
-  border: 1px solid #e5e7eb !important;
+  border: 1px solid var(--app-border) !important;
   border-radius: 0.5rem !important;
   justify-content: flex-start !important;
   padding: 16px !important;
@@ -94,7 +76,7 @@
 }
 
 .help-item-btn:hover {
-  background-color: #f9fafb !important;
+  background-color: var(--app-surface-muted) !important;
 }
 
 .help-item-btn :deep(.q-btn__content) {

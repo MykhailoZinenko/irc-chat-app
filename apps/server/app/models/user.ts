@@ -29,13 +29,25 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare email: string
 
   @column({ serializeAs: null })
-  declare password: string
+  declare password: string | null
+
+  @column()
+  declare provider: string | null
+
+  @column()
+  declare providerId: string | null
+
+  @column()
+  declare avatarUrl: string | null
 
   @column.dateTime()
   declare emailVerifiedAt: DateTime | null
 
   @column()
   declare sessionTimeoutDays: number
+
+  @column()
+  declare status: 'online' | 'dnd' | 'offline'
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

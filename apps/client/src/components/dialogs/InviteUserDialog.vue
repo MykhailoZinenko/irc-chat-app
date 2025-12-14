@@ -84,6 +84,7 @@ import { useChannelStore } from '@/stores/channel-store'
 import { useInvitationStore } from '@/stores/invitation-store'
 import { api } from 'src/boot/axios'
 import { Notify } from 'quasar'
+import { transmitService } from '@/services/transmit'
 
 interface Props {
   modelValue: boolean
@@ -166,8 +167,9 @@ const handleInvite = async () => {
 
   try {
     const invitePromises = Array.from(selectedChannels.value).map((channelId) =>
-      api.post(`/api/channels/${channelId}/invite`, {
+      transmitService.emit('channel:invite', {
         userId: props.userId,
+        channelId,
       })
     )
 

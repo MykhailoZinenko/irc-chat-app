@@ -7,7 +7,7 @@ import ChannelBan from '#models/channel_ban'
 import KickVote from '#models/kick_vote'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
-import transmit from '@adonisjs/transmit/services/main'
+import { emitToUser, emitToUsers } from '#services/realtime'
 
 const KICK_VOTE_THRESHOLD = 3
 
@@ -170,6 +170,7 @@ export default class ChannelsController {
       firstName: p.user.firstName,
       lastName: p.user.lastName,
       email: p.user.email,
+      status: p.user.status,
       role: p.role,
       joinedAt: p.joinedAt,
     }))
@@ -393,12 +394,13 @@ export default class ChannelsController {
     }
 
     // Broadcast to all channel members' user channels
-    for (const member of channelMembers) {
-      transmit.broadcast(`users/${member.userId}`, memberJoinedPayload)
-    }
+    emitToUsers(
+      channelMembers.map((m) => m.userId),
+      memberJoinedPayload
+    )
 
     // Also broadcast user_joined_channel to the joining user
-    transmit.broadcast(`users/${user.id}`, {
+    emitToUser(user.id, {
       type: 'user_joined_channel',
       data: {
         userId: user.id,
@@ -503,12 +505,13 @@ export default class ChannelsController {
       }
 
       // Broadcast to all remaining members (if any) before deleting
-      for (const member of remainingMembers) {
-        transmit.broadcast(`users/${member.userId}`, channelDeletedPayload)
-      }
+      emitToUsers(
+        remainingMembers.map((m) => m.userId),
+        channelDeletedPayload
+      )
 
       // Also notify the leaving user
-      transmit.broadcast(`users/${user.id}`, channelDeletedPayload)
+      emitToUser(user.id, channelDeletedPayload)
 
       await channel.delete()
 
@@ -529,12 +532,13 @@ export default class ChannelsController {
     }
 
     // Broadcast to all remaining channel members' user channels
-    for (const member of remainingMembers) {
-      transmit.broadcast(`users/${member.userId}`, memberLeftPayload)
-    }
+    emitToUsers(
+      remainingMembers.map((m) => m.userId),
+      memberLeftPayload
+    )
 
     // Broadcast user_left_channel to the leaving user
-    transmit.broadcast(`users/${user.id}`, {
+    emitToUser(user.id, {
       type: 'user_left_channel',
       data: {
         userId: user.id,
@@ -657,7 +661,7 @@ export default class ChannelsController {
     })
 
     // Broadcast invitation_received to invited user
-    transmit.broadcast(`users/${data.userId}`, {
+    emitToUser(data.userId, {
       type: 'invitation_received',
       data: {
         invitationId: invitation.id,
@@ -786,11 +790,12 @@ export default class ChannelsController {
       },
     }
 
-    for (const member of remainingMembers) {
-      transmit.broadcast(`users/${member.userId}`, memberLeftPayload)
-    }
+    emitToUsers(
+      remainingMembers.map((m) => m.userId),
+      memberLeftPayload
+    )
 
-    transmit.broadcast(`users/${targetUserId}`, {
+    emitToUser(targetUserId, {
       type: 'user_left_channel',
       data: {
         userId: targetUserId,
@@ -924,12 +929,13 @@ export default class ChannelsController {
     }
 
     // Broadcast to all channel members' user channels
-    for (const member of channelMembers) {
-      transmit.broadcast(`users/${member.userId}`, memberJoinedPayload)
-    }
+    emitToUsers(
+      channelMembers.map((m) => m.userId),
+      memberJoinedPayload
+    )
 
     // Also broadcast user_joined_channel to the joining user
-    transmit.broadcast(`users/${user.id}`, {
+    emitToUser(user.id, {
       type: 'user_joined_channel',
       data: {
         userId: user.id,
@@ -939,7 +945,7 @@ export default class ChannelsController {
     })
 
     // Broadcast invitation_accepted to inviter
-    transmit.broadcast(`users/${invitation.invitedBy}`, {
+    emitToUser(invitation.invitedBy, {
       type: 'invitation_accepted',
       data: {
         invitationId: invitation.id,
@@ -988,7 +994,7 @@ export default class ChannelsController {
     await invitation.save()
 
     // Broadcast invitation_declined to inviter
-    transmit.broadcast(`users/${invitation.invitedBy}`, {
+    emitToUser(invitation.invitedBy, {
       type: 'invitation_declined',
       data: {
         invitationId: invitation.id,
@@ -1190,11 +1196,12 @@ export default class ChannelsController {
       },
     }
 
-    for (const member of remainingMembers) {
-      transmit.broadcast(`users/${member.userId}`, memberLeftPayload)
-    }
+    emitToUsers(
+      remainingMembers.map((m) => m.userId),
+      memberLeftPayload
+    )
 
-    transmit.broadcast(`users/${targetParticipant.userId}`, {
+    emitToUser(targetParticipant.userId, {
       type: 'user_left_channel',
       data: {
         userId: targetParticipant.userId,

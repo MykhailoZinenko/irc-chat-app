@@ -7,6 +7,7 @@ import {
 } from 'vue-router';
 import routes from './routes';
 import { useAuthStore } from 'src/stores/auth-store';
+import { useSelectionStore } from 'src/stores/selection-store';
 
 /*
  * If not building with SSR mode, you can
@@ -37,6 +38,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   // Navigation guards
   Router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
+    const selectionStore = useSelectionStore();
 
     // Initialize auth on first load
     if (!authStore.user && authStore.token) {
@@ -58,6 +60,12 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     ) {
       next('/chat');
       return;
+    }
+
+    // Clear chat selection when navigating to settings
+    if (to.path === '/settings') {
+      selectionStore.clearSelection();
+      selectionStore.infoPanelOpen = false;
     }
 
     next();

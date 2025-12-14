@@ -48,12 +48,12 @@ const handleUpdate = (value: string | number | null) => {
 }
 
 :deep(.dialog-input .q-field__control:before) {
-  border-color: #d1d5db;
+  border-color: var(--app-border-strong);
 }
 
 :deep(.dialog-input.q-field--focused .q-field__control:before),
 :deep(.dialog-input.q-field--focused .q-field__control:after) {
-  border-color: #3b82f6;
+  border-color: var(--app-primary);
 }
 
 :deep(.dialog-input .q-field__control:after) {
@@ -61,6 +61,6 @@ const handleUpdate = (value: string | number | null) => {
 }
 
 .text-gray-700 {
-  color: #374151;
+  color: var(--app-text);
 }
 </style>

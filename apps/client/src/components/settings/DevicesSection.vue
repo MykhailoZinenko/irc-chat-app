@@ -18,7 +18,7 @@
             <div class="flex gap-3">
               <div :class="[
                 'w-10 h-10 rounded-lg flex items-center justify-center',
-                session.isCurrent ? 'bg-blue-100' : 'bg-gray-100'
+                session.isCurrent ? 'bg-blue-1' : 'bg-grey-2'
               ]">
                 <q-icon
                   :name="getDeviceIcon(session.deviceType)"
@@ -36,20 +36,20 @@
             </div>
             <span
               v-if="session.isCurrent"
-              class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"
+              class="text-xs bg-green-1 text-green-7 px-2 py-1 rounded-full"
             >
               Current
             </span>
-            <q-btn
+            <Button
               v-else
-              flat
-              no-caps
-              color="red"
-              label="Terminate"
-              size="sm"
-              class="font-medium"
+              variant="outline"
+              tone="danger"
+              :full-width="false"
+              padding="6px 10px"
               @click="handleRevokeSession(session.id)"
-            />
+            >
+              Terminate
+            </Button>
           </div>
         </div>
 
@@ -58,15 +58,15 @@
         </div>
       </div>
     </div>
-    <q-btn
-      outline
-      color="red"
-      label="Terminate All Other Sessions"
-      class="w-full"
-      padding="12px"
+    <Button
+      variant="outline"
+      tone="danger"
+      :full-width="true"
       :disable="authStore.sessions.length <= 1"
       @click="handleLogoutAll"
-    />
+    >
+      Terminate All Other Sessions
+    </Button>
   </div>
 </template>
 <script setup lang="ts">
@@ -74,6 +74,7 @@ import { onMounted } from 'vue'
 import { useAuthStore } from 'src/stores/auth-store'
 import { DateTime } from 'luxon'
 import { useQuasar } from 'quasar'
+import Button from '@/components/ui/CustomButton.vue'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
@@ -144,39 +145,6 @@ const handleLogoutAll = () => {
 }
 .border {
   border-width: 1px;
-}
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-.text-gray-800 {
-  color: #1f2937;
-}
-.text-gray-600 {
-  color: #4b5563;
-}
-.text-gray-500 {
-  color: #6b7280;
-}
-.text-gray-400 {
-  color: #9ca3af;
-}
-.text-red-600 {
-  color: #dc2626;
-}
-.text-red-700 {
-  color: #b91c1c;
-}
-.text-green-700 {
-  color: #15803d;
-}
-.bg-blue-100 {
-  background-color: #dbeafe;
-}
-.bg-gray-100 {
-  background-color: #f3f4f6;
-}
-.bg-green-100 {
-  background-color: #dcfce7;
 }
 .w-full {
   width: 100%;

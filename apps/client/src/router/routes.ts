@@ -17,6 +17,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/AuthLayout.vue'),
     children: [{ path: '', component: () => import('pages/auth/ForgotPassword.vue') }],
   },
+  {
+    path: '/auth/callback',
+    component: () => import('pages/auth/OAuthCallback.vue'),
+  },
   // Private routes - require authentication
   {
     path: '/',

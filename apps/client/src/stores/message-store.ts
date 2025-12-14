@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
+import { transmitService } from '@/services/transmit';
+import { usePresenceStore } from './presence-store';
 
 export interface MessageStatus {
   sent?: boolean;
@@ -35,6 +37,18 @@ export const useMessageStore = defineStore('message', () => {
   const loading = ref(false);
   const sending = ref(false);
   const messagesVersion = ref(0); // Increment this whenever messages change
+  const presenceStore = usePresenceStore();
+
+  const ensureOnline = () => {
+    if (presenceStore.isOffline) {
+      Notify.create({
+        type: 'negative',
+        message: 'You are offline. Go online to send or sync messages.',
+      });
+      return false;
+    }
+    return true;
+  };
 
   const currentMessages = computed(() => {
     if (!currentChannelId.value) return [];
@@ -46,6 +60,9 @@ export const useMessageStore = defineStore('message', () => {
   };
 
   const fetchMessages = async (channelId: number, page: number = 1, limit: number = 50) => {
+    if (presenceStore.isOffline) {
+      return { success: false, hasMore: false };
+    }
     loading.value = true;
     try {
       const response = await api.get<{
@@ -93,22 +110,16 @@ export const useMessageStore = defineStore('message', () => {
   };
 
   const sendMessage = async (channelId: number, content: string) => {
+    if (!ensureOnline()) return { success: false };
     sending.value = true;
     try {
-      const response = await api.post<{
-        success: boolean;
-        data: ChannelMessage;
-      }>(`/api/channels/${channelId}/messages`, { content });
-
-      if (response.data.success) {
-        // Add message to local state (it's already broadcasted via WebSocket)
-        addMessageFromRealTime(response.data.data);
-        return { success: true, message: response.data.data };
-      }
+      const message = await transmitService.emit<ChannelMessage>('message:send', { channelId, content });
+      addMessageFromRealTime(message);
+      return { success: true, message };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to send message',
+        message: error?.message || error.response?.data?.message || 'Failed to send message',
       });
       return { success: false };
     } finally {
@@ -117,18 +128,18 @@ export const useMessageStore = defineStore('message', () => {
   };
 
   const markMessageAsRead = async (messageId: number) => {
+    if (!ensureOnline()) return;
     try {
-      await api.post(`/api/channels/messages/${messageId}/read`);
-      // Status will be updated via WebSocket broadcast
+      await transmitService.emit('message:markRead', { messageId });
     } catch (error: any) {
       console.error('Failed to mark message as read:', error);
     }
   };
 
   const markMessageAsDelivered = async (messageId: number) => {
+    if (!ensureOnline()) return;
     try {
-      await api.post(`/api/channels/messages/${messageId}/delivered`);
-      // Status will be updated via WebSocket broadcast
+      await transmitService.emit('message:markDelivered', { messageId });
     } catch (error: any) {
       console.error('Failed to mark message as delivered:', error);
     }

@@ -45,7 +45,7 @@
         outlined
         :placeholder="props.placeholder || 'Placeholder'"
         class="flex-1 message-input"
-        bg-color="white"
+        bg-color="grey-1"
         borderless
         @keydown.enter.prevent="handleEnter"
         @keydown.up.prevent="moveHighlight(-1)"
@@ -101,7 +101,10 @@
 <script setup lang="ts">
 import { type MemberItem } from 'src/types/chat';
 import { type CommandType, isCommandType, type CommandItem } from 'src/types/commands';
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
+import { transmitService } from '@/services/transmit'
+import { useSelectionStore } from '@/stores/selection-store'
+import { debounce, throttle } from 'quasar'
 
 type Suggestion =
   | { type: 'command'; value: string; label: string; description?: string }
@@ -120,8 +123,77 @@ const emit = defineEmits<{
 }>()
 
 const onlyCommandMode = computed(() => props.onlyCommandMode ?? false)
+const selectionStore = useSelectionStore()
 
 const inputMessage = ref('')
+
+// --- Typing indicator logic ---
+let isTyping = false
+
+// Debounced stop typing (3 seconds after last keystroke)
+const stopTyping = debounce(() => {
+  if (isTyping && selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+    isTyping = false
+  }
+}, 3000)
+
+// Throttled content update (max every 500ms)
+const emitTypingUpdate = throttle((content: string) => {
+  if (selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:update', {
+      channelId: selectionStore.selectedChannelId,
+      content,
+    })
+  }
+}, 500)
+
+// Watch input changes for typing events
+watch(inputMessage, (newValue) => {
+  if (!selectionStore.selectedChannelId) return
+
+  const trimmed = newValue.trim()
+
+  if (trimmed.length === 0) {
+    // Empty input - stop typing
+    if (isTyping) {
+      void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+      isTyping = false
+    }
+    return
+  }
+
+  // Start typing if not already
+  if (!isTyping) {
+    void transmitService.emit('typing:start', { channelId: selectionStore.selectedChannelId })
+    isTyping = true
+  }
+
+  // Emit content update (throttled)
+  emitTypingUpdate(newValue)
+
+  // Reset stop timer
+  stopTyping()
+})
+
+// Watch for channel switching
+watch(
+  () => selectionStore.selectedChannelId,
+  (newChannelId, oldChannelId) => {
+    // Stop typing in old channel when switching
+    if (oldChannelId && isTyping) {
+      void transmitService.emit('typing:stop', { channelId: oldChannelId })
+      isTyping = false
+    }
+  }
+)
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (isTyping && selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+  }
+})
 
 // --- emoji picker ---
 const emojiList = [
@@ -183,8 +255,8 @@ const suggestions = computed<Suggestion[]>(() => {
   // /command suggestions
   if (isCommandMode.value && props.commands?.length) {
     const q = commandQuery.value
-    for (const cmd of props.commands) {
-      if (!q || cmd.name.toLowerCase().includes(q)) {
+    if (!q) {
+      for (const cmd of props.commands) {
         list.push({
           type: 'command',
           value: cmd.name,
@@ -192,6 +264,28 @@ const suggestions = computed<Suggestion[]>(() => {
           description: cmd.description
         } as Suggestion)
       }
+    } else {
+      const startsWith: Suggestion[] = []
+      const contains: Suggestion[] = []
+      for (const cmd of props.commands) {
+        const name = cmd.name.toLowerCase()
+        if (name.startsWith(q)) {
+          startsWith.push({
+            type: 'command',
+            value: cmd.name,
+            label: `/${cmd.name}`,
+            description: cmd.description
+          } as Suggestion)
+        } else if (name.includes(q)) {
+          contains.push({
+            type: 'command',
+            value: cmd.name,
+            label: `/${cmd.name}`,
+            description: cmd.description
+          } as Suggestion)
+        }
+      }
+      list.push(...startsWith, ...contains)
     }
   }
   // @mention suggestions
@@ -272,6 +366,12 @@ const handleSend = () => {
   const text = inputMessage.value.trim()
   if (!text) return
 
+  // Stop typing before sending
+  if (isTyping && selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+    isTyping = false
+  }
+
   if (text.startsWith('/')) {
     const withoutSlash = text.slice(1)
     const [commandRaw, ...rest] = withoutSlash.split(' ')
@@ -298,8 +398,8 @@ const handleSend = () => {
   align-items: center;
   gap: 4px;
   padding: 8px 12px;
-  background: white;
-  border-top: 1px solid #e5e7eb;
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
 }
 
 @media (min-width: 640px) {
@@ -336,7 +436,7 @@ const handleSend = () => {
 }
 
 .send-btn {
-  color: #3b82f6 !important;
+  color: var(--app-primary) !important;
   background: transparent !important;
 }
 
@@ -352,7 +452,7 @@ const handleSend = () => {
   min-height: 40px;
   height: 40px;
   padding: 0 16px;
-  background: #f3f4f6;
+  background: var(--app-neutral-weak);
   border: none !important;
   box-shadow: none !important;
   border-radius: 20px;
@@ -367,11 +467,11 @@ const handleSend = () => {
 .message-input :deep(.q-field__native) {
   padding: 0;
   font-size: 15px;
-  color: #1f2937;
+  color: var(--app-text-strong);
 }
 
 .message-input :deep(.q-field__native)::placeholder {
-  color: #9ca3af;
+  color: var(--app-placeholder);
 }
 
 .emoji-grid {
@@ -393,17 +493,17 @@ const handleSend = () => {
 }
 
 .emoji-scroll-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--app-scrollbar-track);
   border-radius: 4px;
 }
 
 .emoji-scroll-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--app-scrollbar-thumb);
   border-radius: 4px;
 }
 
 .emoji-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--app-scrollbar-thumb-hover);
 }
 
 .emoji-item {
@@ -420,6 +520,6 @@ const handleSend = () => {
 }
 
 .emoji-item:hover {
-  background: #f3f4f6;
+  background: var(--app-neutral-weak);
 }
 </style>

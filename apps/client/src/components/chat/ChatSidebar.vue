@@ -276,69 +276,20 @@ const showCreateChannelDialog = () => {
 </script>
 
 <style scoped>
-.bg-white {
-  background-color: white;
-}
-
-.border-r,
-.border-b {
-  border-color: #e5e7eb;
-}
-
-.border-r {
-  border-right-width: 1px;
-}
-
-.border-b {
-  border-bottom-width: 1px;
-}
-
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.bg-blue-50 {
-  background-color: #eff6ff;
-}
-
-.border-blue-500 {
-  border-color: #3b82f6;
-}
-
-.bg-blue-500 {
-  background-color: #3b82f6;
-}
-
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.text-gray-600 {
-  color: #4b5563;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
 .search-input :deep(.q-field__control) {
   border-radius: 0.5rem;
 }
 
 .search-input :deep(.q-field__control):before {
-  border-color: #e5e7eb;
+  border-color: var(--app-border);
 }
 
 .search-input :deep(.q-field__control):hover:before {
-  border-color: #3b82f6;
+  border-color: var(--app-primary);
 }
 
 .search-input :deep(.q-field__control):after {
-  border-color: #3b82f6;
+  border-color: var(--app-primary);
 }
 
 @media (min-width: 1024px) {
