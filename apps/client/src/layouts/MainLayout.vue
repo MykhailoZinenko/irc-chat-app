@@ -44,7 +44,10 @@ const messageStore = useMessageStore()
 const currentChannel = useCurrentChannel()
 
 const availableCommands = computed(() => {
-  const channel = currentChannel.currentChannel.value;
+  if (!selectionStore.selectedChannelId) {
+    return getMenuCommands()
+  }
+  const channel = currentChannel.currentChannel.value
   if (!channel) return getMenuCommands()
   return getChatCommands(channel.type, channel.role === 'admin')
 })

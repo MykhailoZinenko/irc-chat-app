@@ -155,13 +155,25 @@ export const useChannelStore = defineStore('channel', () => {
   const joinByName = async (name: string) => {
     if (!ensureOnline()) return { success: false };
     try {
-      await transmitService.emit('channel:joinByName', { name });
+      const result = await transmitService.emit<{
+        channel?: Channel;
+        channelId?: number;
+        created?: boolean;
+        alreadyJoined?: boolean;
+      }>('channel:joinByName', { name });
       await fetchChannels();
+
+      const message = result?.created
+        ? 'Channel created and joined'
+        : result?.alreadyJoined
+          ? 'You are already a member'
+          : 'Joined channel successfully';
+
       Notify.create({
         type: 'positive',
-        message: 'Joined channel successfully',
+        message,
       });
-      return { success: true };
+      return { success: true, data: result };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
