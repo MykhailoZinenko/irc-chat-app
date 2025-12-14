@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 flex flex-col bg-white h-full">
+  <div class="flex-1 flex flex-col profile-surface h-full">
     <div v-if="loading" class="flex-1 flex items-center justify-center">
       <q-spinner size="48px" color="primary" />
     </div>
@@ -10,7 +10,6 @@
         :title="displayName"
         subtitle="Profile"
         @back="$emit('back')"
-        @more="handleMore"
       />
 
       <!-- Scrollable Content -->
@@ -31,18 +30,10 @@
 
         <!-- Action Buttons -->
         <ProfileSection>
-          <div class="grid grid-cols-2 gap-3">
-            <ProfileActionButton
-              icon="chat"
-              label="Message"
-              bg-color="bg-blue-500"
-              icon-color="text-white"
-              @click="handleMessage"
-            />
-
+          <div class="profile-actions">
             <ProfileActionButton
               icon="person_add"
-              label="Add"
+              label="Invite to channel"
               bg-color="bg-blue-100"
               icon-color="text-blue-600"
               @click="showInviteDialog = true"
@@ -70,23 +61,6 @@
           </div>
         </ProfileSection>
 
-        <!-- Settings Section -->
-        <ProfileSection title="Settings">
-          <div class="space-y-1">
-            <button
-              @click="isMuted = !isMuted"
-              class="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <q-icon
-                :name="isMuted ? 'notifications_off' : 'notifications'"
-                size="20px"
-                class="text-gray-600"
-              />
-              <span class="text-gray-800">{{ isMuted ? 'Unmute' : 'Mute' }} Notifications</span>
-            </button>
-          </div>
-        </ProfileSection>
-
         <!-- Common Channels -->
         <ProfileSection v-if="commonChannels.length > 0" title="Common Channels" :count="commonChannels.length" :title-bold="true">
           <div class="space-y-2">
@@ -94,38 +68,18 @@
               v-for="channel in commonChannels"
               :key="channel.id"
               @click="handleChannelClick(channel)"
-              class="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+              class="channel-card"
             >
-              <div class="w-12 h-12 rounded-full app-gradient flex items-center justify-center text-2xl flex-shrink-0">
+              <div class="channel-card__avatar">
                 {{ channel.type === 'public' ? '📢' : '🔒' }}
               </div>
-              <div class="flex-1 text-left min-w-0">
-                <p class="text-sm font-medium text-gray-800 truncate">{{ channel.name }}</p>
-                <p class="text-xs text-gray-500">{{ channel.type }} channel</p>
+              <div class="channel-card__body">
+                <p class="channel-card__title">{{ channel.name }}</p>
+                <p class="channel-card__subtitle">{{ channel.type }} channel</p>
               </div>
             </button>
           </div>
         </ProfileSection>
-
-        <!-- Danger Zone -->
-        <div class="px-4 py-4">
-          <div class="space-y-2">
-            <button
-              @click="handleBlock"
-              class="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg transition-colors text-red-600"
-            >
-              <q-icon name="block" size="20px" />
-              <span class="font-medium">Block User</span>
-            </button>
-            <button
-              @click="handleReport"
-              class="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg transition-colors text-red-600"
-            >
-              <q-icon name="flag" size="20px" />
-              <span class="font-medium">Report User</span>
-            </button>
-          </div>
-        </div>
       </div>
     </template>
 
@@ -173,7 +127,6 @@ const selectionStore = useSelectionStore()
 const authStore = useAuthStore()
 const userProfile = ref<UserProfile | null>(null)
 const loading = ref(false)
-const isMuted = ref(false)
 const showInviteDialog = ref(false)
 const commonChannels = ref<any[]>([])
 let statusSubscription: { unsubscribe: () => void } | null = null
@@ -274,25 +227,37 @@ watch(() => channelStore.channels, () => {
   void fetchCommonChannels()
 }, { deep: true })
 
-const handleMore = () => {
-}
-
-const handleMessage = () => {
-}
-
 const handleChannelClick = (channel: any) => {
   selectionStore.selectChannel(channel.id)
   emit('back')
 }
-
-const handleBlock = () => {
-}
-
-const handleReport = () => {
-}
 </script>
 
 <style scoped>
+.profile-shell {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+.profile-surface {
+  background: var(--app-surface);
+  color: var(--app-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.profile-shell__inner {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto 24px;
+  padding: 0 16px;
+}
+
+.profile-actions {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
 .space-y-6 > * + * {
   margin-top: 1.5rem;
 }
@@ -302,6 +267,57 @@ const handleReport = () => {
 .w-full {
   width: 100%;
 }
+
+.channel-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-muted);
+  border-radius: 0.75rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.25s ease;
+  cursor: pointer;
+}
+
+.channel-card:hover {
+  border-color: var(--app-primary);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.channel-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--app-gradient-start), var(--app-gradient-end));
+  color: #fff;
+  flex-shrink: 0;
+  font-size: 1.5rem;
+}
+
+.channel-card__body {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.channel-card__title {
+  margin: 0;
+  color: var(--app-text-strong);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.channel-card__subtitle {
+  margin: 0.1rem 0 0;
+  color: var(--app-text-muted);
+  font-size: 0.82rem;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;

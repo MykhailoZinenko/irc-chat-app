@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white border-b border-gray-200 px-4 flex items-center justify-between h-16">
+  <div class="app-surface border-b app-border px-4 flex items-center justify-between h-16">
     <div class="flex items-center gap-3 min-w-0">
       <q-btn
         flat

@@ -11,7 +11,7 @@
       </div>
 
       <!-- Content Card -->
-      <div class="bg-white rounded-2xl shadow-xl p-8">
+      <div class="auth-card rounded-2xl p-8">
         <slot />
       </div>
 
@@ -42,5 +42,12 @@ defineProps<{
 <style scoped>
 .min-h-screen {
   min-height: 100vh;
+}
+
+.auth-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-strong);
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 </style>

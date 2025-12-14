@@ -5,25 +5,25 @@
       <p class="text-sm text-gray-600 mb-6">Manage devices where you're logged in</p>
 
       <div v-if="authStore.isLoading" class="text-center py-8">
-        <q-spinner color="blue" size="32px" />
+        <q-spinner color="primary" size="32px" />
       </div>
 
       <div v-else class="space-y-3">
         <div
           v-for="session in authStore.sessions"
           :key="session.id"
-          class="p-4 border border-gray-200 rounded-lg"
+          class="session-card"
         >
           <div class="flex items-start justify-between">
             <div class="flex gap-3">
               <div :class="[
-                'w-10 h-10 rounded-lg flex items-center justify-center',
-                session.isCurrent ? 'bg-blue-1' : 'bg-grey-2'
+                'session-card__icon',
+                session.isCurrent ? 'session-card__icon--current' : 'session-card__icon--idle'
               ]">
                 <q-icon
                   :name="getDeviceIcon(session.deviceType)"
                   size="20px"
-                  :color="session.isCurrent ? 'blue' : 'grey-6'"
+                  :color="session.isCurrent ? 'primary' : 'grey-6'"
                 />
               </div>
               <div>
@@ -36,7 +36,7 @@
             </div>
             <span
               v-if="session.isCurrent"
-              class="text-xs bg-green-1 text-green-7 px-2 py-1 rounded-full"
+              class="session-card__chip"
             >
               Current
             </span>
@@ -143,10 +143,44 @@ const handleLogoutAll = () => {
 .space-y-3 > * + * {
   margin-top: 0.75rem;
 }
-.border {
-  border-width: 1px;
+
+.session-card {
+  padding: 1rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  border-radius: 0.75rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.25s ease;
 }
-.w-full {
-  width: 100%;
+
+.session-card:hover {
+  border-color: var(--app-primary);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.session-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--app-neutral-weak);
+  color: var(--app-text-strong);
+}
+
+.session-card__icon--current {
+  background: color-mix(in srgb, var(--q-primary) 18%, var(--app-surface));
+}
+
+.session-card__icon--idle {
+  background: color-mix(in srgb, var(--app-border) 40%, var(--app-surface));
+}
+
+.session-card__chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--q-positive) 18%, var(--app-surface));
+  color: var(--q-positive);
+  border: 1px solid color-mix(in srgb, var(--q-positive) 40%, transparent);
 }
 </style>

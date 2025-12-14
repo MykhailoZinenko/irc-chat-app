@@ -1860,75 +1860,76 @@ textarea.q-field__native {
 
 /* Default/Primary Button */
 .q-btn:not(.q-btn--outline):not(.q-btn--flat):not(.q-btn--unelevated) {
-    background: $primary !important;
+    background: var(--q-primary) !important;
     color: #ffffff !important;
 
     &:hover:not(:disabled) {
-        background: $blue-7 !important;
+        background: color-mix(in srgb, var(--q-primary) 90%, #000 10%) !important;
     }
 
     &:active:not(:disabled) {
-        background: $blue-8 !important;
+        background: color-mix(in srgb, var(--q-primary) 82%, #000 18%) !important;
     }
 }
 
 /* Outlined Button */
 .q-btn--outline {
     background: transparent !important;
-    color: $input-text-color !important;
+    color: var(--app-text-strong) !important;
+    border-color: var(--app-border) !important;
     
     &:hover:not(:disabled) {
-        background: $grey-1 !important;
-        border-color: $grey-4 !important;
+        background: color-mix(in srgb, var(--app-surface-muted) 70%, transparent) !important;
+        border-color: var(--app-border-strong) !important;
     }
 
     &:active:not(:disabled) {
-        background: $grey-2 !important;
-        border-color: $grey-5 !important;
+        background: color-mix(in srgb, var(--app-surface-muted) 85%, transparent) !important;
+        border-color: var(--app-border-strong) !important;
     }
 
     &.text-primary {
-        color: $primary !important;
-        border-color: $primary !important;
+        color: var(--q-primary) !important;
+        border-color: var(--q-primary) !important;
 
         &:hover:not(:disabled) {
-            background: $blue-1 !important;
-            border-color: $blue-6 !important;
+            background: color-mix(in srgb, var(--q-primary) 12%, var(--app-surface) 88%) !important;
+            border-color: color-mix(in srgb, var(--q-primary) 90%, var(--app-border) 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $blue-2 !important;
-            border-color: $blue-7 !important;
+            background: color-mix(in srgb, var(--q-primary) 16%, var(--app-surface) 84%) !important;
+            border-color: color-mix(in srgb, var(--q-primary) 82%, var(--app-border) 18%) !important;
         }
     }
 
     &.text-positive {
-        color: $positive !important;
-        border-color: $positive !important;
+        color: var(--q-positive) !important;
+        border-color: var(--q-positive) !important;
 
         &:hover:not(:disabled) {
-            background: $green-1 !important;
-            border-color: $green-6 !important;
+            background: color-mix(in srgb, var(--q-positive) 12%, var(--app-surface) 88%) !important;
+            border-color: color-mix(in srgb, var(--q-positive) 90%, var(--app-border) 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $green-2 !important;
-            border-color: $green-7 !important;
+            background: color-mix(in srgb, var(--q-positive) 16%, var(--app-surface) 84%) !important;
+            border-color: color-mix(in srgb, var(--q-positive) 82%, var(--app-border) 18%) !important;
         }
     }
 
     &.text-negative {
-        color: $negative !important;
-        border-color: $negative !important;
+        color: var(--q-negative) !important;
+        border-color: var(--q-negative) !important;
 
         &:hover:not(:disabled) {
-            background: $red-1 !important;
-            border-color: $red-6 !important;
+            background: color-mix(in srgb, var(--q-negative) 12%, var(--app-surface) 88%) !important;
+            border-color: color-mix(in srgb, var(--q-negative) 90%, var(--app-border) 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $red-2 !important;
-            border-color: $red-7 !important;
+            background: color-mix(in srgb, var(--q-negative) 16%, var(--app-surface) 84%) !important;
+            border-color: color-mix(in srgb, var(--q-negative) 82%, var(--app-border) 18%) !important;
         }
     }
 }
@@ -1936,64 +1937,64 @@ textarea.q-field__native {
 /* Flat Button */
 .q-btn--flat {
     background: transparent !important;
-    color: $input-text-color !important;
+    color: var(--app-text-strong) !important;
 
     &:hover:not(:disabled) {
-        background: $grey-1 !important;
+        background: color-mix(in srgb, var(--app-surface-muted) 70%, transparent) !important;
     }
 
     &:active:not(:disabled) {
-        background: $grey-2 !important;
+        background: color-mix(in srgb, var(--app-surface-muted) 85%, transparent) !important;
     }
 
     &.text-primary {
-        color: $primary !important;
+        color: var(--q-primary) !important;
 
         &:hover:not(:disabled) {
-            background: $blue-1 !important;
+            background: color-mix(in srgb, var(--q-primary) 12%, var(--app-surface) 88%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $blue-2 !important;
+            background: color-mix(in srgb, var(--q-primary) 16%, var(--app-surface) 84%) !important;
         }
     }
 
     &.text-positive {
-        color: $positive !important;
+        color: var(--q-positive) !important;
 
         &:hover:not(:disabled) {
-            background: $green-1 !important;
+            background: color-mix(in srgb, var(--q-positive) 12%, var(--app-surface) 88%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $green-2 !important;
+            background: color-mix(in srgb, var(--q-positive) 16%, var(--app-surface) 84%) !important;
         }
     }
 
     &.text-negative {
-        color: $negative !important;
+        color: var(--q-negative) !important;
 
         &:hover:not(:disabled) {
-            background: $red-1 !important;
+            background: color-mix(in srgb, var(--q-negative) 12%, var(--app-surface) 88%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $red-2 !important;
+            background: color-mix(in srgb, var(--q-negative) 16%, var(--app-surface) 84%) !important;
         }
     }
 }
 
 /* Unelevated Button */
 .q-btn--unelevated {
-    background: $primary !important;
+    background: var(--q-primary) !important;
     color: #ffffff !important;
 
     &:hover:not(:disabled) {
-        background: $blue-7 !important;
+        background: color-mix(in srgb, var(--q-primary) 90%, #000 10%) !important;
     }
 
     &:active:not(:disabled) {
-        background: $blue-8 !important;
+        background: color-mix(in srgb, var(--q-primary) 82%, #000 18%) !important;
     }
 }
 
@@ -2001,75 +2002,75 @@ textarea.q-field__native {
 
 .q-btn--positive {
     &:not(.q-btn--outline):not(.q-btn--flat) {
-        background: $positive !important;
+        background: var(--q-positive) !important;
         color: #ffffff !important;
 
         &:hover:not(:disabled) {
-            background: $green-7 !important;
+            background: color-mix(in srgb, var(--q-positive) 90%, #000 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $green-8 !important;
+            background: color-mix(in srgb, var(--q-positive) 82%, #000 18%) !important;
         }
     }
 }
 
 .q-btn--negative {
     &:not(.q-btn--outline):not(.q-btn--flat) {
-        background: $negative !important;
+        background: var(--q-negative) !important;
         color: #ffffff !important;
 
         &:hover:not(:disabled) {
-            background: $red-6 !important;
+            background: color-mix(in srgb, var(--q-negative) 90%, #000 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $red-7 !important;
+            background: color-mix(in srgb, var(--q-negative) 82%, #000 18%) !important;
         }
     }
 }
 
 .q-btn--warning {
     &:not(.q-btn--outline):not(.q-btn--flat) {
-        background: $warning !important;
+        background: var(--q-warning) !important;
         color: #ffffff !important;
 
         &:hover:not(:disabled) {
-            background: $amber-7 !important;
+            background: color-mix(in srgb, var(--q-warning) 90%, #000 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $amber-8 !important;
+            background: color-mix(in srgb, var(--q-warning) 82%, #000 18%) !important;
         }
     }
 }
 
 .q-btn--info {
     &:not(.q-btn--outline):not(.q-btn--flat) {
-        background: $info !important;
+        background: var(--q-info) !important;
         color: #ffffff !important;
 
         &:hover:not(:disabled) {
-            background: $light-blue-7 !important;
+            background: color-mix(in srgb, var(--q-info) 90%, #000 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $light-blue-8 !important;
+            background: color-mix(in srgb, var(--q-info) 82%, #000 18%) !important;
         }
     }
 }
 
 .q-btn--secondary {
     &:not(.q-btn--outline):not(.q-btn--flat) {
-        background: $secondary !important;
+        background: var(--q-secondary, $secondary) !important;
         color: #ffffff !important;
 
         &:hover:not(:disabled) {
-            background: $grey-7 !important;
+            background: color-mix(in srgb, var(--q-secondary, $secondary) 90%, #000 10%) !important;
         }
 
         &:active:not(:disabled) {
-            background: $grey-8 !important;
+            background: color-mix(in srgb, var(--q-secondary, $secondary) 82%, #000 18%) !important;
         }
     }
 }
@@ -2258,114 +2259,114 @@ textarea.q-field__native {
 .body--dark {
     .q-btn {
         &:focus-visible {
-            outline-color: $primary !important;
+            outline-color: var(--q-primary) !important;
         }
     }
 
     .q-btn--outline {
-        color: $grey-2 !important;
-        border-color: $separator-dark-color !important;
+        color: var(--app-text-strong) !important;
+        border-color: var(--app-border-strong) !important;
 
         &:hover:not(:disabled) {
-            background: $grey-9 !important;
-            border-color: $grey-7 !important;
+            background: color-mix(in srgb, var(--app-surface-muted) 80%, transparent) !important;
+            border-color: var(--app-border-strong) !important;
         }
 
         &:active:not(:disabled) {
-            background: $grey-8 !important;
-            border-color: $grey-6 !important;
+            background: color-mix(in srgb, var(--app-surface-muted) 90%, transparent) !important;
+            border-color: var(--app-border-strong) !important;
         }
 
         &.text-primary {
-            color: $primary !important;
-            border-color: $primary !important;
+            color: var(--q-primary) !important;
+            border-color: var(--q-primary) !important;
 
             &:hover:not(:disabled) {
-                background: rgba($primary, 0.1) !important;
-                border-color: $blue-6 !important;
+                background: color-mix(in srgb, var(--q-primary) 12%, var(--app-surface)) !important;
+                border-color: color-mix(in srgb, var(--q-primary) 90%, var(--app-border) 10%) !important;
             }
 
             &:active:not(:disabled) {
-                background: rgba($primary, 0.15) !important;
-                border-color: $blue-7 !important;
+                background: color-mix(in srgb, var(--q-primary) 16%, var(--app-surface)) !important;
+                border-color: color-mix(in srgb, var(--q-primary) 82%, var(--app-border) 18%) !important;
             }
         }
 
         &.text-positive {
-            color: $positive !important;
-            border-color: $positive !important;
+            color: var(--q-positive) !important;
+            border-color: var(--q-positive) !important;
 
             &:hover:not(:disabled) {
-                background: rgba($positive, 0.1) !important;
-                border-color: $green-6 !important;
+                background: color-mix(in srgb, var(--q-positive) 12%, var(--app-surface)) !important;
+                border-color: color-mix(in srgb, var(--q-positive) 90%, var(--app-border) 10%) !important;
             }
 
             &:active:not(:disabled) {
-                background: rgba($positive, 0.15) !important;
-                border-color: $green-7 !important;
+                background: color-mix(in srgb, var(--q-positive) 16%, var(--app-surface)) !important;
+                border-color: color-mix(in srgb, var(--q-positive) 82%, var(--app-border) 18%) !important;
             }
         }
 
         &.text-negative {
-            color: $negative !important;
-            border-color: $negative !important;
+            color: var(--q-negative) !important;
+            border-color: var(--q-negative) !important;
 
             &:hover:not(:disabled) {
-                background: rgba($negative, 0.1) !important;
-                border-color: $red-6 !important;
+                background: color-mix(in srgb, var(--q-negative) 12%, var(--app-surface)) !important;
+                border-color: color-mix(in srgb, var(--q-negative) 90%, var(--app-border) 10%) !important;
             }
 
             &:active:not(:disabled) {
-                background: rgba($negative, 0.15) !important;
-                border-color: $red-7 !important;
+                background: color-mix(in srgb, var(--q-negative) 16%, var(--app-surface)) !important;
+                border-color: color-mix(in srgb, var(--q-negative) 82%, var(--app-border) 18%) !important;
             }
         }
     }
 
     .q-btn--flat {
-        color: $grey-2 !important;
+        color: var(--app-text-strong) !important;
 
         &:hover:not(:disabled) {
-            background: $grey-9 !important;
+            background: color-mix(in srgb, var(--app-surface-muted) 80%, transparent) !important;
         }
 
         &:active:not(:disabled) {
-            background: $grey-8 !important;
+            background: color-mix(in srgb, var(--app-surface-muted) 90%, transparent) !important;
         }
 
         &.text-primary {
-            color: $primary !important;
+            color: var(--q-primary) !important;
 
             &:hover:not(:disabled) {
-                background: rgba($primary, 0.1) !important;
+                background: color-mix(in srgb, var(--q-primary) 12%, var(--app-surface)) !important;
             }
 
             &:active:not(:disabled) {
-                background: rgba($primary, 0.15) !important;
+                background: color-mix(in srgb, var(--q-primary) 16%, var(--app-surface)) !important;
             }
         }
 
         &.text-positive {
-            color: $positive !important;
+            color: var(--q-positive) !important;
 
             &:hover:not(:disabled) {
-                background: rgba($positive, 0.1) !important;
+                background: color-mix(in srgb, var(--q-positive) 12%, var(--app-surface)) !important;
             }
 
             &:active:not(:disabled) {
-                background: rgba($positive, 0.15) !important;
+                background: color-mix(in srgb, var(--q-positive) 16%, var(--app-surface)) !important;
             }
         }
 
         &.text-negative {
-            color: $negative !important;
+            color: var(--q-negative) !important;
 
             &:hover:not(:disabled) {
-                background: rgba($negative, 0.1) !important;
+                background: color-mix(in srgb, var(--q-negative) 12%, var(--app-surface)) !important;
             }
 
             &:active:not(:disabled) {
-                background: rgba($negative, 0.15) !important;
+                background: color-mix(in srgb, var(--q-negative) 16%, var(--app-surface)) !important;
             }
         }
     }

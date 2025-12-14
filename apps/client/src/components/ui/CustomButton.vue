@@ -73,7 +73,7 @@ const buttonClasses = computed(() => {
   if (props.variant === 'outline' && props.tone === 'danger') {
     classes.push('text-red-6');
   } else if (props.variant === 'outline') {
-    classes.push('text-blue-6');
+    classes.push('text-blue-600');
   }
 
   return classes;
@@ -96,13 +96,13 @@ const buttonClasses = computed(() => {
 }
 
 .btn-gradient {
-  color: var(--app-surface);
+  color: #fff;
   background: linear-gradient(90deg, var(--app-gradient-start), var(--app-gradient-end));
   border: none !important;
 }
 
 .btn-solid {
-  color: var(--app-surface);
+  color: #fff;
 }
 
 .btn-outline {

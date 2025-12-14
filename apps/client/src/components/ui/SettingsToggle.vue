@@ -33,7 +33,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  color: 'blue',
+  color: 'primary',
   disable: false,
 })
 

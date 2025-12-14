@@ -6,7 +6,7 @@
         <div class="w-full border-t border-gray-300"></div>
       </div>
       <div class="relative flex justify-center text-sm">
-        <span class="px-4 bg-white text-gray-500">Or continue with</span>
+        <span class="px-4 divider-chip text-gray-500">Or continue with</span>
       </div>
     </div>
 
@@ -43,3 +43,12 @@ defineEmits<{
   'github': [];
 }>();
 </script>
+
+<style scoped>
+.divider-chip {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+</style>

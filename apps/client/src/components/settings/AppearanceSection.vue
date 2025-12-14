@@ -1,117 +1,262 @@
 <template>
-  <div class="space-y-6">
-    <div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-1">Appearance Settings</h3>
-      <p class="text-sm text-gray-600 mb-6">Customize how the app looks</p>
-      <div class="space-y-4">
-        <div class="flex items-center justify-between py-3 border-b border-gray-200">
-          <div>
-            <p class="font-medium text-gray-800">Dark Mode</p>
-            <p class="text-sm text-gray-500">Use dark theme throughout the app</p>
+  <div class="appearance-settings">
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3 class="section-title">Theme mode</h3>
+          <p class="section-subtitle">
+            Choose light or dark, or follow your device preference. Saved on this device.
+          </p>
+        </div>
+        <span class="chip">Currently {{ effectiveModeLabel }}</span>
+      </div>
+
+      <div class="mode-toggle">
+        <q-btn-toggle
+          v-model="modeModel"
+          unelevated
+          no-caps
+          rounded
+          toggle-color="primary"
+          color="grey-6"
+          :options="modeOptions"
+          class="mode-toggle__control"
+        />
+        <p class="helper-text">{{ modeHelper }}</p>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3 class="section-title">Accent themes</h3>
+          <p class="section-subtitle">
+            Swap the app accent, gradients, and highlight colors. Works in both light and dark.
+          </p>
+        </div>
+        <span class="chip chip--muted">Instant apply</span>
+      </div>
+
+      <div class="theme-grid">
+        <button
+          v-for="theme in themeCards"
+          :key="theme.id"
+          class="theme-tile"
+          :class="{ 'is-active': theme.id === selectedTheme }"
+          @click="pickTheme(theme.id)"
+        >
+          <div
+            class="theme-tile__swatch"
+            :style="{ background: `linear-gradient(135deg, ${theme.preview[0]}, ${theme.preview[1]})` }"
+          >
+            <span
+              class="theme-tile__dot"
+              :style="{ backgroundColor: theme.preview[0] }"
+            />
+            <span
+              class="theme-tile__dot"
+              :style="{ backgroundColor: theme.preview[1] }"
+            />
           </div>
-          <q-toggle
-            v-model="darkMode"
-            color="blue"
+          <div class="theme-tile__body">
+            <div class="theme-tile__name">{{ theme.label }}</div>
+            <div class="theme-tile__desc">{{ theme.description }}</div>
+          </div>
+          <q-icon
+            v-if="theme.id === selectedTheme"
+            name="check_circle"
+            size="20px"
+            color="primary"
           />
-        </div>
-        <div class="py-3 border-b border-gray-200">
-          <p class="font-medium text-gray-800 mb-3">Message Text Size</p>
-          <div class="flex gap-2">
-            <q-btn
-              :outline="textSize !== 'small'"
-              :unelevated="textSize === 'small'"
-              :color="textSize === 'small' ? 'blue' : 'grey-7'"
-              label="Small"
-              no-caps
-              padding="8px 16px"
-              class="text-sm"
-              @click="textSize = 'small'"
-            />
-            <q-btn
-              :outline="textSize !== 'medium'"
-              :unelevated="textSize === 'medium'"
-              :color="textSize === 'medium' ? 'blue' : 'grey-7'"
-              label="Medium"
-              no-caps
-              padding="8px 16px"
-              @click="textSize = 'medium'"
-            />
-            <q-btn
-              :outline="textSize !== 'large'"
-              :unelevated="textSize === 'large'"
-              :color="textSize === 'large' ? 'blue' : 'grey-7'"
-              label="Large"
-              no-caps
-              padding="8px 16px"
-              class="text-lg"
-              @click="textSize = 'large'"
-            />
-          </div>
-        </div>
-        <div class="py-3 border-b border-gray-200">
-          <p class="font-medium text-gray-800 mb-3">Chat Background</p>
-          <div class="grid grid-cols-4 gap-3">
-            <button
-              class="aspect-square rounded-lg bg-gray-50 border-2 transition-colors"
-              :class="chatBg === 'gray' ? 'border-blue-500' : 'border-transparent hover:border-gray-300'"
-              @click="chatBg = 'gray'"
-            />
-            <button
-              class="aspect-square rounded-lg bg-blue-50 border-2 transition-colors"
-              :class="chatBg === 'blue' ? 'border-blue-500' : 'border-transparent hover:border-gray-300'"
-              @click="chatBg = 'blue'"
-            />
-            <button
-              class="aspect-square rounded-lg bg-purple-50 border-2 transition-colors"
-              :class="chatBg === 'purple' ? 'border-blue-500' : 'border-transparent hover:border-gray-300'"
-              @click="chatBg = 'purple'"
-            />
-            <button
-              class="aspect-square rounded-lg bg-green-50 border-2 transition-colors"
-              :class="chatBg === 'green' ? 'border-blue-500' : 'border-transparent hover:border-gray-300'"
-              @click="chatBg = 'green'"
-            />
-          </div>
-        </div>
+        </button>
       </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
-const darkMode = ref(false)
-const textSize = ref('medium')
-const chatBg = ref('gray')
+import { computed } from 'vue'
+import { themePresets, useAppearanceStore, type ThemeId, type ThemeMode } from '@/stores/appearance-store'
+
+const appearanceStore = useAppearanceStore()
+
+const modeModel = computed<ThemeMode>({
+  get: () => appearanceStore.mode,
+  set: (value) => appearanceStore.setMode(value),
+})
+
+const selectedTheme = computed(() => appearanceStore.theme)
+const effectiveMode = computed(() => appearanceStore.effectiveMode)
+
+const modeOptions = [
+  { label: 'Light', value: 'light' },
+  { label: 'System', value: 'system' },
+  { label: 'Dark', value: 'dark' },
+]
+
+const modeHelper = computed(() => {
+  if (appearanceStore.mode === 'system') {
+    return `Following system (${effectiveMode.value === 'dark' ? 'dark' : 'light'} right now)`
+  }
+  return appearanceStore.mode === 'dark' ? 'Forces dark across the app' : 'Forces light across the app'
+})
+
+const effectiveModeLabel = computed(() => (effectiveMode.value === 'dark' ? 'Dark' : 'Light'))
+
+const themeCards = computed(() =>
+  Object.entries(themePresets).map(([id, def]) => ({
+    id: id as ThemeId,
+    ...def,
+  }))
+)
+
+const pickTheme = (id: ThemeId) => {
+  appearanceStore.setTheme(id)
+}
 </script>
 <style scoped>
-.space-y-6 > * + * {
-  margin-top: 1.5rem;
+.appearance-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-.space-y-4 > * + * {
+
+.section-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--app-shadow-soft);
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section-title {
+  margin: 0;
+  color: var(--app-text-strong);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.section-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--app-text-muted);
+  font-size: 0.95rem;
+}
+
+.chip {
+  align-self: center;
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chip--muted {
+  color: var(--app-text-soft);
+}
+
+.mode-toggle {
   margin-top: 1rem;
 }
-.border-b {
-  border-bottom-width: 1px;
+
+.mode-toggle__control {
+  width: 100%;
 }
-.border-transparent {
-  border-color: transparent;
+
+.helper-text {
+  color: var(--app-text-muted);
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
 }
-.hover\:border-gray-300:hover {
-  border-color: var(--app-border-strong);
-}
-.grid {
+
+.theme-grid {
+  margin-top: 1rem;
   display: grid;
-}
-.grid-cols-4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-.gap-2 {
-  gap: 0.5rem;
-}
-.gap-3 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 0.75rem;
 }
-.aspect-square {
-  aspect-ratio: 1 / 1;
+
+.theme-tile {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: left;
+}
+
+.theme-tile:hover {
+  border-color: var(--app-border-strong);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.theme-tile.is-active {
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--app-primary) 20%, transparent);
+}
+
+.theme-tile__swatch {
+  width: 64px;
+  height: 56px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--app-shadow-soft);
+}
+
+.theme-tile__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  position: absolute;
+  bottom: 8px;
+}
+
+.theme-tile__dot:first-of-type {
+  left: 10px;
+}
+
+.theme-tile__dot:last-of-type {
+  right: 10px;
+}
+
+.theme-tile__body {
+  flex: 1;
+}
+
+.theme-tile__name {
+  font-weight: 600;
+  color: var(--app-text-strong);
+  margin-bottom: 0.15rem;
+}
+
+.theme-tile__desc {
+  color: var(--app-text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chip {
+    align-self: flex-start;
+  }
 }
 </style>

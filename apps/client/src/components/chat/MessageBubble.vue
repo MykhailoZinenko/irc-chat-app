@@ -1,6 +1,11 @@
 <template>
   <div
-    :class="['flex gap-2', displayMessage.own ? 'justify-end' : 'justify-start', isFirstInGroup ? 'mt-4' : 'mt-1', hasReactions ? 'mb-4' : '']"
+    :class="[
+      'flex w-full',
+      displayMessage.own ? 'justify-end gap-0' : 'justify-start gap-2',
+      isFirstInGroup ? 'mt-4' : 'mt-1',
+      hasReactions ? 'mb-4' : ''
+    ]"
   >
     <!-- Avatar for other users -->
     <div v-if="!displayMessage.own" class="w-8 h-8 flex-shrink-0">
@@ -14,7 +19,12 @@
       <div v-else class="w-8 h-8" />
     </div>
 
-    <div :class="['max-w-[85%] sm:max-w-md flex flex-col', displayMessage.own ? 'items-end' : 'items-start']">
+    <div
+      :class="[
+        'flex flex-col',
+        displayMessage.own ? 'items-end max-w-full w-full pr-0' : 'items-start max-w-full'
+      ]"
+    >
     <p
       v-if="!displayMessage.own && isFirstInGroup"
       @click="emit('userClick', displayMessage.sender)"
@@ -208,7 +218,7 @@ const highlightedText = computed<TextSegment[]>(() => {
 
 .bubble--own {
   background: linear-gradient(to bottom right, var(--app-gradient-start), var(--app-gradient-end));
-  color: var(--app-surface);
+  color: #fff;
 }
 
 .bubble--other {
@@ -222,33 +232,45 @@ const highlightedText = computed<TextSegment[]>(() => {
   box-shadow: 0 0 0 2px var(--q-warning);
 }
 
-.mention {
-  color: var(--app-mention);
-  font-weight: 600;
-}
-
-.mention-own {
-  color: var(--app-mention-own);
-  font-weight: 600;
-}
-
-.mention-self {
-  color: var(--app-mention-self);
-  font-weight: 700;
-}
-
-.mention-own-self {
-  color: var(--app-mention-own-self);
-  font-weight: 700;
-}
-
-.mention-unknown {
-  color: var(--app-mention-unknown);
-  font-weight: 600;
-}
-
+.mention,
+.mention-own,
+.mention-unknown,
 .mention-own-unknown {
-  color: var(--app-mention-own-unknown);
-  font-weight: 600;
+  color: var(--q-primary);
+  font-weight: 800;
+}
+
+.mention-self,
+.mention-own-self {
+  color: var(--q-negative);
+  font-weight: 800;
+}
+
+/* Improve contrast on light bubbles */
+.bubble--other .mention,
+.bubble--other .mention-own,
+.bubble--other .mention-unknown,
+.bubble--other .mention-own-unknown {
+  background: color-mix(in srgb, var(--q-primary) 14%, var(--app-surface));
+  padding: 0 3px;
+  border-radius: 4px;
+}
+
+.bubble--other .mention-self,
+.bubble--other .mention-own-self {
+  background: color-mix(in srgb, var(--q-negative) 16%, var(--app-surface));
+  padding: 0 3px;
+  border-radius: 4px;
+}
+
+/* Ensure legibility on own (gradient) bubbles */
+.bubble--own .mention,
+.bubble--own .mention-own,
+.bubble--own .mention-unknown,
+.bubble--own .mention-own-unknown,
+.bubble--own .mention-self,
+.bubble--own .mention-own-self {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 </style>

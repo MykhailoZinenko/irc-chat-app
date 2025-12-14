@@ -14,6 +14,7 @@
         transition-show="jump-down"
         transition-hide="jump-up"
         :offset="[0, 8]"
+        class="suggestion-menu"
       >
         <q-list dense style="min-width: 200px; max-height: 250px; padding: 4px;">
           <q-item
@@ -21,21 +22,21 @@
             :key="item.type + '-' + item.value"
             clickable
             :active="index === highlightedIndex"
-            :class="{ 'bg-grey-3': index === highlightedIndex }"
-            @click="applySuggestion(item)"
+        :class="['suggestion-item', { 'suggestion-item--active': index === highlightedIndex }]"
+        @click="applySuggestion(item)"
+      >
+        <q-item-section>
+          <div class="text-body2 suggestion-label">
+            {{ item.label }}
+          </div>
+          <div
+            v-if="item.description"
+            class="text-caption suggestion-description"
           >
-            <q-item-section>
-              <div class="text-body2">
-                {{ item.label }}
-              </div>
-              <div
-                v-if="item.description"
-                class="text-caption text-grey-7"
-              >
-                {{ item.description }}
-              </div>
-            </q-item-section>
-          </q-item>
+            {{ item.description }}
+          </div>
+        </q-item-section>
+      </q-item>
         </q-list>
       </q-menu>
 
@@ -512,6 +513,9 @@ const handleSend = () => {
   height: 36px;
   padding: 0;
   margin: 0;
+  background: color-mix(in srgb, var(--q-primary) 14%, var(--app-surface));
+  color: var(--app-text-strong);
+  font-weight: 700;
 }
 
 .emoji-item :deep(.q-btn__content) {
@@ -520,6 +524,43 @@ const handleSend = () => {
 }
 
 .emoji-item:hover {
-  background: var(--app-neutral-weak);
+  background: color-mix(in srgb, var(--q-primary) 20%, var(--app-surface));
+}
+
+.suggestion-menu :deep(.q-menu__content) {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.suggestion-menu :deep(.q-list) {
+  background: transparent;
+}
+
+.suggestion-item {
+  border-radius: 8px;
+  color: var(--app-text);
+}
+
+.suggestion-item--active {
+  background: color-mix(in srgb, var(--q-primary) 45%, var(--app-surface) 55%);
+  color: var(--app-text-strong);
+}
+
+.suggestion-item--active :deep(.q-item__section) {
+  color: var(--app-text-strong);
+}
+
+.suggestion-item--active .suggestion-label {
+  color: var(--app-text-strong);
+  font-weight: 700;
+}
+
+.suggestion-item--active .suggestion-description {
+  color: color-mix(in srgb, var(--app-text-muted) 60%, var(--q-primary) 40%);
+}
+
+.suggestion-menu :deep(.q-focus-helper) {
+  display: none;
 }
 </style>
