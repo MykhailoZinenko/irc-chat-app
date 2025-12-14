@@ -4,6 +4,7 @@ import vine from '@vinejs/vine'
 import User from '#models/user'
 import AccessToken from '#models/access_token'
 import { DeviceDetector } from '../utils/device_detector.js'
+import { setUserStatus } from '#services/presence'
 
 const registerSchema = vine.compile(
   vine.object({
@@ -59,6 +60,7 @@ export default class AuthController {
           nickName: data.nickName,
           email: data.email,
           password: data.password,
+          status: 'online',
           sessionTimeoutDays: 30,
         })
       } catch (error) {
@@ -98,6 +100,8 @@ export default class AuthController {
         lastActivityAt: DateTime.now(),
       })
 
+      await setUserStatus(user.id, 'online', { broadcast: false })
+
       return response.status(201).json({
         success: true,
         message: 'Registration successful',
@@ -109,6 +113,7 @@ export default class AuthController {
             nickName: user.nickName,
             email: user.email,
             fullName: user.fullName,
+            status: user.status,
           },
           token: {
             type: 'Bearer',
@@ -147,6 +152,8 @@ export default class AuthController {
         lastActivityAt: DateTime.now(),
       })
 
+      await setUserStatus(user.id, 'online')
+
       await user.cleanupExpiredSessions()
 
       return response.json({
@@ -160,6 +167,7 @@ export default class AuthController {
             nickName: user.nickName,
             email: user.email,
             fullName: user.fullName,
+            status: user.status,
           },
           token: {
             type: 'Bearer',
@@ -183,6 +191,8 @@ export default class AuthController {
       await User.accessTokens.delete(user, token.identifier)
     }
 
+    await setUserStatus(user.id, 'offline')
+
     return response.json({
       success: true,
       message: 'Logged out successfully',
@@ -196,6 +206,8 @@ export default class AuthController {
       .then((tokens) =>
         Promise.all(tokens.map((token) => User.accessTokens.delete(user, token.identifier)))
       )
+
+    await setUserStatus(user.id, 'offline')
 
     return response.json({
       success: true,
@@ -264,6 +276,7 @@ export default class AuthController {
         fullName: user.fullName,
         emailVerifiedAt: user.emailVerifiedAt?.toISO(),
         sessionTimeoutDays: user.sessionTimeoutDays,
+        status: user.status,
         createdAt: user.createdAt.toISO(),
         updatedAt: user.updatedAt?.toISO(),
       },

@@ -42,7 +42,10 @@ export const useChannelStore = defineStore('channel', () => {
           ...response.data.data.channel,
           userRole: response.data.data.userRole,
         };
-        currentChannelMembers.value = response.data.data.members;
+        currentChannelMembers.value = response.data.data.members.map((member) => ({
+          ...member,
+          status: member.status || 'offline',
+        }));
 
         // Update member count in channel list - create new object for reactivity
         const channelIndex = channels.value.findIndex((c) => c.id === channelId);
@@ -105,6 +108,14 @@ export const useChannelStore = defineStore('channel', () => {
     // Add to members list if not already present
     if (!currentChannelMembers.value.find((m) => m.id === member.id)) {
       currentChannelMembers.value.push(member);
+    }
+  };
+
+  const updateMemberStatus = (userId: number, status: ChannelMember['status']) => {
+    const member = currentChannelMembers.value.find((m) => m.id === userId);
+    if (member) {
+      member.status = status;
+      currentChannelMembers.value = [...currentChannelMembers.value];
     }
   };
 
@@ -274,6 +285,7 @@ export const useChannelStore = defineStore('channel', () => {
     updateMemberCount,
     addMember,
     removeMember,
+    updateMemberStatus,
   };
 });
 export { ChannelMember };

@@ -129,6 +129,7 @@ onMounted(async () => {
             firstName: data.user.firstName,
             lastName: data.user.lastName,
             email: data.user.email,
+            status: data.user.status || 'online',
             role: data.role || 'member',
             joinedAt: new Date().toISOString(),
           })
@@ -247,6 +248,12 @@ onMounted(async () => {
             body: `${data.userFirstName || data.userNickName} declined your invitation to ${data.channelName || ''}`.trim(),
             tag: `invitation-declined-${data.invitationId}`,
           })
+        }
+        break
+
+      case 'user_status_changed':
+        if (channelStore.currentChannelDetails) {
+          channelStore.updateMemberStatus(data.userId, data.status)
         }
         break
 

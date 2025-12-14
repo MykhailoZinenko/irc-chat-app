@@ -13,6 +13,7 @@ import Message from '#models/message'
 import MessageRead from '#models/message_read'
 import { Secret } from '@adonisjs/core/helpers'
 import { emitToUser, emitToUsers, initializeRealtime } from '#services/realtime'
+import { setUserStatus } from '#services/presence'
 
 function getRawToken(socket: any): string | null {
   const authToken = socket.handshake?.auth?.token
@@ -144,6 +145,7 @@ async function joinChannel(channelId: number, user: User, socket: any, ack?: Ack
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        status: user.status,
       },
       role: participant?.role || 'member',
       memberCount: memberCount[0].$extras.total,
@@ -331,6 +333,12 @@ function bootSocketsWhenReady() {
 
     io.on('connection', async (socket) => {
       const user = socket.data.user as User
+
+      await setUserStatus(user.id, user.status || 'online')
+
+      socket.on('disconnect', () => {
+        void setUserStatus(user.id, 'offline')
+      })
 
       // Join the personal room
       socket.join(`users:${user.id}`)
@@ -628,6 +636,7 @@ function bootSocketsWhenReady() {
                   firstName: user.firstName,
                   lastName: user.lastName,
                   email: user.email,
+                  status: user.status,
                 },
                 role: participant?.role || 'member',
                 memberCount: memberCount[0].$extras.total,

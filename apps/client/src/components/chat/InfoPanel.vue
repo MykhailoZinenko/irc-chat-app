@@ -104,6 +104,10 @@
                     color="yellow-8"
                   />
                 </div>
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                  <span class="status-dot" :class="admin.status"></span>
+                  <span>{{ statusLabel(admin.status) }}</span>
+                </div>
                 <span class="text-xs text-gray-500">{{ admin.email }}</span>
               </div>
             </div>
@@ -131,6 +135,10 @@
               <div class="flex-1">
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-medium text-gray-800">{{ member.nickName || member.firstName || 'User' }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                  <span class="status-dot" :class="member.status"></span>
+                  <span>{{ statusLabel(member.status) }}</span>
                 </div>
                 <span class="text-xs text-gray-500">{{ member.email }}</span>
               </div>
@@ -164,6 +172,7 @@ interface Member {
   firstName: string | null
   lastName: string | null
   email: string
+  status: 'online' | 'dnd' | 'offline'
   role: 'member' | 'admin'
   joinedAt: string
 }
@@ -231,10 +240,35 @@ const statusText = computed(() => {
   if (props.chat.type === 'channel') return `${props.chat.memberCount || 0} members`
   return ''
 })
+
+const statusLabel = (status: Member['status']) => {
+  if (status === 'online') return 'Online'
+  if (status === 'dnd') return 'Do Not Disturb'
+  return 'Offline'
+}
 </script>
 
 <style scoped>
 .space-y-1 > * + * {
   margin-top: 0.25rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.online {
+  background: #10b981;
+}
+
+.status-dot.dnd {
+  background: #f59e0b;
+}
+
+.status-dot.offline {
+  background: #9ca3af;
 }
 </style>

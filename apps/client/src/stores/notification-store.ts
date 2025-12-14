@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import { AppVisibility, Notify } from 'quasar'
 import type { ChannelMessage } from './message-store'
+import { usePresenceStore } from './presence-store'
 
 type ChannelKind = 'private' | 'public'
 
@@ -44,6 +45,7 @@ const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\\]\\]/g, '\\
 
 export const useNotificationStore = defineStore('notification', () => {
   const preferences = reactive<NotificationPrefs>(loadPrefs())
+  const presenceStore = usePresenceStore()
 
   const anyPrefEnabled = () =>
     preferences.privateChannels ||
@@ -94,11 +96,14 @@ export const useNotificationStore = defineStore('notification', () => {
     return false
   }
 
+  const notificationsBlocked = () => presenceStore.isDnd || presenceStore.isOffline
+
   const maybeNotifyGeneric = async (options: {
     title: string
     body: string
     tag?: string
   }) => {
+    if (notificationsBlocked()) return
     if (appIsVisible()) return
 
     const allowed = await ensurePermission()
@@ -127,6 +132,7 @@ export const useNotificationStore = defineStore('notification', () => {
     currentUserId: number | undefined
     currentUserNick: string | undefined
   }) => {
+    if (notificationsBlocked()) return
     const { message, channelType, activeChannelId, currentUserId, currentUserNick } = options
 
     if (currentUserId && message.senderId === currentUserId) return
@@ -162,7 +168,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  if (anyPrefEnabled()) {
+  if (anyPrefEnabled() && !notificationsBlocked()) {
     void ensurePermission()
   }
 

@@ -4,6 +4,7 @@ import User from '#models/user'
 import hash from '@adonisjs/core/services/hash'
 import ChannelParticipant from '#models/channel_participant'
 import Invitation from '#models/invitation'
+import { setUserStatus } from '#services/presence'
 
 const updateProfileSchema = vine.compile(
   vine.object({
@@ -31,6 +32,12 @@ const userIdParamsSchema = vine.object({
   id: vine.number(),
 })
 
+const updateStatusSchema = vine.compile(
+  vine.object({
+    status: vine.enum(['online', 'dnd', 'offline']),
+  })
+)
+
 export default class UserController {
   async profile({ params, response }: HttpContext) {
     const { id: userId } = await vine.validate({
@@ -56,6 +63,7 @@ export default class UserController {
         nickName: user.nickName,
         email: user.email,
         fullName: user.fullName,
+        status: user.status,
         createdAt: user.createdAt.toISO(),
       },
     })
@@ -129,6 +137,7 @@ export default class UserController {
             fullName: user.fullName,
             emailVerifiedAt: user.emailVerifiedAt?.toISO(),
             sessionTimeoutDays: user.sessionTimeoutDays,
+            status: user.status,
             createdAt: user.createdAt.toISO(),
             updatedAt: user.updatedAt?.toISO(),
           },
@@ -199,6 +208,21 @@ export default class UserController {
         errors: error.messages || error.message,
       })
     }
+  }
+
+  async updateStatus({ auth, request, response }: HttpContext) {
+    const user = auth.user!
+    const { status } = await request.validateUsing(updateStatusSchema)
+
+    const updated = await setUserStatus(user.id, status)
+
+    return response.json({
+      success: true,
+      data: {
+        id: updated?.id || user.id,
+        status,
+      },
+    })
   }
 
   /**

@@ -77,6 +77,7 @@ export default class SearchController {
           firstName: u.firstName,
           lastName: u.lastName,
           email: u.email,
+          status: u.status,
           resultType: 'user' as const,
         })),
       },

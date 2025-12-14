@@ -52,6 +52,7 @@ router
     router.get(':id/channels', [UserController, 'userChannels'])
     router.get(':id/invitations', [UserController, 'userInvitations'])
     router.get('invitations', [UserController, 'myInvitations'])
+    router.put('status', [UserController, 'updateStatus'])
     router.put('profile', [UserController, 'updateProfile'])
     router.put('password', [UserController, 'updatePassword'])
     router.delete('account', [UserController, 'deleteAccount'])

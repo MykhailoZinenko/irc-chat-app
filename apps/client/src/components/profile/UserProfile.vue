@@ -22,6 +22,10 @@
           </div>
           <h2 class="text-2xl font-bold text-gray-800 mb-1">{{ displayName }}</h2>
           <p class="text-blue-500 text-sm mb-1">@{{ userProfile.nickName }}</p>
+          <div class="status-pill" :class="userProfile.status">
+            <span class="status-dot" :class="userProfile.status"></span>
+            <span>{{ statusLabel }}</span>
+          </div>
           <p class="text-sm text-gray-500">Member since {{ joinDate }}</p>
         </div>
 
@@ -147,6 +151,7 @@ interface UserProfile {
   lastName: string | null
   nickName: string
   email: string
+  status: 'online' | 'dnd' | 'offline'
   createdAt: string
 }
 
@@ -178,6 +183,13 @@ const displayName = computed(() => {
 const joinDate = computed(() => {
   if (!userProfile.value) return ''
   return DateTime.fromISO(userProfile.value.createdAt).toFormat('MMMM yyyy')
+})
+
+const statusLabel = computed(() => {
+  if (!userProfile.value) return ''
+  if (userProfile.value.status === 'online') return 'Online'
+  if (userProfile.value.status === 'dnd') return 'Do Not Disturb'
+  return 'Offline'
 })
 
 const fetchUserProfile = async () => {
@@ -257,4 +269,51 @@ const handleBlock = () => {
 const handleReport = () => {
 }
 </script>
+
+<style scoped>
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+.w-full {
+  width: 100%;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0b713b;
+  background: #ecfdf3;
+  margin-bottom: 0.35rem;
+}
+.status-pill.dnd {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.status-pill.offline {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.online {
+  background: #10b981;
+}
+.status-dot.dnd {
+  background: #f59e0b;
+}
+.status-dot.offline {
+  background: #9ca3af;
+}
+</style>
 
