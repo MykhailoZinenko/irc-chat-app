@@ -4,6 +4,7 @@ import vine from '@vinejs/vine'
 import User from '#models/user'
 import AccessToken from '#models/access_token'
 import { DeviceDetector } from '../utils/device_detector.js'
+import type { AllyUserContract } from '@adonisjs/ally/types'
 
 const registerSchema = vine.compile(
   vine.object({
@@ -268,5 +269,158 @@ export default class AuthController {
         updatedAt: user.updatedAt?.toISO(),
       },
     })
+  }
+
+  async googleRedirect({ ally }: HttpContext) {
+    return ally.use('google').redirect()
+  }
+
+  async googleCallback({ ally, request, response }: HttpContext) {
+    const google = ally.use('google')
+
+    if (google.accessDenied()) {
+      return response.redirect('http://localhost:9000/login?error=access_denied')
+    }
+
+    if (google.stateMisMatch()) {
+      return response.redirect('http://localhost:9000/login?error=state_mismatch')
+    }
+
+    if (google.hasError()) {
+      return response.redirect('http://localhost:9000/login?error=unknown')
+    }
+
+    const googleUser = await google.user()
+    const user = await this.findOrCreateUser(googleUser, 'google', request)
+
+    const userAgent = request.header('user-agent') || ''
+    const ipAddress = request.ip()
+    const deviceInfo = DeviceDetector.detect(userAgent)
+
+    const token = await User.accessTokens.create(user, ['*'], {
+      name: deviceInfo.name,
+      expiresIn: `${user.sessionTimeoutDays} days`,
+    })
+
+    await AccessToken.query().where('hash', token.hash).update({
+      deviceName: deviceInfo.name,
+      deviceType: deviceInfo.type,
+      ipAddress: ipAddress,
+      userAgent: userAgent,
+      lastActivityAt: DateTime.now(),
+    })
+
+    const tokenValue = token.value!.release()
+
+    return response.redirect(`http://localhost:9000/auth/callback?token=${tokenValue}`)
+  }
+
+  async githubRedirect({ ally }: HttpContext) {
+    return ally.use('github').redirect()
+  }
+
+  async githubCallback({ ally, request, response }: HttpContext) {
+    const github = ally.use('github')
+
+    if (github.accessDenied()) {
+      return response.redirect('http://localhost:9000/login?error=access_denied')
+    }
+
+    if (github.stateMisMatch()) {
+      return response.redirect('http://localhost:9000/login?error=state_mismatch')
+    }
+
+    if (github.hasError()) {
+      return response.redirect('http://localhost:9000/login?error=unknown')
+    }
+
+    const githubUser = await github.user()
+    const user = await this.findOrCreateUser(githubUser, 'github', request)
+
+    const userAgent = request.header('user-agent') || ''
+    const ipAddress = request.ip()
+    const deviceInfo = DeviceDetector.detect(userAgent)
+
+    const token = await User.accessTokens.create(user, ['*'], {
+      name: deviceInfo.name,
+      expiresIn: `${user.sessionTimeoutDays} days`,
+    })
+
+    await AccessToken.query().where('hash', token.hash).update({
+      deviceName: deviceInfo.name,
+      deviceType: deviceInfo.type,
+      ipAddress: ipAddress,
+      userAgent: userAgent,
+      lastActivityAt: DateTime.now(),
+    })
+
+    const tokenValue = token.value!.release()
+
+    return response.redirect(`http://localhost:9000/auth/callback?token=${tokenValue}`)
+  }
+
+  private async findOrCreateUser(
+    oauthUser: AllyUserContract<any>,
+    provider: string,
+    request: HttpContext['request']
+  ) {
+    // Try to find user by provider and providerId
+    let user = await User.query()
+      .where('provider', provider)
+      .where('provider_id', oauthUser.id)
+      .first()
+
+    if (user) {
+      // Update user info from OAuth
+      user.email = oauthUser.email!
+      user.firstName = oauthUser.name || oauthUser.nickName || null
+      user.avatarUrl = oauthUser.avatarUrl || null
+      await user.save()
+      return user
+    }
+
+    // Try to find existing user by email
+    user = await User.query().where('email', oauthUser.email!).first()
+
+    if (user) {
+      // Link OAuth provider to existing user
+      user.provider = provider
+      user.providerId = oauthUser.id
+      user.avatarUrl = oauthUser.avatarUrl || null
+      await user.save()
+      return user
+    }
+
+    // Create new user
+    const nameParts = (oauthUser.name || oauthUser.nickName || oauthUser.email!.split('@')[0])
+      .split(' ')
+    const firstName = nameParts[0]
+    const lastName = nameParts.slice(1).join(' ') || null
+
+    // Generate unique nickname from email or name
+    let baseNickname = oauthUser.nickName || oauthUser.email!.split('@')[0]
+    let nickName = baseNickname
+    let counter = 1
+
+    // Ensure unique nickname
+    while (await User.findBy('nick_name', nickName)) {
+      nickName = `${baseNickname}${counter}`
+      counter++
+    }
+
+    user = await User.create({
+      firstName,
+      lastName,
+      nickName,
+      email: oauthUser.email!,
+      password: null,
+      provider,
+      providerId: oauthUser.id,
+      avatarUrl: oauthUser.avatarUrl || null,
+      sessionTimeoutDays: 30,
+      emailVerifiedAt: DateTime.now(), // OAuth emails are verified
+    })
+
+    return user
   }
 }

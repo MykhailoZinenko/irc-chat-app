@@ -14,6 +14,7 @@
         icon="mail"
         type="email"
         placeholder="your@email.com"
+        :error="errors.email"
         @enter="handleSubmit"
       />
 
@@ -22,6 +23,7 @@
         v-model="form.password"
         label="Password"
         placeholder="Enter your password"
+        :error="errors.password"
         @enter="handleSubmit"
       />
 
@@ -41,15 +43,19 @@
       </div>
 
       <!-- Login Button -->
-      <PrimaryButton @click="handleSubmit">
-        Sign In
+      <PrimaryButton @click="handleSubmit" :disabled="authStore.isLoading">
+        <span v-if="!authStore.isLoading">Sign In</span>
+        <span v-else class="flex items-center justify-center">
+          <q-spinner size="20px" color="white" class="mr-2" />
+          Signing in...
+        </span>
       </PrimaryButton>
     </div>
 
     <!-- Social Login -->
-    <SocialLogin 
+    <SocialLogin
       @google="handleGoogleLogin"
-      @facebook="handleFacebookLogin"
+      @github="handleGithubLogin"
     />
   </AuthPageLayout>
 </template>
@@ -63,34 +69,84 @@ import PrimaryButton from '@/components/auth/PrimaryButton.vue';
 import SocialLogin from '@/components/auth/SocialLogin.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store';
+import { Notify } from 'quasar';
+import { useOAuth } from 'src/composables/useOAuth';
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { openOAuthPopup } = useOAuth()
 
 const form = ref({
   email: '',
   password: ''
 })
 const rememberMe = ref(false);
+const errors = ref({
+  email: '',
+  password: ''
+});
 
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const validateForm = (): boolean => {
+  errors.value = { email: '', password: '' };
+  let isValid = true;
+
+  // Email validation
+  if (!form.value.email.trim()) {
+    errors.value.email = 'Email is required';
+    isValid = false;
+  } else if (!validateEmail(form.value.email)) {
+    errors.value.email = 'Please enter a valid email address';
+    isValid = false;
+  }
+
+  // Password validation
+  if (!form.value.password) {
+    errors.value.password = 'Password is required';
+    isValid = false;
+  } else if (form.value.password.length < 6) {
+    errors.value.password = 'Password must be at least 6 characters';
+    isValid = false;
+  }
+
+  return isValid;
+};
 
 const handleSubmit = async () => {
+  if (!validateForm()) {
+    Notify.create({
+      type: 'negative',
+      message: 'Please fix the errors below',
+      position: 'top',
+      timeout: 3000
+    });
+    return;
+  }
+
   const result = await authStore.login(form.value.email, form.value.password)
 
   if (result.success) {
-    console.log('Login successful')
-      void router.push('/chat')
+    void router.push('/chat')
   } else {
-    console.log('Login failed:', result.message)
+    Notify.create({
+      type: 'negative',
+      message: result.message || 'Login failed. Please check your credentials.',
+      position: 'top',
+      timeout: 4000
+    });
   }
 };
 
 const handleGoogleLogin = () => {
-  console.log('Google login');
+  openOAuthPopup('google');
 };
 
-const handleFacebookLogin = () => {
-  console.log('Facebook login');
+const handleGithubLogin = () => {
+  openOAuthPopup('github');
 };
 </script>
 

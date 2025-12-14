@@ -45,6 +45,12 @@ router
   })
   .prefix('api/auth')
 
+// OAuth routes
+router.get('auth/google', [AuthController, 'googleRedirect'])
+router.get('auth/google/callback', [AuthController, 'googleCallback'])
+router.get('auth/github', [AuthController, 'githubRedirect'])
+router.get('auth/github/callback', [AuthController, 'githubCallback'])
+
 router
   .group(() => {
     router.get(':id/profile', [UserController, 'profile'])
