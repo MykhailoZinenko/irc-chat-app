@@ -89,34 +89,6 @@ const chatStatus = computed(() => {
 </script>
 
 <style scoped>
-.bg-white {
-  background-color: white;
-}
-
-.border-b {
-  border-bottom-width: 1px;
-}
-
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
 @media (min-width: 1024px) {
   .burger-btn-responsive {
     display: none !important;

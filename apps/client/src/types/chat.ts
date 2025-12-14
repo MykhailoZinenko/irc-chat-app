@@ -21,6 +21,7 @@ export interface ChannelMember {
   firstName: string | null;
   lastName: string | null;
   email: string;
+  status: 'online' | 'dnd' | 'offline';
   role: UserRole;
   joinedAt: string;
 }

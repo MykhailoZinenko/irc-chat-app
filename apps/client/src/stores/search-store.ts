@@ -18,6 +18,7 @@ export interface SearchResultUser {
   firstName: string | null
   lastName: string | null
   email: string
+  status?: 'online' | 'dnd' | 'offline'
   resultType: 'user'
 }
 

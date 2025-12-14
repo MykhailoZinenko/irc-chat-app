@@ -38,7 +38,7 @@
           >
             <!-- Channel Info -->
             <div class="flex items-start gap-3 mb-3">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-2xl flex-shrink-0">
+              <div class="w-12 h-12 rounded-full app-gradient flex items-center justify-center text-2xl flex-shrink-0">
                 {{ invitation.channel.type === 'public' ? '📢' : '🔒' }}
               </div>
               <div class="flex-1 min-w-0">
@@ -135,9 +135,12 @@ const handleAccept = async (invitationId: number) => {
     // Refresh channels list to include new channel
     await channelStore.fetchChannels()
 
-    // Select the new channel and go back to chat view
-    if (invitation) {
-      selectionStore.selectChannel(invitation.channelId)
+    const remaining = invitationStore.invitations.length
+    if (remaining === 0) {
+      // Select the new channel and go back to chat view only when no more invites
+      if (invitation) {
+        selectionStore.selectChannel(invitation.channelId)
+      }
       emit('back')
     }
   } catch (error: any) {
@@ -162,6 +165,11 @@ const handleDecline = async (invitationId: number) => {
 
     // Remove from store
     invitationStore.removeInvitation(invitationId)
+
+    // If no more invites left, leave the invitations view
+    if (invitationStore.invitations.length === 0) {
+      emit('back')
+    }
   } catch (error: any) {
     Notify.create({
       type: 'negative',
@@ -199,18 +207,5 @@ const formatDate = (dateString: string) => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-
-.from-blue-400 {
-  --tw-gradient-from: #60a5fa;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(96, 165, 250, 0));
-}
-
-.to-purple-500 {
-  --tw-gradient-to: #a855f7;
 }
 </style>

@@ -63,10 +63,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AuthPageLayout from '@/components/auth/AuthPageLayout.vue';
-import InputField from '@/components/auth/InputField.vue';
-import PasswordField from '@/components/auth/PasswordField.vue';
-import PrimaryButton from '@/components/auth/PrimaryButton.vue';
-import SocialLogin from '@/components/auth/SocialLogin.vue';
+import InputField from '@/components/ui/InputField.vue';
+import PasswordField from '@/components/ui/PasswordField.vue';
+import Button from '@/components/ui/CustomButton.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store';
 import { Notify } from 'quasar';
@@ -148,46 +147,16 @@ const handleGoogleLogin = () => {
 const handleGithubLogin = () => {
   openOAuthPopup('github');
 };
+
 </script>
 
 <style scoped>
-/* Tailwind-like utilities using standard CSS */
-.min-h-screen {
-  min-height: 100vh;
-}
-
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-
-.from-blue-50 {
-  --tw-gradient-from: #eff6ff;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 246, 255, 0));
-}
-
-.to-purple-50 {
-  --tw-gradient-to: #faf5ff;
-}
-
-.from-blue-500 {
-  --tw-gradient-from: #3b82f6;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0));
-}
-
-.to-purple-500 {
-  --tw-gradient-to: #a855f7;
-}
-
-.bg-gradient-to-r {
-  background-image: linear-gradient(to right, var(--tw-gradient-stops));
-}
-
 input:focus {
   outline: none;
 }
 
 input[type="checkbox"] {
-  accent-color: #3b82f6;
+  accent-color: var(--app-primary);
 }
 
 button:active {

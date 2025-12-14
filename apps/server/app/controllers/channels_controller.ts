@@ -170,6 +170,7 @@ export default class ChannelsController {
       firstName: p.user.firstName,
       lastName: p.user.lastName,
       email: p.user.email,
+      status: p.user.status,
       role: p.role,
       joinedAt: p.joinedAt,
     }))

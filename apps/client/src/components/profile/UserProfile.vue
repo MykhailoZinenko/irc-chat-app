@@ -16,12 +16,16 @@
       <!-- Scrollable Content -->
       <div class="flex-1 overflow-y-auto">
         <!-- Profile Header -->
-        <div class="flex flex-col items-center py-8 px-4 bg-gradient-to-b from-gray-50 to-white">
-          <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-6xl mb-4 shadow-lg">
+        <div class="flex flex-col items-center py-8 px-4 app-gradient-surface">
+          <div class="w-32 h-32 rounded-full app-gradient flex items-center justify-center text-6xl mb-4 shadow-lg">
             👤
           </div>
           <h2 class="text-2xl font-bold text-gray-800 mb-1">{{ displayName }}</h2>
           <p class="text-blue-500 text-sm mb-1">@{{ userProfile.nickName }}</p>
+          <div class="status-pill" :class="userProfile.status">
+            <span class="status-dot" :class="userProfile.status"></span>
+            <span>{{ statusLabel }}</span>
+          </div>
           <p class="text-sm text-gray-500">Member since {{ joinDate }}</p>
         </div>
 
@@ -92,7 +96,7 @@
               @click="handleChannelClick(channel)"
               class="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
             >
-              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-2xl flex-shrink-0">
+              <div class="w-12 h-12 rounded-full app-gradient flex items-center justify-center text-2xl flex-shrink-0">
                 {{ channel.type === 'public' ? '📢' : '🔒' }}
               </div>
               <div class="flex-1 text-left min-w-0">
@@ -147,6 +151,7 @@ interface UserProfile {
   lastName: string | null
   nickName: string
   email: string
+  status: 'online' | 'dnd' | 'offline'
   createdAt: string
 }
 
@@ -178,6 +183,13 @@ const displayName = computed(() => {
 const joinDate = computed(() => {
   if (!userProfile.value) return ''
   return DateTime.fromISO(userProfile.value.createdAt).toFormat('MMMM yyyy')
+})
+
+const statusLabel = computed(() => {
+  if (!userProfile.value) return ''
+  if (userProfile.value.status === 'online') return 'Online'
+  if (userProfile.value.status === 'dnd') return 'Do Not Disturb'
+  return 'Offline'
 })
 
 const fetchUserProfile = async () => {
@@ -259,29 +271,49 @@ const handleReport = () => {
 </script>
 
 <style scoped>
-.bg-gradient-to-b {
-  background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
 }
-
-.from-gray-50 {
-  --tw-gradient-from: #f9fafb;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(249, 250, 251, 0));
+.space-y-4 > * + * {
+  margin-top: 1rem;
 }
-
-.to-white {
-  --tw-gradient-to: #ffffff;
+.w-full {
+  width: 100%;
 }
-
-.from-blue-400 {
-  --tw-gradient-from: #60a5fa;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(96, 165, 250, 0));
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--app-status-online);
+  background: color-mix(in srgb, var(--app-status-online) 10%, var(--app-surface));
+  margin-bottom: 0.35rem;
 }
-
-.to-purple-500 {
-  --tw-gradient-to: #a855f7;
+.status-pill.dnd {
+  background: color-mix(in srgb, var(--app-status-dnd) 15%, var(--app-surface));
+  color: var(--app-status-dnd);
 }
-
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+.status-pill.offline {
+  background: color-mix(in srgb, var(--app-status-offline) 20%, var(--app-surface));
+  color: var(--app-text-muted);
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.online {
+  background: var(--app-status-online);
+}
+.status-dot.dnd {
+  background: var(--app-status-dnd);
+}
+.status-dot.offline {
+  background: var(--app-status-offline);
 }
 </style>
+

@@ -80,6 +80,7 @@ export const useChannelEvents = () => {
         firstName: data.user.firstName,
         lastName: data.user.lastName,
         email: data.user.email,
+        status: data.user.status || 'online',
         role: data.role || 'member',
         joinedAt: new Date().toISOString(),
       };

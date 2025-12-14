@@ -123,7 +123,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth-store'
 import ProfileSection from '@/components/settings/ProfileSection.vue'
 import AccountSection from '@/components/settings/AccountSection.vue'
-import PrivacySection from '@/components/settings/PrivacySection.vue'
 import NotificationsSection from '@/components/settings/NotificationsSection.vue'
 import AppearanceSection from '@/components/settings/AppearanceSection.vue'
 import DevicesSection from '@/components/settings/DevicesSection.vue'
@@ -137,7 +136,6 @@ const selectedSection = ref('profile')
 const menuItems = [
   { id: 'profile', icon: 'person', label: 'Profile', description: 'Manage your personal information' },
   { id: 'account', icon: 'lock', label: 'Account', description: 'Security and account settings' },
-  { id: 'privacy', icon: 'shield', label: 'Privacy', description: 'Control your privacy' },
   { id: 'notifications', icon: 'notifications', label: 'Notifications', description: 'Manage notifications' },
   { id: 'appearance', icon: 'palette', label: 'Appearance', description: 'Customize your experience' },
   { id: 'devices', icon: 'smartphone', label: 'Devices', description: 'Manage active sessions' },
@@ -152,7 +150,6 @@ const renderSection = computed(() => {
   const sections: Record<string, any> = {
     profile: ProfileSection,
     account: AccountSection,
-    privacy: PrivacySection,
     notifications: NotificationsSection,
     appearance: AppearanceSection,
     devices: DevicesSection,
@@ -177,80 +174,6 @@ const handleLogout = async () => {
   padding: 0;
 }
 
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.bg-white {
-  background-color: white;
-}
-
-.border-r,
-.border-b,
-.border-t {
-  border-color: #e5e7eb;
-}
-
-.border-r {
-  border-right-width: 1px;
-}
-
-.border-b {
-  border-bottom-width: 1px;
-}
-
-.border-t {
-  border-top-width: 1px;
-}
-
-.bg-blue-50 {
-  background-color: #eff6ff;
-}
-
-.text-blue-600 {
-  color: #2563eb;
-}
-
-.text-blue-500 {
-  color: #3b82f6;
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.text-gray-700 {
-  color: #374151;
-}
-
-.text-gray-600 {
-  color: #4b5563;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
-.text-red-600 {
-  color: #dc2626;
-}
-
-.bg-red-50 {
-  background-color: #fef2f2;
-}
-
-.bg-gray-50:hover {
-  background-color: #f9fafb;
-}
-
-.bg-black {
-  background-color: black;
-}
-
-.bg-opacity-50 {
-  opacity: 0.5;
-}
-
 @media (min-width: 1024px) {
   .close-btn-responsive {
     display: none !important;
@@ -264,11 +187,11 @@ const handleLogout = async () => {
 }
 
 .logout-btn {
-  color: #dc2626 !important;
+  color: var(--app-danger) !important;
   justify-content: flex-start;
 }
 
 .logout-btn:hover {
-  background-color: #fef2f2 !important;
+  background-color: var(--app-danger-soft) !important;
 }
 </style>

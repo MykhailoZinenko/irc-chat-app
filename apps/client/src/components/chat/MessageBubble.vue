@@ -24,26 +24,21 @@
     </p>
 
       <div class="relative">
-        <div
-          :class="[
-            'rounded-2xl px-3 py-2 sm:px-4 sm:py-2',
-            bubbleClasses
-          ]"
-        >
+        <div :class="['rounded-2xl px-3 py-2 sm:px-4 sm:py-2', bubbleClasses]">
           <p class="text-sm sm:text-base">
             <span v-for="(segment, idx) in highlightedText" :key="idx" :class="segment.class">
               {{ segment.text }}
             </span>
           </p>
           <div class="flex items-center gap-1 justify-end mt-1">
-            <p :class="['text-xs', displayMessage.own ? 'text-blue-100' : 'text-gray-500']">
+            <p :class="['text-xs', displayMessage.own ? 'text-blue-1' : 'text-gray-500']">
               {{ displayMessage.time }}
             </p>
             <div v-if="displayMessage.own" class="flex items-center">
               <q-icon
                 :name="displayMessage.read ? 'done_all' : 'done'"
                 size="16px"
-                :class="displayMessage.own ? 'text-blue-200' : ''"
+                :class="displayMessage.own ? 'text-blue-3' : ''"
               />
             </div>
           </div>
@@ -140,8 +135,8 @@ const hasReactions = computed(() => {
 
 const bubbleClasses = computed(() => {
   const base = displayMessage.value.own
-    ? 'bg-blue-500 text-white rounded-br-md'
-    : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
+    ? 'bubble bubble--own rounded-br-md'
+    : 'bubble bubble--other rounded-bl-md'
 
   const content = props.message.content || ''
   const ownNick = authStore.user?.nickName?.toLowerCase()
@@ -150,7 +145,7 @@ const bubbleClasses = computed(() => {
     new RegExp(`(^|\\s|[^\\w])@${ownNick}\\b`, 'i').test(content)
 
   if (mentionsMe && !displayMessage.value.own) {
-    return `${base} ring-2 ring-orange-300`
+    return `${base} bubble--highlight`
   }
 
   return base
@@ -206,37 +201,54 @@ const highlightedText = computed<TextSegment[]>(() => {
 </script>
 
 <style scoped>
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
+.bubble {
+  border-radius: 1rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.bubble--own {
+  background: linear-gradient(to bottom right, var(--app-gradient-start), var(--app-gradient-end));
+  color: var(--app-surface);
+}
+
+.bubble--other {
+  background: var(--app-surface);
+  color: var(--app-text-strong);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.bubble--highlight {
+  box-shadow: 0 0 0 2px var(--q-warning);
 }
 
 .mention {
-  color: #0ea5e9;
+  color: var(--app-mention);
   font-weight: 600;
 }
 
 .mention-own {
-  color: #dbeafe; /* light blue on dark bubble */
+  color: var(--app-mention-own);
   font-weight: 600;
 }
 
 .mention-self {
-  color: #16a34a;
+  color: var(--app-mention-self);
   font-weight: 700;
 }
 
 .mention-own-self {
-  color: #bbf7d0; /* light green on dark bubble */
+  color: var(--app-mention-own-self);
   font-weight: 700;
 }
 
 .mention-unknown {
-  color: #9ca3af;
+  color: var(--app-mention-unknown);
   font-weight: 600;
 }
 
 .mention-own-unknown {
-  color: #e5e7eb; /* light gray on dark bubble */
+  color: var(--app-mention-own-unknown);
   font-weight: 600;
 }
 </style>

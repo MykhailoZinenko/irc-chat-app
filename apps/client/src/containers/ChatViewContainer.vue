@@ -62,9 +62,11 @@
 
           <div class="text-center">
             <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
-            <p class="text-h6 text-grey-7 q-mb-sm">No channels yet</p>
+            <p class="text-h6 text-grey-7 q-mb-sm">
+              {{ hasChannels ? 'Select a chat' : 'No channels yet' }}
+            </p>
             <p class="text-body2 text-grey-6">
-              Create a channel to start chatting
+              {{ hasChannels ? 'Choose a channel to start chatting' : 'Create a channel to start chatting' }}
             </p>
           </div>
         </div>
@@ -82,11 +84,14 @@ import InvitationsView from '@/components/invitations/InvitationsView.vue'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useChannelStore } from '@/stores/channel-store'
 import { useMessageStore } from '@/stores/message-store'
+import { usePresenceStore } from '@/stores/presence-store'
+import { Notify } from 'quasar'
 
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const channelStore = useChannelStore()
 const messageStore = useMessageStore()
+const presenceStore = usePresenceStore()
 
 const messageListRef = ref<any>(null)
 
@@ -99,10 +104,16 @@ const showJoinButton = computed(() => {
   return channelStore.currentChannelDetails.userRole === null
 })
 
+const hasChannels = computed(() => channelStore.channels.length > 0)
+
 watch(
   () => selectionStore.selectedChannelId,
   async (newChannelId) => {
     if (newChannelId) {
+      if (presenceStore.isOffline) {
+        Notify.create({ type: 'negative', message: 'You are offline. Go online to sync this chat.' })
+        return
+      }
       const isMember = channelStore.channels.some((c) => c.id === newChannelId)
 
       if (isMember) {

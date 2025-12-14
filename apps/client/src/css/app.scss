@@ -1,1 +1,214 @@
-// app global css in SCSS form
+@use './quasar.variables' as qvars;
+
+:root {
+  /* Surface & borders */
+  --app-surface: #{qvars.$menu-background};
+  --app-surface-muted: #{qvars.$grey-1};
+  --app-surface-strong: #{qvars.$blue-1};
+  --app-neutral-weak: #{qvars.$grey-2};
+  --app-border: #{qvars.$separator-color};
+  --app-border-strong: #{qvars.$grey-4};
+
+  /* Text */
+  --app-text-strong: #{qvars.$grey-9};
+  --app-text: #{qvars.$grey-8};
+  --app-text-soft: #{qvars.$grey-7};
+  --app-text-muted: #{qvars.$grey-6};
+  --app-placeholder: #{qvars.$grey-5};
+
+  /* Brand */
+  --app-primary: var(--q-primary);
+  --app-primary-strong: color-mix(in srgb, var(--q-primary) 85%, var(--q-dark) 15%);
+  --app-primary-soft: color-mix(in srgb, var(--q-primary) 12%, var(--app-surface) 88%);
+  --app-accent: var(--q-accent);
+  --app-accent-soft: color-mix(in srgb, var(--q-accent) 12%, var(--app-surface) 88%);
+  --app-gradient-start: #{qvars.$blue-5};
+  --app-gradient-end: #{qvars.$purple-6};
+  --app-accent-start: #{qvars.$blue-5};
+  --app-accent-end: #{qvars.$purple-6};
+
+  /* Status */
+  --app-danger: var(--q-negative);
+  --app-danger-soft: #{qvars.$red-1};
+  --app-positive-soft: #{qvars.$green-1};
+  --app-info-soft: #{qvars.$blue-2};
+  --app-overlay: color-mix(in srgb, var(--q-dark) 50%, transparent);
+  --app-status-online: #{qvars.$green-6};
+  --app-status-dnd: #{qvars.$orange-6};
+  --app-status-offline: #{qvars.$grey-6};
+  --app-surface-muted-strong: #{qvars.$blue-2};
+
+  /* Effects */
+  --app-shadow-soft: 0 2px 8px rgb(0 0 0 / 8%);
+  --app-shadow-strong: 0 4px 12px rgb(0 0 0 / 15%);
+  --app-scrollbar-track: #{qvars.$grey-2};
+  --app-scrollbar-thumb: #{qvars.$grey-4};
+  --app-scrollbar-thumb-hover: #{qvars.$grey-5};
+
+  /* Mentions */
+  --app-mention: var(--q-info);
+  --app-mention-own: var(--app-info-soft);
+  --app-mention-self: var(--q-positive);
+  --app-mention-own-self: var(--app-positive-soft);
+  --app-mention-unknown: var(--app-text-muted);
+  --app-mention-own-unknown: var(--app-border);
+}
+
+/* Utility overrides (keep tailwind-like names but route through theme vars) */
+.bg-white {
+  background-color: var(--app-surface);
+}
+
+.bg-gray-50 {
+  background-color: var(--app-surface-muted);
+}
+
+.bg-blue-50 {
+  background-color: var(--app-primary-soft);
+}
+
+.bg-purple-50 {
+  background-color: var(--app-accent-soft);
+}
+
+.bg-green-50 {
+  background-color: var(--app-positive-soft);
+}
+
+.bg-gray-100 {
+  background-color: var(--app-neutral-weak);
+}
+
+.bg-blue-100 {
+  background-color: var(--app-info-soft);
+}
+
+.bg-red-50 {
+  background-color: var(--app-danger-soft);
+}
+
+.bg-blue-500 {
+  background-color: var(--app-primary);
+}
+
+.bg-gradient-to-br {
+  background: linear-gradient(to bottom right, var(--app-gradient-start), var(--app-gradient-end));
+  color: var(--app-surface);
+}
+
+.bg-black {
+  background-color: var(--q-dark);
+}
+
+.bg-opacity-50 {
+  opacity: 0.5;
+}
+
+.hover\:bg-gray-50:hover {
+  background-color: var(--app-surface-muted);
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: var(--app-neutral-weak);
+}
+
+.hover\:bg-red-50:hover {
+  background-color: var(--app-danger-soft);
+}
+
+.border-r {
+  border-right-width: 1px;
+  border-color: var(--app-border);
+}
+
+.border-l {
+  border-left-width: 1px;
+  border-color: var(--app-border);
+}
+
+.border-b {
+  border-bottom-width: 1px;
+  border-color: var(--app-border);
+}
+
+.border-t {
+  border-top-width: 1px;
+  border-color: var(--app-border);
+}
+
+.border-blue-500 {
+  border-color: var(--app-primary);
+}
+
+.border-gray-200 {
+  border-color: var(--app-border);
+}
+
+.text-blue-600 {
+  color: var(--app-primary-strong);
+}
+
+.text-blue-500 {
+  color: var(--app-primary);
+}
+
+.text-gray-800 {
+  color: var(--app-text-strong);
+}
+
+.text-gray-700 {
+  color: var(--app-text);
+}
+
+.text-gray-600 {
+  color: var(--app-text-soft);
+}
+
+.text-gray-500 {
+  color: var(--app-text-muted);
+}
+
+.text-red-600 {
+  color: var(--app-danger);
+}
+
+.app-surface {
+  background-color: var(--app-surface);
+}
+
+.app-surface-muted {
+  background-color: var(--app-surface-muted);
+}
+
+.app-border {
+  border: 1px solid var(--app-border);
+}
+
+.app-border-subtle {
+  border: 1px solid var(--app-border-strong);
+}
+
+.app-overlay {
+  background-color: var(--app-overlay);
+}
+
+.app-gradient {
+  background: linear-gradient(to bottom right, var(--app-gradient-start), var(--app-gradient-end));
+  color: var(--app-surface);
+}
+
+.app-gradient-surface {
+  background: linear-gradient(to bottom, var(--app-surface-muted), var(--app-surface));
+}
+
+.app-gradient-soft {
+  background: linear-gradient(to right, var(--app-primary-soft), var(--app-accent-soft));
+}
+
+.app-shadow {
+  box-shadow: var(--app-shadow-soft);
+}
+
+.border-blue-200 {
+  border-color: var(--app-primary-soft);
+}

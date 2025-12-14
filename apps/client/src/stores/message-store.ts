@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
 import { transmitService } from '@/services/transmit';
+import { usePresenceStore } from './presence-store';
 
 export interface MessageStatus {
   sent?: boolean;
@@ -36,6 +37,18 @@ export const useMessageStore = defineStore('message', () => {
   const loading = ref(false);
   const sending = ref(false);
   const messagesVersion = ref(0); // Increment this whenever messages change
+  const presenceStore = usePresenceStore();
+
+  const ensureOnline = () => {
+    if (presenceStore.isOffline) {
+      Notify.create({
+        type: 'negative',
+        message: 'You are offline. Go online to send or sync messages.',
+      });
+      return false;
+    }
+    return true;
+  };
 
   const currentMessages = computed(() => {
     if (!currentChannelId.value) return [];
@@ -47,6 +60,9 @@ export const useMessageStore = defineStore('message', () => {
   };
 
   const fetchMessages = async (channelId: number, page: number = 1, limit: number = 50) => {
+    if (presenceStore.isOffline) {
+      return { success: false, hasMore: false };
+    }
     loading.value = true;
     try {
       const response = await api.get<{
@@ -94,6 +110,7 @@ export const useMessageStore = defineStore('message', () => {
   };
 
   const sendMessage = async (channelId: number, content: string) => {
+    if (!ensureOnline()) return { success: false };
     sending.value = true;
     try {
       const message = await transmitService.emit<ChannelMessage>('message:send', { channelId, content });
@@ -111,6 +128,7 @@ export const useMessageStore = defineStore('message', () => {
   };
 
   const markMessageAsRead = async (messageId: number) => {
+    if (!ensureOnline()) return;
     try {
       await transmitService.emit('message:markRead', { messageId });
     } catch (error: any) {
@@ -119,6 +137,7 @@ export const useMessageStore = defineStore('message', () => {
   };
 
   const markMessageAsDelivered = async (messageId: number) => {
+    if (!ensureOnline()) return;
     try {
       await transmitService.emit('message:markDelivered', { messageId });
     } catch (error: any) {

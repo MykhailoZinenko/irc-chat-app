@@ -13,6 +13,7 @@ import Message from '#models/message'
 import MessageRead from '#models/message_read'
 import { Secret } from '@adonisjs/core/helpers'
 import { emitToUser, emitToUsers, initializeRealtime } from '#services/realtime'
+import { setUserStatus } from '#services/presence'
 
 function getRawToken(socket: any): string | null {
   const authToken = socket.handshake?.auth?.token
@@ -148,6 +149,7 @@ async function joinChannel(channelId: number, user: User, socket: any, ack?: Ack
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        status: user.status,
       },
       role: participant?.role || 'member',
       memberCount: memberCount[0].$extras.total,
@@ -369,6 +371,21 @@ function bootSocketsWhenReady() {
     io.on('connection', async (socket) => {
       const user = socket.data.user as User
 
+      const initialStatus =
+        user.status === 'dnd' ? 'dnd' : user.status === 'offline' ? 'online' : user.status || 'online'
+      await setUserStatus(user.id, initialStatus)
+      socket.data.user.status = initialStatus
+
+      socket.on('disconnect', () => {
+        // Only mark offline when this was the last active socket for the user
+        const userRoom = io.sockets.adapter.rooms.get(`users:${user.id}`)
+        const remainingSockets = userRoom ? userRoom.size : 0
+        if (remainingSockets > 0) {
+          return
+        }
+        void setUserStatus(user.id, 'offline')
+      })
+
       // Join the personal room
       socket.join(`users:${user.id}`)
 
@@ -401,6 +418,7 @@ function bootSocketsWhenReady() {
         if (!name || typeof name !== 'string') return ackError(ack, 'Name required')
         const channelName = name.trim()
         let channel = await Channel.query().where('name', channelName).first()
+
         if (!channel) {
           channel = await Channel.create({
             type: 'public',
@@ -417,6 +435,23 @@ function bootSocketsWhenReady() {
             addedBy: null,
             joinedAt: DateTime.now(),
           })
+
+          socket.join(`channels:${channel.id}`)
+          emitToUser(user.id, {
+            type: 'user_joined_channel',
+            data: { userId: user.id, channelId: channel.id, channelName: channel.name },
+          })
+          return ackOk(ack, { channel, created: true })
+        }
+
+        const alreadyMember = await ensureChannelMember(channel.id, user.id)
+        if (alreadyMember) {
+          socket.join(`channels:${channel.id}`)
+          emitToUser(user.id, {
+            type: 'user_joined_channel',
+            data: { userId: user.id, channelId: channel.id, channelName: channel.name },
+          })
+          return ackOk(ack, { channelId: channel.id, alreadyJoined: true })
         }
 
         await joinChannel(channel.id, user, socket, ack)
@@ -670,6 +705,7 @@ function bootSocketsWhenReady() {
                   firstName: user.firstName,
                   lastName: user.lastName,
                   email: user.email,
+                  status: user.status,
                 },
                 role: participant?.role || 'member',
                 memberCount: memberCount[0].$extras.total,

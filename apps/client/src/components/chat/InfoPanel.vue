@@ -80,61 +80,49 @@
 
         <!-- Admins Section -->
         <div v-if="chat.type === 'group' || chat.type === 'channel'" class="p-4 border-b border-gray-200">
-          <div class="flex items-center justify-between mb-3">
-            <p class="text-sm font-semibold text-gray-800">
-              Administrators
-            </p>
-          </div>
-          <div class="space-y-1">
-            <div
-              v-for="admin in adminMembers"
-              :key="admin.id"
-              @click="$emit('userClick', admin.id)"
-              class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-            >
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-sm font-semibold text-white">
-                {{ getInitials(admin.nickName || admin.firstName || admin.email) }}
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm font-medium text-gray-800">{{ admin.nickName || admin.firstName || 'User' }}</span>
-                  <q-icon
-                    name="shield"
-                    size="14px"
-                    color="yellow-8"
-                  />
-                </div>
-                <span class="text-xs text-gray-500">{{ admin.email }}</span>
-              </div>
-            </div>
-          </div>
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-semibold text-gray-800">
+            Administrators
+          </p>
         </div>
+        <div class="space-y-1">
+          <MemberListItem
+            v-for="admin in limitedAdminMembers"
+            :key="admin.id"
+            :member="admin"
+            clickable
+            @select="$emit('userClick', $event)"
+          />
+        </div>
+      </div>
 
-        <!-- Members Section -->
-        <div v-if="chat.type === 'group' || chat.type === 'channel'" class="p-4 border-b border-gray-200">
-          <div class="flex items-center justify-between mb-3">
-            <p class="text-sm font-semibold text-gray-800">
-              Members
-            </p>
-            <span class="text-sm text-gray-500">{{ regularMembers.length }}</span>
+      <!-- Members Section -->
+      <div v-if="chat.type === 'group' || chat.type === 'channel'" class="p-4 border-b border-gray-200">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-semibold text-gray-800">
+            Members
+          </p>
+          <span class="text-sm text-gray-500">{{ totalMembers }}</span>
+        </div>
+        <div class="space-y-1">
+          <MemberListItem
+            v-for="member in limitedRegularMembers"
+            :key="member.id"
+            :member="member"
+            clickable
+            @select="$emit('userClick', $event)"
+          />
           </div>
-          <div class="space-y-1">
-            <div
-              v-for="member in regularMembers"
-              :key="member.id"
-              @click="$emit('userClick', member.id)"
-              class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-            >
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-sm font-semibold text-white">
-                {{ getInitials(member.nickName || member.firstName || member.email) }}
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm font-medium text-gray-800">{{ member.nickName || member.firstName || 'User' }}</span>
-                </div>
-                <span class="text-xs text-gray-500">{{ member.email }}</span>
-              </div>
-            </div>
+          <div v-if="showMoreMembers" class="pt-3">
+            <q-btn
+              flat
+              dense
+              class="w-full"
+              color="primary"
+              label="Show all members"
+              icon="groups"
+              @click="$emit('showMembers')"
+            />
           </div>
         </div>
 
@@ -157,16 +145,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-
-interface Member {
-  id: number
-  nickName: string
-  firstName: string | null
-  lastName: string | null
-  email: string
-  role: 'member' | 'admin'
-  joinedAt: string
-}
+import MemberListItem from '@/components/ui/MemberListItem.vue'
+import { type ChannelMember } from '@/types/chat'
 
 interface Chat {
   id: number
@@ -184,7 +164,7 @@ interface Chat {
 interface Props {
   chat: Chat
   isOpen: boolean
-  members?: Member[]
+  members?: ChannelMember[]
 }
 
 const props = defineProps<Props>()
@@ -193,19 +173,11 @@ const emit = defineEmits<{
   close: []
   userClick: [userId: number]
   leave: []
+  showMembers: []
 }>()
 
 const handleClose = () => {
   emit('close')
-}
-
-const getInitials = (name: string) => {
-  if (!name) return '?'
-  const parts = name.split(' ').filter(Boolean)
-  if (parts.length >= 2 && parts[0]?.[0] && parts[1]?.[0]) {
-    return (parts[0][0] + parts[1][0]).toUpperCase()
-  }
-  return name.slice(0, 2).toUpperCase()
 }
 
 const adminMembers = computed(() => {
@@ -217,6 +189,15 @@ const regularMembers = computed(() => {
   if (!props.members) return []
   return props.members.filter((m) => m.role === 'member')
 })
+
+const MAX_VISIBLE = 4
+const totalMembers = computed(() => (props.members ? props.members.length : 0))
+const limitedAdminMembers = computed(() => adminMembers.value.slice(0, Math.min(MAX_VISIBLE, adminMembers.value.length)))
+const remainingSlots = computed(() => Math.max(0, MAX_VISIBLE - limitedAdminMembers.value.length))
+const limitedRegularMembers = computed(() => regularMembers.value.slice(0, remainingSlots.value))
+const showMoreMembers = computed(
+  () => totalMembers.value > limitedAdminMembers.value.length + limitedRegularMembers.value.length
+)
 
 const panelTitle = computed(() => {
   if (props.chat.type === '1-on-1') return 'Contact Info'
@@ -231,59 +212,12 @@ const statusText = computed(() => {
   if (props.chat.type === 'channel') return `${props.chat.memberCount || 0} members`
   return ''
 })
+
 </script>
 
 <style scoped>
-.bg-white {
-  background-color: white;
-}
-
-.border-l,
-.border-b {
-  border-color: #e5e7eb;
-}
-
-.border-l {
-  border-left-width: 1px;
-}
-
-.border-b {
-  border-bottom-width: 1px;
-}
-
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.bg-gray-200 {
-  background-color: #e5e7eb;
-}
-
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.text-gray-600 {
-  color: #4b5563;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
-.text-blue-500 {
-  color: #3b82f6;
-}
-
 .space-y-1 > * + * {
   margin-top: 0.25rem;
 }
 
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
 </style>

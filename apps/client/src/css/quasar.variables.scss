@@ -970,6 +970,8 @@ $img-content-background: rgba(0, 0, 0, .6) !default;
     }
 }
 
+/* App design tokens for reuse in components (see also src/css/app.scss overrides) */
+
 .q-field__control {
     border: 1px solid $separator-color !important;
     border-radius: $generic-border-radius !important;

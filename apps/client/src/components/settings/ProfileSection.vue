@@ -3,7 +3,7 @@
     <!-- Profile Header -->
     <div class="flex items-center gap-6 pb-6 border-b border-gray-200">
       <div class="relative">
-        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-4xl">
+        <div class="w-24 h-24 rounded-full app-gradient flex items-center justify-center text-4xl">
           😊
         </div>
         <q-icon
@@ -21,49 +21,47 @@
     <!-- Profile Fields -->
     <div class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-        <q-input
+        <InputField
           v-model="firstName"
-          outlined
-          class="custom-input"
+          label="First Name"
+          icon="person"
           placeholder="John"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-        <q-input
+        <InputField
           v-model="lastName"
-          outlined
-          class="custom-input"
+          label="Last Name"
+          icon="badge"
           placeholder="Doe"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Nickname</label>
-        <q-input
+        <InputField
           v-model="nickName"
-          outlined
-          class="custom-input"
+          label="Nickname"
+          icon="alternate_email"
           placeholder="johndoe"
         />
         <p class="text-xs text-gray-500 mt-1">Your unique username for the platform</p>
       </div>
     </div>
-    <q-btn
-      unelevated
-      color="blue"
-      label="Save Changes"
-      class="w-full"
-      padding="12px"
+    <Button
       :loading="isLoading"
+      :disabled="isLoading"
       @click="handleSaveProfile"
-    />
+      variant="solid"
+    >
+      Save Changes
+    </Button>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from 'src/stores/auth-store'
 import { Notify } from 'quasar'
+import InputField from '@/components/ui/InputField.vue'
+import Button from '@/components/ui/CustomButton.vue'
 
 const authStore = useAuthStore()
 
@@ -143,41 +141,6 @@ const handleSaveProfile = async () => {
 }
 .space-y-4 > * + * {
   margin-top: 1rem;
-}
-.border-b {
-  border-bottom-width: 1px;
-}
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #60a5fa, #a78bfa);
-}
-.text-gray-800 {
-  color: #1f2937;
-}
-.text-gray-700 {
-  color: #374151;
-}
-.text-gray-500 {
-  color: #6b7280;
-}
-.text-gray-400 {
-  color: #9ca3af;
-}
-.custom-input :deep(.q-field__control) {
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  min-height: 48px;
-}
-.custom-input :deep(.q-field__control):before {
-  border-color: #d1d5db;
-}
-.custom-input :deep(.q-field__control):hover:before {
-  border-color: #3b82f6;
-}
-.custom-input :deep(.q-field__control):after {
-  border-color: #3b82f6;
 }
 .w-full {
   width: 100%;

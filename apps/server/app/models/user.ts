@@ -46,6 +46,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare sessionTimeoutDays: number
 
+  @column()
+  declare status: 'online' | 'dnd' | 'offline'
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

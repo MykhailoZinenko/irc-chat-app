@@ -11,28 +11,33 @@ export const useSelectionStore = defineStore('selection', () => {
   const showInvitations = ref(false)
   const sidebarOpen = ref(false)
   const infoPanelOpen = ref(false)
+  const showMembersModal = ref(false)
 
   const selectChannel = (channelId: number) => {
     selectedChannelId.value = channelId
     selectedUserId.value = null
     showInvitations.value = false
+    showMembersModal.value = false
   }
 
   const selectUser = (userId: number) => {
     selectedUserId.value = userId
     showInvitations.value = false
+    showMembersModal.value = false
   }
 
   const selectInvitations = () => {
     selectedChannelId.value = null
     selectedUserId.value = null
     showInvitations.value = true
+    showMembersModal.value = false
   }
 
   const clearSelection = () => {
     selectedChannelId.value = null
     selectedUserId.value = null
     showInvitations.value = false
+    showMembersModal.value = false
   }
 
   const toggleSidebar = () => {
@@ -49,6 +54,7 @@ export const useSelectionStore = defineStore('selection', () => {
     showInvitations,
     sidebarOpen,
     infoPanelOpen,
+    showMembersModal,
     selectChannel,
     selectUser,
     selectInvitations,

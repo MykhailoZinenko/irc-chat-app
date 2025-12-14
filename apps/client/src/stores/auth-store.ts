@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { api } from 'boot/axios';
 import { Notify } from 'quasar';
 import { transmitService } from '@/services/transmit';
+import { usePresenceStore } from './presence-store';
 
 export interface User {
   id: number;
@@ -10,6 +11,7 @@ export interface User {
   nickName: string;
   email: string;
   fullName: string;
+  status: 'online' | 'dnd' | 'offline';
   emailVerifiedAt?: string;
   sessionTimeoutDays: number;
   createdAt: string;
@@ -74,6 +76,7 @@ export const useAuthStore = defineStore('auth', {
       email: string;
       password: string;
     }) {
+      const presenceStore = usePresenceStore();
       this.isLoading = true;
       try {
         const response = await api.post<AuthResponse>('/api/auth/register', data);
@@ -86,6 +89,7 @@ export const useAuthStore = defineStore('auth', {
           localStorage.setItem('auth_token', this.token);
           this.setAuthHeaders();
           transmitService.setAuthToken(this.token);
+          await presenceStore.syncWithServer(response.data.data.user.status || 'online');
 
           Notify.create({
             type: 'positive',
@@ -108,6 +112,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async login(email: string, password: string) {
+      const presenceStore = usePresenceStore();
       this.isLoading = true;
       try {
         const response = await api.post<AuthResponse>('/api/auth/login', { email, password });
@@ -118,6 +123,7 @@ export const useAuthStore = defineStore('auth', {
           localStorage.setItem('auth_token', this.token);
           this.setAuthHeaders();
           transmitService.setAuthToken(this.token);
+          await presenceStore.syncWithServer(response.data.data.user.status || 'online');
 
           Notify.create({
             type: 'positive',
@@ -172,6 +178,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async fetchUser() {
+      const presenceStore = usePresenceStore();
       if (!this.token) return false;
 
       this.setAuthHeaders();
@@ -184,6 +191,7 @@ export const useAuthStore = defineStore('auth', {
           if (this.token) {
             transmitService.setAuthToken(this.token);
           }
+          await presenceStore.syncWithServer(response.data.data.status || 'online');
           return true;
         } else {
           this.clearAuthData();
@@ -234,12 +242,14 @@ export const useAuthStore = defineStore('auth', {
     },
 
     clearAuthData() {
+      const presenceStore = usePresenceStore();
       this.user = null;
       this.token = null;
       this.sessions = [];
       localStorage.removeItem('auth_token');
       delete api.defaults.headers.common['Authorization'];
       transmitService.setAuthToken(null);
+      presenceStore.hydrateStatus('offline', { skipPersist: true, updatePreferred: false });
     },
 
     async initAuth() {
@@ -260,10 +270,12 @@ export const useAuthStore = defineStore('auth', {
       nickName?: string;
       email?: string;
     }) {
+      const presenceStore = usePresenceStore();
       const response = await api.put<AuthResponse>('/api/users/profile', data);
 
       if (response.data.success && response.data.data) {
         this.user = response.data.data.user;
+        await presenceStore.syncWithServer(response.data.data.user.status || 'online');
         return { success: true };
       } else {
         return { success: false, errors: response.data.errors };

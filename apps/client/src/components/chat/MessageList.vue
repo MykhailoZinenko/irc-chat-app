@@ -40,18 +40,23 @@
 
     <!-- Scroll to bottom button -->
     <div v-if="showScrollToBottom" class="scroll-to-bottom-container">
-      <button
-        @click="scrollToBottomWithAnimation"
+      <q-btn
+        round
+        unelevated
+        size="md"
+        color="grey-1"
+        text-color="grey-7"
         class="scroll-btn"
+        icon="keyboard_arrow_down"
+        @click="scrollToBottomWithAnimation"
       >
-        <q-icon name="keyboard_arrow_down" size="20px" />
         <q-badge
           v-if="unreadCount > 0"
           color="red"
           :label="unreadCount > 99 ? '99+' : unreadCount"
-          floating
+          class="scroll-btn__badge"
         />
-      </button>
+      </q-btn>
     </div>
   </div>
 </template>
@@ -290,19 +295,11 @@ defineExpose({
   flex-direction: column;
 }
 
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
 .messages-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   padding-bottom: 90px; /* Console input height + extra space */
-}
-
-.text-gray-500 {
-  color: #6b7280;
 }
 
 .scroll-to-bottom-container {
@@ -313,22 +310,19 @@ defineExpose({
 }
 
 .scroll-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-soft);
   transition: all 0.2s;
-  color: #6b7280;
+  position: relative;
 }
 
 .scroll-btn:hover {
-  background-color: #f9fafb;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--app-shadow-strong);
+}
+
+.scroll-btn__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
 }
 </style>

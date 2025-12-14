@@ -61,12 +61,12 @@ const handleUpdate = (value: string | number | null) => {
 }
 
 :deep(.auth-input .q-field__control:before) {
-  border-color: #d1d5db;
+  border-color: var(--app-border-strong);
 }
 
 :deep(.auth-input.q-field--focused .q-field__control:before),
 :deep(.auth-input.q-field--focused .q-field__control:after) {
-  border-color: #3b82f6;
+  border-color: var(--app-primary);
 }
 
 :deep(.auth-input.has-error .q-field__control:before) {
