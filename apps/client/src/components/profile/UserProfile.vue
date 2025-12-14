@@ -10,7 +10,6 @@
         :title="displayName"
         subtitle="Profile"
         @back="$emit('back')"
-        @more="handleMore"
       />
 
       <!-- Scrollable Content -->
@@ -31,18 +30,10 @@
 
         <!-- Action Buttons -->
         <ProfileSection>
-          <div class="grid grid-cols-2 gap-3">
-            <ProfileActionButton
-              icon="chat"
-              label="Message"
-              bg-color="bg-blue-500"
-              icon-color="text-white"
-              @click="handleMessage"
-            />
-
+          <div class="profile-actions">
             <ProfileActionButton
               icon="person_add"
-              label="Add"
+              label="Invite to channel"
               bg-color="bg-blue-100"
               icon-color="text-blue-600"
               @click="showInviteDialog = true"
@@ -70,23 +61,6 @@
           </div>
         </ProfileSection>
 
-        <!-- Settings Section -->
-        <ProfileSection title="Settings">
-          <div class="space-y-1">
-            <button
-              @click="isMuted = !isMuted"
-              class="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <q-icon
-                :name="isMuted ? 'notifications_off' : 'notifications'"
-                size="20px"
-                class="text-gray-600"
-              />
-              <span class="text-gray-800">{{ isMuted ? 'Unmute' : 'Mute' }} Notifications</span>
-            </button>
-          </div>
-        </ProfileSection>
-
         <!-- Common Channels -->
         <ProfileSection v-if="commonChannels.length > 0" title="Common Channels" :count="commonChannels.length" :title-bold="true">
           <div class="space-y-2">
@@ -106,26 +80,6 @@
             </button>
           </div>
         </ProfileSection>
-
-        <!-- Danger Zone -->
-        <div class="px-4 py-4">
-          <div class="space-y-2">
-            <button
-              @click="handleBlock"
-              class="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg transition-colors text-red-600"
-            >
-              <q-icon name="block" size="20px" />
-              <span class="font-medium">Block User</span>
-            </button>
-            <button
-              @click="handleReport"
-              class="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg transition-colors text-red-600"
-            >
-              <q-icon name="flag" size="20px" />
-              <span class="font-medium">Report User</span>
-            </button>
-          </div>
-        </div>
       </div>
     </template>
 
@@ -274,25 +228,31 @@ watch(() => channelStore.channels, () => {
   void fetchCommonChannels()
 }, { deep: true })
 
-const handleMore = () => {
-}
-
-const handleMessage = () => {
-}
-
 const handleChannelClick = (channel: any) => {
   selectionStore.selectChannel(channel.id)
   emit('back')
 }
-
-const handleBlock = () => {
-}
-
-const handleReport = () => {
-}
 </script>
 
 <style scoped>
+.profile-shell {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+.profile-shell__inner {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto 24px;
+  padding: 0 16px;
+}
+
+.profile-actions {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
 .space-y-6 > * + * {
   margin-top: 1.5rem;
 }

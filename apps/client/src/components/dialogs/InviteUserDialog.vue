@@ -63,12 +63,13 @@
         </q-list>
       </q-card-section>
 
-      <q-card-actions align="right">
-        <q-btn flat label="Cancel" color="grey-7" v-close-popup />
+      <q-card-actions class="q-pa-md q-gutter-sm justify-center">
+        <q-btn flat label="Cancel" color="grey-7" class="action-btn" v-close-popup />
         <q-btn
           unelevated
           label="Invite"
           color="primary"
+          class="action-btn primary"
           :disable="selectedChannels.size === 0 || sending"
           :loading="sending"
           @click="handleInvite"
@@ -252,3 +253,26 @@ watch(() => channelStore.channels, () => {
   }
 }, { deep: true })
 </script>
+
+<style scoped>
+.invite-card {
+  width: min(560px, 90vw);
+}
+
+.invite-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.rounded-borders {
+  border-radius: 8px;
+}
+
+.action-btn {
+  min-width: 140px;
+  border-radius: 10px;
+}
+.action-btn.primary {
+  min-width: 160px;
+}
+</style>

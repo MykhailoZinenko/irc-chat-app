@@ -60,24 +60,6 @@
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="p-4 border-b border-gray-200">
-          <q-btn
-            flat
-            dense
-            class="w-full justify-start min-h-[44px]"
-            icon="notifications"
-            :label="chat.type === 'channel' ? 'Mute Channel' : chat.type === 'group' ? 'Mute Notifications' : 'Notifications'"
-          />
-          <q-btn
-            flat
-            dense
-            class="w-full justify-start min-h-[44px]"
-            icon="search"
-            :label="`Search in ${chat.type === '1-on-1' ? 'Conversation' : chat.type === 'group' ? 'Group' : 'Channel'}`"
-          />
-        </div>
-
         <!-- Admins Section -->
         <div v-if="chat.type === 'group' || chat.type === 'channel'" class="p-4 border-b border-gray-200">
         <div class="flex items-center justify-between mb-3">
@@ -229,7 +211,7 @@ const handleCopyLink = async () => {
       position: 'top',
       timeout: 2000,
     })
-  } catch (error) {
+  } catch {
     Notify.create({
       type: 'negative',
       message: 'Failed to copy link',
