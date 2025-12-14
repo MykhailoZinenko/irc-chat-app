@@ -1,7 +1,7 @@
 <template>
   <div class="message-list-container">
-    <q-scroll-area ref="scrollAreaRef" class="flex-1 bg-gray-50">
-      <div ref="messagesContainerRef" class="messages-wrapper p-3 sm:p-4 md:p-6">
+    <q-scroll-area ref="scrollAreaRef" class="message-list-scroll bg-gray-50">
+      <div ref="messagesContainerRef" class="messages-wrapper p-2 sm:p-3">
         <q-infinite-scroll
           ref="infiniteScrollRef"
           reverse
@@ -41,22 +41,13 @@
     <!-- Scroll to bottom button -->
     <div v-if="showScrollToBottom" class="scroll-to-bottom-container">
       <q-btn
-        round
         unelevated
-        size="md"
-        color="grey-1"
-        text-color="grey-7"
+        color="primary"
+        text-color="white"
         class="scroll-btn"
         icon="keyboard_arrow_down"
         @click="scrollToBottomWithAnimation"
-      >
-        <q-badge
-          v-if="unreadCount > 0"
-          color="red"
-          :label="unreadCount > 99 ? '99+' : unreadCount"
-          class="scroll-btn__badge"
-        />
-      </q-btn>
+      />
     </div>
   </div>
 </template>
@@ -291,20 +282,51 @@ defineExpose({
   display: flex;
   flex: 1;
   flex-direction: column;
+  --chat-input-offset: 96px;
+}
+
+.message-list-scroll {
+  width: 100%;
+  height: 100%;
 }
 
 .messages-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  padding-bottom: 90px; /* Console input height + extra space */
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: calc(var(--chat-input-offset) + 12px); /* Console input height + extra space */
 }
 
 .scroll-to-bottom-container {
-  position: absolute;
-  bottom: 16px;
+  position: fixed;
+  bottom: 76px; /* hover just above the send bar */
   right: 16px;
-  z-index: 100;
+  width: auto;
+  display: flex;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  z-index: 150;
+  pointer-events: none;
+}
+
+.scroll-to-bottom-container .q-btn {
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--q-primary);
+  color: white;
+  border: none;
+}
+
+.scroll-to-bottom-container .q-btn:hover {
+  opacity: 1;
 }
 
 .scroll-btn {
@@ -312,6 +334,11 @@ defineExpose({
   box-shadow: var(--app-shadow-soft);
   transition: all 0.2s;
   position: relative;
+  min-width: 56px;
+  border-radius: 999px 999px 20px 20px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
 }
 
 .scroll-btn:hover {

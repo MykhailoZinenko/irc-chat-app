@@ -12,62 +12,64 @@
       <ChannelHeaderContainer />
 
       <!-- Main content: messages OR empty state -->
-      <div class="flex-1 flex flex-col min-h-0">
-        <!-- Messages (when member) -->
-        <MessageList
-          v-if="selectionStore.selectedChannelId && !showJoinButton"
-          ref="messageListRef"
-          :messages="displayedMessages"
-          @load-more="loadMoreMessages"
-          @user-click="handleUserClick"
-        />
+      <div class="flex-1 flex flex-col min-h-0 chat-shell">
+        <div class="chat-shell__inner">
+          <!-- Messages (when member) -->
+          <MessageList
+            v-if="selectionStore.selectedChannelId && !showJoinButton"
+            ref="messageListRef"
+            :messages="displayedMessages"
+            @load-more="loadMoreMessages"
+            @user-click="handleUserClick"
+          />
 
-        <!-- Preview state (when not a member but viewing channel) -->
-        <div
-          v-else-if="showJoinButton"
-          class="flex-1 flex flex-col items-center justify-center relative bg-gray-50"
-        >
-          <div class="text-center">
-            <q-icon name="lock_open" size="64px" color="grey-5" class="q-mb-md" />
-            <p class="text-h6 text-grey-7 q-mb-sm">Public Channel Preview</p>
-            <p class="text-body2 text-grey-6 q-mb-lg">
-              Join this channel to participate
-            </p>
-            <q-btn
-              unelevated
-              color="primary"
-              size="lg"
-              label="Join Channel"
-              padding="12px 48px"
-              @click="handleJoinChannel"
-            />
-          </div>
-        </div>
-
-        <!-- Empty state (no channel selected) -->
-        <div
-          v-else
-          class="flex-1 flex flex-col items-center justify-center relative"
-        >
-          <div class="lg:hidden absolute top-4 left-4">
-            <q-btn
-              flat
-              round
-              dense
-              icon="menu"
-              color="grey-7"
-              @click="selectionStore.toggleSidebar()"
-            />
+          <!-- Preview state (when not a member but viewing channel) -->
+          <div
+            v-else-if="showJoinButton"
+            class="flex-1 flex flex-col items-center justify-center relative bg-gray-50"
+          >
+            <div class="text-center">
+              <q-icon name="lock_open" size="64px" color="grey-5" class="q-mb-md" />
+              <p class="text-h6 text-grey-7 q-mb-sm">Public Channel Preview</p>
+              <p class="text-body2 text-grey-6 q-mb-lg">
+                Join this channel to participate
+              </p>
+              <q-btn
+                unelevated
+                color="primary"
+                size="lg"
+                label="Join Channel"
+                padding="12px 48px"
+                @click="handleJoinChannel"
+              />
+            </div>
           </div>
 
-          <div class="text-center">
-            <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
-            <p class="text-h6 text-grey-7 q-mb-sm">
-              {{ hasChannels ? 'Select a chat' : 'No channels yet' }}
-            </p>
-            <p class="text-body2 text-grey-6">
-              {{ hasChannels ? 'Choose a channel to start chatting' : 'Create a channel to start chatting' }}
-            </p>
+          <!-- Empty state (no channel selected) -->
+          <div
+            v-else
+            class="flex-1 flex flex-col items-center justify-center relative"
+          >
+            <div class="lg:hidden absolute top-4 left-4">
+              <q-btn
+                flat
+                round
+                dense
+                icon="menu"
+                color="grey-7"
+                @click="selectionStore.toggleSidebar()"
+              />
+            </div>
+
+            <div class="text-center">
+              <q-icon name="chat" size="64px" color="grey-5" class="q-mb-md" />
+              <p class="text-h6 text-grey-7 q-mb-sm">
+                {{ hasChannels ? 'Select a chat' : 'No channels yet' }}
+              </p>
+              <p class="text-body2 text-grey-6">
+                {{ hasChannels ? 'Choose a channel to start chatting' : 'Create a channel to start chatting' }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -232,3 +234,23 @@ const handleJoinChannel = async () => {
   }
 }
 </script>
+
+<style scoped>
+.chat-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-shell__inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+</style>

@@ -127,7 +127,6 @@ const selectionStore = useSelectionStore()
 const authStore = useAuthStore()
 const userProfile = ref<UserProfile | null>(null)
 const loading = ref(false)
-const isMuted = ref(false)
 const showInviteDialog = ref(false)
 const commonChannels = ref<any[]>([])
 let statusSubscription: { unsubscribe: () => void } | null = null

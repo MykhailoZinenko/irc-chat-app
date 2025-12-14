@@ -1,6 +1,11 @@
 <template>
   <div
-    :class="['flex gap-2', displayMessage.own ? 'justify-end' : 'justify-start', isFirstInGroup ? 'mt-4' : 'mt-1', hasReactions ? 'mb-4' : '']"
+    :class="[
+      'flex w-full',
+      displayMessage.own ? 'justify-end gap-0' : 'justify-start gap-2',
+      isFirstInGroup ? 'mt-4' : 'mt-1',
+      hasReactions ? 'mb-4' : ''
+    ]"
   >
     <!-- Avatar for other users -->
     <div v-if="!displayMessage.own" class="w-8 h-8 flex-shrink-0">
@@ -14,7 +19,12 @@
       <div v-else class="w-8 h-8" />
     </div>
 
-    <div :class="['max-w-[85%] sm:max-w-md flex flex-col', displayMessage.own ? 'items-end' : 'items-start']">
+    <div
+      :class="[
+        'flex flex-col',
+        displayMessage.own ? 'items-end max-w-full w-full pr-0' : 'items-start max-w-full'
+      ]"
+    >
     <p
       v-if="!displayMessage.own && isFirstInGroup"
       @click="emit('userClick', displayMessage.sender)"
