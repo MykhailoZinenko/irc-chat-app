@@ -1,153 +1,201 @@
-import { Transmit } from '@adonisjs/transmit-client'
+import { io } from 'socket.io-client';
 
-type MessageHandler = (message: any) => void
-type Subscription = ReturnType<InstanceType<typeof Transmit>['subscription']>
+type MessageHandler = (message: any) => void;
 
-class TransmitService {
-  private client: InstanceType<typeof Transmit> | null = null
-  private subscriptions: Map<string, Subscription> = new Map()
-  private handlers: Map<string, MessageHandler[]> = new Map()
+class SocketService {
+  // Use loose typing to avoid bundler type resolution issues in tooling
+  private socket: any = null;
+  private channelHandlers: Map<number, MessageHandler[]> = new Map();
+  private userHandlers: Map<number, MessageHandler[]> = new Map();
+  private pendingChannelSubs: Set<number> = new Set();
+  private authToken: string | null = null;
+  private pendingConnectPromise: Promise<void> | null = null;
 
-  initialize() {
-    if (!this.client) {
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3333'
-      this.client = new Transmit({ baseUrl: baseURL })
+  private ensureConnected() {
+    if (this.socket && this.socket.connected) {
+      return;
     }
-    return this.client
+
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3333';
+    const token = this.authToken || localStorage.getItem('auth_token') || undefined;
+
+    const authOptions = token ? { auth: { token: `Bearer ${token}` } } : {};
+
+    this.socket = io(baseURL, {
+      autoConnect: true,
+      transports: ['websocket'],
+      ...authOptions,
+    });
+
+    this.socket.on('connect', () => {
+      this.resubscribe();
+    });
+
+    this.socket.on('event', (payload: any) => {
+      this.dispatch(payload);
+    });
   }
 
-  /**
-   * Subscribe to a channel's updates
-   */
+  private waitForConnection(timeoutMs = 5000) {
+    if (this.socket?.connected) return Promise.resolve();
+
+    if (this.pendingConnectPromise) return this.pendingConnectPromise;
+
+    this.pendingConnectPromise = new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingConnectPromise = null;
+        reject(new Error('Socket connection timeout'));
+      }, timeoutMs);
+
+      this.socket?.once('connect', () => {
+        clearTimeout(timer);
+        this.pendingConnectPromise = null;
+        resolve();
+      });
+
+      this.socket?.once('connect_error', (err: any) => {
+        clearTimeout(timer);
+        this.pendingConnectPromise = null;
+        reject(err instanceof Error ? err : new Error(String(err)));
+      });
+    });
+
+    return this.pendingConnectPromise;
+  }
+
+  async emit<T = any>(
+    event: string,
+    payload?: any,
+    options: { timeoutMs?: number } = {},
+  ): Promise<T> {
+    this.ensureConnected();
+    await this.waitForConnection();
+
+    const timeoutMs = options.timeoutMs ?? 8000;
+
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error('Request timed out'));
+      }, timeoutMs);
+
+      this.socket.emit(event, payload, (response: any) => {
+        clearTimeout(timer);
+        if (response && response.ok === false) {
+          return reject(new Error(response.message || 'Request failed'));
+        }
+        if (response && response.ok === true) {
+          return resolve(response.data as T);
+        }
+        // Fallback for handlers that might return raw data
+        resolve(response as T);
+      });
+    });
+  }
+
+  setAuthToken(token: string | null) {
+    this.authToken = token;
+    if (this.socket) {
+      if (token) {
+        this.socket.auth = { token: `Bearer ${token}` };
+      } else {
+        delete this.socket.auth;
+      }
+      this.socket.disconnect().connect();
+    }
+  }
+
   subscribeToChannel(channelId: number, handler: MessageHandler) {
-    const channelName = `channels/${channelId}`
-    const client = this.initialize()
-
-    let subscription = this.subscriptions.get(channelName)
-
-    if (!subscription) {
-      subscription = client.subscription(channelName)
-      this.subscriptions.set(channelName, subscription)
-
-      void subscription.create()
-
-      subscription.onMessage((message) => {
-        const handlers = this.handlers.get(channelName) || []
-        handlers.forEach((h) => h(message))
-      })
-    }
-
-    const handlers = this.handlers.get(channelName) || []
-    handlers.push(handler)
-    this.handlers.set(channelName, handlers)
-
-    return {
-      unsubscribe: () => this.unsubscribeFromChannel(channelId, handler),
-    }
+    this.ensureConnected();
+    const existing = this.channelHandlers.get(channelId) || [];
+    this.channelHandlers.set(channelId, [...existing, handler]);
+    this.joinChannels([channelId]);
+    return { unsubscribe: () => this.unsubscribeFromChannel(channelId, handler) };
   }
 
-  /**
-   * Unsubscribe from a channel
-   */
   unsubscribeFromChannel(channelId: number, handler?: MessageHandler) {
-    const channelName = `channels/${channelId}`
-
+    const handlers = this.channelHandlers.get(channelId) || [];
     if (handler) {
-      const handlers = this.handlers.get(channelName) || []
-      const filtered = handlers.filter((h) => h !== handler)
-
-      if (filtered.length > 0) {
-        this.handlers.set(channelName, filtered)
-        return
+      const filtered = handlers.filter((h) => h !== handler);
+      if (filtered.length === 0) {
+        this.channelHandlers.delete(channelId);
+        this.leaveChannels([channelId]);
       } else {
-        this.handlers.delete(channelName)
+        this.channelHandlers.set(channelId, filtered);
       }
     } else {
-      this.handlers.delete(channelName)
-    }
-
-    const subscription = this.subscriptions.get(channelName)
-    if (subscription) {
-      void subscription.delete()
-      this.subscriptions.delete(channelName)
+      this.channelHandlers.delete(channelId);
+      this.leaveChannels([channelId]);
     }
   }
 
-  /**
-   * Unsubscribe from all channels
-   */
-  unsubscribeAll() {
-    this.subscriptions.forEach((subscription) => {
-      void subscription.delete()
-    })
-    this.subscriptions.clear()
-    this.handlers.clear()
-  }
-
-  /**
-   * Subscribe to user events
-   */
   subscribeToUser(userId: number, handler: MessageHandler) {
-    const channelName = `users/${userId}`
-    const client = this.initialize()
-
-    let subscription = this.subscriptions.get(channelName)
-
-    if (!subscription) {
-      subscription = client.subscription(channelName)
-      this.subscriptions.set(channelName, subscription)
-
-      void subscription.create()
-
-      subscription.onMessage((message) => {
-        const handlers = this.handlers.get(channelName) || []
-        handlers.forEach((h) => h(message))
-      })
-    }
-
-    const handlers = this.handlers.get(channelName) || []
-    handlers.push(handler)
-    this.handlers.set(channelName, handlers)
-
-    return {
-      unsubscribe: () => this.unsubscribeFromUser(userId, handler),
-    }
+    this.ensureConnected();
+    const existing = this.userHandlers.get(userId) || [];
+    this.userHandlers.set(userId, [...existing, handler]);
+    // Personal rooms are joined server-side on connect; just keep handler list
+    return { unsubscribe: () => this.unsubscribeFromUser(userId, handler) };
   }
 
-  /**
-   * Unsubscribe from user events
-   */
   unsubscribeFromUser(userId: number, handler?: MessageHandler) {
-    const channelName = `users/${userId}`
-
+    const handlers = this.userHandlers.get(userId) || [];
     if (handler) {
-      const handlers = this.handlers.get(channelName) || []
-      const filtered = handlers.filter((h) => h !== handler)
-
-      if (filtered.length > 0) {
-        this.handlers.set(channelName, filtered)
-        return
+      const filtered = handlers.filter((h) => h !== handler);
+      if (filtered.length === 0) {
+        this.userHandlers.delete(userId);
       } else {
-        this.handlers.delete(channelName)
+        this.userHandlers.set(userId, filtered);
       }
     } else {
-      this.handlers.delete(channelName)
-    }
-
-    const subscription = this.subscriptions.get(channelName)
-    if (subscription) {
-      void subscription.delete()
-      this.subscriptions.delete(channelName)
+      this.userHandlers.delete(userId);
     }
   }
 
-  /**
-   * Get list of active subscriptions
-   */
-  getActiveSubscriptions() {
-    return Array.from(this.subscriptions.keys())
+  unsubscribeAll() {
+    this.channelHandlers.clear();
+    this.userHandlers.clear();
+    this.pendingChannelSubs.clear();
+    if (this.socket) {
+      this.socket.off('event');
+      this.socket.disconnect();
+      this.socket = null;
+    }
+  }
+
+  private joinChannels(channelIds: number[]) {
+    if (!this.socket || !this.socket.connected) {
+      channelIds.forEach((id) => this.pendingChannelSubs.add(id));
+      return;
+    }
+    this.socket.emit('subscribe:channels', channelIds);
+  }
+
+  private leaveChannels(channelIds: number[]) {
+    if (!this.socket || !this.socket.connected) return;
+    this.socket.emit('unsubscribe:channels', channelIds);
+  }
+
+  private resubscribe() {
+    const channelIds = Array.from(this.channelHandlers.keys());
+    if (channelIds.length && this.socket) {
+      this.socket.emit('subscribe:channels', channelIds);
+    }
+    if (this.pendingChannelSubs.size && this.socket) {
+      this.socket.emit('subscribe:channels', Array.from(this.pendingChannelSubs));
+      this.pendingChannelSubs.clear();
+    }
+  }
+
+  private dispatch(payload: any) {
+    const channelId = payload?.data?.channelId ?? payload?.channelId;
+    if (channelId !== undefined) {
+      const handlers = this.channelHandlers.get(Number(channelId)) || [];
+      handlers.forEach((h) => h(payload));
+    }
+
+    this.userHandlers.forEach((handlers) => {
+      handlers.forEach((h) => h(payload));
+    });
   }
 }
 
-// Export singleton instance
-export const transmitService = new TransmitService()
+export const transmitService = new SocketService();

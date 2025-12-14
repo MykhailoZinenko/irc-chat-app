@@ -4,7 +4,7 @@ import MessageRead from '#models/message_read'
 import ChannelParticipant from '#models/channel_participant'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
-import transmit from '@adonisjs/transmit/services/main'
+import { emitToUser } from '#services/realtime'
 
 const sendMessageSchema = vine.compile(
   vine.object({
@@ -60,6 +60,9 @@ export default class MessagesController {
 
     await message.load('sender')
 
+    // Update channel's lastActivityAt
+    await participant.channel.merge({ lastActivityAt: DateTime.now() }).save()
+
     // Create delivered status for all channel participants (including sender)
     const participants = participant.channel.participants
     const deliveredAt = DateTime.now()
@@ -98,7 +101,7 @@ export default class MessagesController {
 
     // Broadcast to each participant individually (not to the channel)
     for (const p of participants) {
-      transmit.broadcast(`users/${p.userId}`, {
+      emitToUser(p.userId, {
         type: 'new_message',
         data: formattedMessage,
       })
@@ -227,11 +230,11 @@ export default class MessagesController {
 
     // Notify sender about read status (only if not the sender)
     if (message.senderId !== user.id) {
-      transmit.broadcast(`users/${message.senderId}`, readPayload)
+      emitToUser(message.senderId, readPayload)
     }
 
     // Also notify the reader to update their own UI
-    transmit.broadcast(`users/${user.id}`, readPayload)
+    emitToUser(user.id, readPayload)
 
     return response.json({
       success: true,
@@ -277,7 +280,7 @@ export default class MessagesController {
 
     // Notify sender about delivered status (only if not the sender)
     if (message.senderId !== user.id) {
-      transmit.broadcast(`users/${message.senderId}`, {
+      emitToUser(message.senderId, {
         type: 'message_delivered',
         data: {
           messageId: message.id,

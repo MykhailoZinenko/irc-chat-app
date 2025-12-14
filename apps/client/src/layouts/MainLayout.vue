@@ -35,8 +35,8 @@ import ConsoleInput from '@/components/chat/ConsoleInput.vue'
 import { useCurrentChannel } from 'src/composables/useCurrentChannel'
 import { useAuthStore } from 'src/stores/auth-store'
 import { memberToSuggestion } from 'src/types/chat'
-import { api } from 'src/boot/axios'
 import { Notify } from 'quasar'
+import { transmitService } from '@/services/transmit'
 
 const authStore = useAuthStore()
 const selectionStore = useSelectionStore()
@@ -102,27 +102,19 @@ const handleInvite = async (name: string) => {
   try {
     if (!username || !username.trim()) throw new Error("Username is required");
 
-    const response = await api.put<{ success: boolean; message: string }>(
-      `/api/channels/${selectionStore.selectedChannelId}/invite-by-name`, {
+    await transmitService.emit('channel:inviteByName', {
+      channelId: selectionStore.selectedChannelId,
       username: username.trim(),
     });
-    
-    if(response.data.success){
-      Notify.create({
-        type: 'positive',
-        message: `Invitation sent successfully`,
-      })
-    }
-    else{
-      Notify.create({
-        type: 'negative',
-        message: response.data.message || 'Failed to send invitation',
-      })
-    }
+
+    Notify.create({
+      type: 'positive',
+      message: `Invitation sent successfully`,
+    })
   } catch (error: any) {
     Notify.create({
       type: 'negative',
-      message: error.response?.data?.message  || 'Failed to send invitation',
+      message: error?.message || error.response?.data?.message  || 'Failed to send invitation',
     })
   }
 }

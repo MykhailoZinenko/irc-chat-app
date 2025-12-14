@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
 import { type ChannelDetails, type Channel, type ChannelMember, type CreateChannelData } from 'src/types/chat';
+import { transmitService } from '@/services/transmit';
 
 export const useChannelStore = defineStore('channel', () => {
   const channels = ref<Channel[]>([]);
@@ -61,9 +62,13 @@ export const useChannelStore = defineStore('channel', () => {
       }
       return { success: false };
     } catch (error: any) {
-      // If 403, user is not a member - still return success but without userRole
+      // If 404, channel doesn't exist
+      if (error.response?.status === 404) {
+        return { success: false, notFound: true };
+      }
+      // If 403, user doesn't have access (private channel or not a member)
       if (error.response?.status === 403) {
-        return { success: false, notMember: true };
+        return { success: false, forbidden: true };
       }
       Notify.create({
         type: 'negative',
@@ -109,22 +114,17 @@ export const useChannelStore = defineStore('channel', () => {
 
   const joinChannel = async (channelId: number) => {
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}/join`,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      await transmitService.emit('channel:join', { channelId });
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Joined channel successfully',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to join channel',
+        message: error?.message || error.response?.data?.message || 'Failed to join channel',
       });
       return { success: false };
     }
@@ -132,22 +132,17 @@ export const useChannelStore = defineStore('channel', () => {
 
   const joinByName = async (name: string) => {
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/join-by-name`, {name}
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      await transmitService.emit('channel:joinByName', { name });
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Joined channel successfully',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to join channel',
+        message: error?.message || error.response?.data?.message || 'Failed to join channel',
       });
       return { success: false };
     }
@@ -156,23 +151,17 @@ export const useChannelStore = defineStore('channel', () => {
 
   const createChannel = async (data: CreateChannelData) => {
     try {
-      const response = await api.post<{ success: boolean; data: { channel: any } }>(
-        '/api/channels',
-        data,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: 'Channel created successfully',
-        });
-        return { success: true, channel: response.data.data.channel };
-      }
-      return { success: false };
+      const result = await transmitService.emit<{ channel: any }>('channel:create', data);
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Channel created successfully',
+      });
+      return { success: true, channel: result?.channel ?? result };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to create channel',
+        message: error?.message || error.response?.data?.message || 'Failed to create channel',
       });
       return { success: false };
     }
@@ -180,22 +169,17 @@ export const useChannelStore = defineStore('channel', () => {
 
   const leaveChannel = async (channelId: number) => {
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}/leave`,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      await transmitService.emit('channel:leave', { channelId });
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Left channel successfully',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to leave channel',
+        message: error?.message || error.response?.data?.message || 'Failed to leave channel',
       });
       return { success: false };
     }
@@ -203,22 +187,17 @@ export const useChannelStore = defineStore('channel', () => {
 
   const deleteChannel = async (channelId: number) => {
     try {
-      const response = await api.delete<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}`,
-      );
-      if (response.data.success) {
-        await fetchChannels();
-        Notify.create({
-          type: 'positive',
-          message: response.data.message,
-        });
-        return { success: true };
-      }
-      return { success: false };
+      await transmitService.emit('channel:delete', { channelId });
+      await fetchChannels();
+      Notify.create({
+        type: 'positive',
+        message: 'Channel deleted',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to delete channel',
+        message: error?.message || error.response?.data?.message || 'Failed to delete channel',
       });
       return { success: false };
     }
@@ -226,24 +205,24 @@ export const useChannelStore = defineStore('channel', () => {
 
   const revokeUser = async (channelId: number, userId: number) => {
     try {
-      const response = await api.post<{ success: boolean; message: string }>(
-        `/api/channels/${channelId}/revoke`,
-        { userId },
-      );
+      const data = await transmitService.emit<{ memberCount?: number }>('channel:revoke', {
+        channelId,
+        userId,
+      });
 
-      if (response.data.success) {
-        removeMember(userId);
-        Notify.create({
-          type: 'positive',
-          message: response.data.message || 'User removed from the channel',
-        });
-        return { success: true };
+      if (typeof data?.memberCount === 'number') {
+        updateMemberCount(channelId, data.memberCount);
       }
-      return { success: false };
+      removeMember(userId);
+      Notify.create({
+        type: 'positive',
+        message: 'User removed from the channel',
+      });
+      return { success: true };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to remove user',
+        message: error?.message || error.response?.data?.message || 'Failed to remove user',
       });
       return { success: false };
     }
@@ -251,32 +230,28 @@ export const useChannelStore = defineStore('channel', () => {
 
   const kickUser = async (channelId: number, userId: number, reason?: string) => {
     try {
-      const response = await api.post<{
-        success: boolean;
-        message: string;
+      const data = await transmitService.emit<{
         memberCount?: number;
         votes?: number;
-      }>(`/api/channels/${channelId}/kick`, {
+      }>('channel:kick', {
+        channelId,
         userId,
         reason,
       });
 
-      if (response.data.success) {
-        if (typeof response.data.memberCount === 'number') {
-          updateMemberCount(channelId, response.data.memberCount);
-          removeMember(userId);
-        }
-        Notify.create({
-          type: 'positive',
-          message: response.data.message || 'Kick vote recorded',
-        });
-        return { success: true, votes: response.data.votes };
+      if (typeof data?.memberCount === 'number') {
+        updateMemberCount(channelId, data.memberCount);
+        removeMember(userId);
       }
-      return { success: false };
+      Notify.create({
+        type: 'positive',
+        message: 'Kick action processed',
+      });
+      return { success: true, votes: data?.votes };
     } catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to kick user',
+        message: error?.message || error.response?.data?.message || 'Failed to kick user',
       });
       return { success: false };
     }

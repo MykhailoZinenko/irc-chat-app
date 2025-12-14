@@ -131,6 +131,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileActionButton from '@/components/profile/ProfileActionButton.vue'
 import ProfileSection from '@/components/profile/ProfileSection.vue'
@@ -138,6 +139,7 @@ import InviteUserDialog from '@/components/dialogs/InviteUserDialog.vue'
 import { api } from 'src/boot/axios'
 import { DateTime } from 'luxon'
 import { useChannelStore } from '@/stores/channel-store'
+import { useSelectionStore } from '@/stores/selection-store'
 
 interface UserProfile {
   id: number
@@ -158,7 +160,9 @@ defineEmits<{
   back: []
 }>()
 
+const router = useRouter()
 const channelStore = useChannelStore()
+const selectionStore = useSelectionStore()
 const userProfile = ref<UserProfile | null>(null)
 const loading = ref(false)
 const isMuted = ref(false)
@@ -197,7 +201,13 @@ const fetchUserProfile = async () => {
     if (channelsResponse.data.success) {
       commonChannels.value = channelsResponse.data.data.channels
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Check if user not found (404) or forbidden (403)
+    if (error.response?.status === 404 || error.response?.status === 403) {
+      selectionStore.clearSelection()
+      void router.push('/404')
+      return
+    }
     console.error('Failed to fetch user profile:', error)
   } finally {
     loading.value = false

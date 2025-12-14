@@ -93,12 +93,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { api } from 'src/boot/axios'
 import { Notify } from 'quasar'
 import { DateTime } from 'luxon'
 import { useChannelStore } from '@/stores/channel-store'
 import { useInvitationStore } from '@/stores/invitation-store'
 import { useSelectionStore } from '@/stores/selection-store'
+import { transmitService } from '@/services/transmit'
 
 const channelStore = useChannelStore()
 const invitationStore = useInvitationStore()
@@ -122,25 +122,23 @@ const handleAccept = async (invitationId: number) => {
   const invitation = invitations.value.find((inv) => inv.id === invitationId)
 
   try {
-    const response = await api.post(`/api/channels/invitations/${invitationId}/accept`)
+    await transmitService.emit('channel:acceptInvitation', { invitationId })
 
-    if (response.data.success) {
-      Notify.create({
-        type: 'positive',
-        message: 'Invitation accepted! You joined the channel.',
-      })
+    Notify.create({
+      type: 'positive',
+      message: 'Invitation accepted! You joined the channel.',
+    })
 
-      // Remove from store
-      invitationStore.removeInvitation(invitationId)
+    // Remove from store
+    invitationStore.removeInvitation(invitationId)
 
-      // Refresh channels list to include new channel
-      await channelStore.fetchChannels()
+    // Refresh channels list to include new channel
+    await channelStore.fetchChannels()
 
-      // Select the new channel and go back to chat view
-      if (invitation) {
-        selectionStore.selectChannel(invitation.channelId)
-        emit('back')
-      }
+    // Select the new channel and go back to chat view
+    if (invitation) {
+      selectionStore.selectChannel(invitation.channelId)
+      emit('back')
     }
   } catch (error: any) {
     Notify.create({
@@ -155,17 +153,15 @@ const handleAccept = async (invitationId: number) => {
 const handleDecline = async (invitationId: number) => {
   processingInvitation.value = invitationId
   try {
-    const response = await api.post(`/api/channels/invitations/${invitationId}/decline`)
+    await transmitService.emit('channel:declineInvitation', { invitationId })
 
-    if (response.data.success) {
-      Notify.create({
-        type: 'info',
-        message: 'Invitation declined',
-      })
+    Notify.create({
+      type: 'info',
+      message: 'Invitation declined',
+    })
 
-      // Remove from store
-      invitationStore.removeInvitation(invitationId)
-    }
+    // Remove from store
+    invitationStore.removeInvitation(invitationId)
   } catch (error: any) {
     Notify.create({
       type: 'negative',
