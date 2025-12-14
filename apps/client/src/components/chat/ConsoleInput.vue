@@ -101,7 +101,10 @@
 <script setup lang="ts">
 import { type MemberItem } from 'src/types/chat';
 import { type CommandType, isCommandType, type CommandItem } from 'src/types/commands';
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
+import { transmitService } from '@/services/transmit'
+import { useSelectionStore } from '@/stores/selection-store'
+import { debounce, throttle } from 'quasar'
 
 type Suggestion =
   | { type: 'command'; value: string; label: string; description?: string }
@@ -120,8 +123,77 @@ const emit = defineEmits<{
 }>()
 
 const onlyCommandMode = computed(() => props.onlyCommandMode ?? false)
+const selectionStore = useSelectionStore()
 
 const inputMessage = ref('')
+
+// --- Typing indicator logic ---
+let isTyping = false
+
+// Debounced stop typing (3 seconds after last keystroke)
+const stopTyping = debounce(() => {
+  if (isTyping && selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+    isTyping = false
+  }
+}, 3000)
+
+// Throttled content update (max every 500ms)
+const emitTypingUpdate = throttle((content: string) => {
+  if (selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:update', {
+      channelId: selectionStore.selectedChannelId,
+      content,
+    })
+  }
+}, 500)
+
+// Watch input changes for typing events
+watch(inputMessage, (newValue) => {
+  if (!selectionStore.selectedChannelId) return
+
+  const trimmed = newValue.trim()
+
+  if (trimmed.length === 0) {
+    // Empty input - stop typing
+    if (isTyping) {
+      void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+      isTyping = false
+    }
+    return
+  }
+
+  // Start typing if not already
+  if (!isTyping) {
+    void transmitService.emit('typing:start', { channelId: selectionStore.selectedChannelId })
+    isTyping = true
+  }
+
+  // Emit content update (throttled)
+  emitTypingUpdate(newValue)
+
+  // Reset stop timer
+  stopTyping()
+})
+
+// Watch for channel switching
+watch(
+  () => selectionStore.selectedChannelId,
+  (newChannelId, oldChannelId) => {
+    // Stop typing in old channel when switching
+    if (oldChannelId && isTyping) {
+      void transmitService.emit('typing:stop', { channelId: oldChannelId })
+      isTyping = false
+    }
+  }
+)
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (isTyping && selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+  }
+})
 
 // --- emoji picker ---
 const emojiList = [
@@ -271,6 +343,12 @@ const handleEnter = () => {
 const handleSend = () => {
   const text = inputMessage.value.trim()
   if (!text) return
+
+  // Stop typing before sending
+  if (isTyping && selectionStore.selectedChannelId) {
+    void transmitService.emit('typing:stop', { channelId: selectionStore.selectedChannelId })
+    isTyping = false
+  }
 
   if (text.startsWith('/')) {
     const withoutSlash = text.slice(1)

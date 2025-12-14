@@ -79,6 +79,10 @@ type AckFn = (payload: any) => void
 const ackOk = (ack?: AckFn, data?: any) => ack?.({ ok: true, data })
 const ackError = (ack?: AckFn, message: string = 'Unknown error') => ack?.({ ok: false, message })
 
+// Typing state management
+const typingState = new Map<number, Map<number, { timeout: NodeJS.Timeout; lastUpdate: Date }>>()
+const TYPING_TIMEOUT = 5000 // Auto-stop after 5s inactivity
+
 async function ensureChannelMember(channelId: number, userId: number) {
   return ChannelParticipant.query()
     .where('channel_id', channelId)
@@ -300,6 +304,39 @@ async function banUser(
   return remainingMembers.length
 }
 
+async function handleTypingStop(channelId: number, userId: number) {
+  const channelTyping = typingState.get(channelId)
+  if (!channelTyping?.has(userId)) return
+
+  const entry = channelTyping.get(userId)!
+  clearTimeout(entry.timeout)
+  channelTyping.delete(userId)
+
+  if (channelTyping.size === 0) {
+    typingState.delete(channelId)
+  }
+
+  try {
+    const members = await ChannelParticipant.query()
+      .where('channel_id', channelId)
+      .whereNull('left_at')
+      .whereNot('user_id', userId)
+
+    emitToUsers(
+      members.map((m) => m.userId),
+      {
+        type: 'user_typing_stop',
+        data: {
+          channelId,
+          userId,
+        },
+      }
+    )
+  } catch (error: any) {
+    console.error('[handleTypingStop] error:', error)
+  }
+}
+
 function bootSocketsWhenReady() {
   const timer = setInterval(() => {
     const httpServer = server.getNodeServer()
@@ -393,6 +430,11 @@ function bootSocketsWhenReady() {
           const channel = await Channel.findOrFail(channelId)
           participant.leftAt = DateTime.now()
           await participant.save()
+
+          // Clean up typing state when leaving
+          if (typingState.get(channelId)?.has(user.id)) {
+            handleTypingStop(channelId, user.id)
+          }
 
           const remainingMembers = await ChannelParticipant.query()
             .where('channel_id', channelId)
@@ -938,6 +980,112 @@ function bootSocketsWhenReady() {
           }
         }
       )
+
+      socket.on('typing:start', async ({ channelId }: { channelId: number }, ack?: AckFn) => {
+        try {
+          const participant = await ensureChannelMember(channelId, user.id)
+          if (!participant) return ackError(ack, 'Not a member')
+
+          // Clear any existing timeout
+          const channelTyping = typingState.get(channelId)
+          if (channelTyping?.has(user.id)) {
+            clearTimeout(channelTyping.get(user.id)!.timeout)
+          }
+
+          // Set new timeout
+          const timeout = setTimeout(() => {
+            handleTypingStop(channelId, user.id)
+          }, TYPING_TIMEOUT)
+
+          if (!typingState.has(channelId)) {
+            typingState.set(channelId, new Map())
+          }
+          typingState.get(channelId)!.set(user.id, { timeout, lastUpdate: new Date() })
+
+          // Broadcast to other channel members (exclude self)
+          const members = await ChannelParticipant.query()
+            .where('channel_id', channelId)
+            .whereNull('left_at')
+            .whereNot('user_id', user.id)
+
+          emitToUsers(
+            members.map((m) => m.userId),
+            {
+              type: 'user_typing_start',
+              data: {
+                channelId,
+                user: {
+                  id: user.id,
+                  nickName: user.nickName,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  email: user.email,
+                },
+              },
+            }
+          )
+          ackOk(ack)
+        } catch (error) {
+          console.error('[typing:start] error:', error)
+          ackError(ack, 'Error starting typing')
+        }
+      })
+
+      socket.on('typing:stop', async ({ channelId }: { channelId: number }, ack?: AckFn) => {
+        handleTypingStop(channelId, user.id)
+        ackOk(ack)
+      })
+
+      socket.on(
+        'typing:update',
+        async ({ channelId, content }: { channelId: number; content: string }, ack?: AckFn) => {
+          try {
+            const participant = await ensureChannelMember(channelId, user.id)
+            if (!participant) return ackError(ack, 'Not a member')
+
+            // Reset timeout
+            const channelTyping = typingState.get(channelId)
+            if (channelTyping?.has(user.id)) {
+              clearTimeout(channelTyping.get(user.id)!.timeout)
+              const timeout = setTimeout(() => {
+                handleTypingStop(channelId, user.id)
+              }, TYPING_TIMEOUT)
+              channelTyping.set(user.id, { timeout, lastUpdate: new Date() })
+            }
+
+            // Broadcast content update to other members
+            const members = await ChannelParticipant.query()
+              .where('channel_id', channelId)
+              .whereNull('left_at')
+              .whereNot('user_id', user.id)
+
+            emitToUsers(
+              members.map((m) => m.userId),
+              {
+                type: 'user_typing_update',
+                data: {
+                  channelId,
+                  userId: user.id,
+                  content,
+                },
+              }
+            )
+            ackOk(ack)
+          } catch (error) {
+            console.error('[typing:update] error:', error)
+            ackError(ack, 'Error updating typing')
+          }
+        }
+      )
+
+      socket.on('disconnect', () => {
+        // Clean up typing state for this user across all channels
+        typingState.forEach((channelTyping, channelId) => {
+          if (channelTyping.has(user.id)) {
+            handleTypingStop(channelId, user.id)
+          }
+        })
+      })
     })
 
     initializeRealtime(io)

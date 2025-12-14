@@ -32,6 +32,12 @@
       </div>
     </q-scroll-area>
 
+    <!-- Typing Indicator -->
+    <TypingIndicator
+      :typing-users="typingUsers"
+      @open-preview="openTypingPreview"
+    />
+
     <!-- Scroll to bottom button -->
     <div v-if="showScrollToBottom" class="scroll-to-bottom-container">
       <button
@@ -53,9 +59,14 @@
 <script setup lang="ts">
 import { type ChannelMessage } from '@/stores/message-store'
 import MessageBubble from './MessageBubble.vue'
-import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
+import TypingIndicator from './TypingIndicator.vue'
+import TypingPreviewDialog from './TypingPreviewDialog.vue'
+import { onMounted, onUnmounted, ref, watch, nextTick, computed } from 'vue'
 import { useMessageStore } from '@/stores/message-store'
 import { useAuthStore } from '@/stores/auth-store'
+import { useTypingStore } from '@/stores/typing-store'
+import { useSelectionStore } from '@/stores/selection-store'
+import { useQuasar } from 'quasar'
 
 interface Props {
   messages: ChannelMessage[]
@@ -69,6 +80,27 @@ const emit = defineEmits<{
 
 const messageStore = useMessageStore()
 const authStore = useAuthStore()
+const typingStore = useTypingStore()
+const selectionStore = useSelectionStore()
+const $q = useQuasar()
+
+const typingUsers = computed(() => {
+  console.log('typingUsers', typingStore.typingByChannel)
+  if (!selectionStore.selectedChannelId) return []
+
+  console.log('getTypingUsers', typingStore.getTypingUsers(selectionStore.selectedChannelId))
+  return typingStore.getTypingUsers(selectionStore.selectedChannelId)
+})
+
+const openTypingPreview = () => {
+  if (!selectionStore.selectedChannelId) return
+  $q.dialog({
+    component: TypingPreviewDialog,
+    componentProps: {
+      channelId: selectionStore.selectedChannelId,
+    },
+  })
+}
 
 const noMoreMessages = ref(false)
 const scrollAreaRef = ref<any>(null)

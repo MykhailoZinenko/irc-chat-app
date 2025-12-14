@@ -47,6 +47,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useMessageStore } from '@/stores/message-store'
 import { useInvitationStore } from '@/stores/invitation-store'
 import { useNotificationStore } from '@/stores/notification-store'
+import { useTypingStore } from '@/stores/typing-store'
 import { transmitService } from '@/services/transmit'
 import { Notify } from 'quasar'
 import ChannelSidebarContainer from '@/containers/ChannelSidebarContainer.vue'
@@ -62,6 +63,7 @@ const authStore = useAuthStore()
 const messageStore = useMessageStore()
 const invitationStore = useInvitationStore()
 const notificationStore = useNotificationStore()
+const typingStore = useTypingStore()
 
 let userSubscription: { unsubscribe: () => void } | null = null
 
@@ -145,6 +147,7 @@ onMounted(async () => {
         channelStore.updateMemberCount(data.channelId, data.memberCount)
         if (channelStore.currentChannelDetails?.id === data.channelId) {
           channelStore.removeMember(data.userId)
+          typingStore.removeTypingUser(data.channelId, data.userId)
         }
         if (data.userId === authStore.user?.id && data.channelName && notificationStore.preferences.channelEvents) {
           void notificationStore.maybeNotifyGeneric({
@@ -248,6 +251,25 @@ onMounted(async () => {
             tag: `invitation-declined-${data.invitationId}`,
           })
         }
+        break
+
+      case 'user_typing_start':
+        typingStore.addTypingUser(data.channelId, {
+          id: data.user.id,
+          nickName: data.user.nickName,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          content: '',
+        })
+        break
+
+      case 'user_typing_stop':
+        typingStore.removeTypingUser(data.channelId, data.userId)
+        break
+
+      case 'user_typing_update':
+        typingStore.updateTypingContent(data.channelId, data.userId, data.content)
         break
 
       default:
