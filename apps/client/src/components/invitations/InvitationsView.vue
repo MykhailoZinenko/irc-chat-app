@@ -135,9 +135,12 @@ const handleAccept = async (invitationId: number) => {
     // Refresh channels list to include new channel
     await channelStore.fetchChannels()
 
-    // Select the new channel and go back to chat view
-    if (invitation) {
-      selectionStore.selectChannel(invitation.channelId)
+    const remaining = invitationStore.invitations.length
+    if (remaining === 0) {
+      // Select the new channel and go back to chat view only when no more invites
+      if (invitation) {
+        selectionStore.selectChannel(invitation.channelId)
+      }
       emit('back')
     }
   } catch (error: any) {
@@ -162,6 +165,11 @@ const handleDecline = async (invitationId: number) => {
 
     // Remove from store
     invitationStore.removeInvitation(invitationId)
+
+    // If no more invites left, leave the invitations view
+    if (invitationStore.invitations.length === 0) {
+      emit('back')
+    }
   } catch (error: any) {
     Notify.create({
       type: 'negative',

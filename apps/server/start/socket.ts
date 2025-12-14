@@ -340,13 +340,13 @@ function bootSocketsWhenReady() {
       socket.data.user.status = initialStatus
 
       socket.on('disconnect', () => {
-        const currentStatus = socket.data.user?.status || initialStatus
-        if (currentStatus === 'online') {
-          void setUserStatus(user.id, 'offline')
-        } else {
-          // Preserve explicit DND/offline preference on disconnect
-          void setUserStatus(user.id, currentStatus, { broadcast: false })
+        // Only mark offline when this was the last active socket for the user
+        const userRoom = io.sockets.adapter.rooms.get(`users:${user.id}`)
+        const remainingSockets = userRoom ? userRoom.size : 0
+        if (remainingSockets > 0) {
+          return
         }
+        void setUserStatus(user.id, 'offline')
       })
 
       // Join the personal room

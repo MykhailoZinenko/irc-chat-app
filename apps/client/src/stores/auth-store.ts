@@ -249,7 +249,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('auth_token');
       delete api.defaults.headers.common['Authorization'];
       transmitService.setAuthToken(null);
-      presenceStore.hydrateStatus('offline');
+      presenceStore.hydrateStatus('offline', { skipPersist: true, updatePreferred: false });
     },
 
     async initAuth() {

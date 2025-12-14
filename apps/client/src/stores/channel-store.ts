@@ -5,6 +5,7 @@ import { Notify } from 'quasar';
 import { type ChannelDetails, type Channel, type ChannelMember, type CreateChannelData } from 'src/types/chat';
 import { transmitService } from '@/services/transmit';
 import { usePresenceStore } from './presence-store';
+import { useAuthStore } from './auth-store';
 
 export const useChannelStore = defineStore('channel', () => {
   const channels = ref<Channel[]>([]);
@@ -12,6 +13,7 @@ export const useChannelStore = defineStore('channel', () => {
   const currentChannelMembers = ref<ChannelMember[]>([]);
   const loading = ref(false);
   const presenceStore = usePresenceStore();
+  const authStore = useAuthStore();
 
   const ensureOnline = () => {
     if (presenceStore.isOffline) {
@@ -52,10 +54,16 @@ export const useChannelStore = defineStore('channel', () => {
           ...response.data.data.channel,
           userRole: response.data.data.userRole,
         };
-        currentChannelMembers.value = response.data.data.members.map((member) => ({
-          ...member,
-          status: member.status || 'offline',
-        }));
+        currentChannelMembers.value = response.data.data.members.map((member) => {
+          const statusOverride =
+            authStore.user && member.id === authStore.user.id
+              ? authStore.user.status || presenceStore.status
+              : member.status;
+          return {
+            ...member,
+            status: statusOverride || 'offline',
+          };
+        });
 
         // Update member count in channel list - create new object for reactivity
         const channelIndex = channels.value.findIndex((c) => c.id === channelId);
@@ -132,6 +140,22 @@ export const useChannelStore = defineStore('channel', () => {
   const removeMember = (userId: number) => {
     currentChannelMembers.value = currentChannelMembers.value.filter((m) => m.id !== userId);
   };
+
+  const ensureChannelMembers = async (channelId: number) => {
+    // Only use cached data if it's for the same channel
+    if (
+      currentChannelDetails.value?.id === channelId &&
+      currentChannelMembers.value.length > 0
+    ) {
+      console.debug('[channel-store] using cached members', {
+        channelId,
+        count: currentChannelMembers.value.length
+      })
+      return { success: true, members: currentChannelMembers.value, data: currentChannelDetails.value }
+    }
+    console.debug('[channel-store] fetching members for channel', channelId)
+    return fetchChannelDetails(channelId)
+  }
 
   const joinChannel = async (channelId: number) => {
     if (!ensureOnline()) return { success: false };
@@ -315,6 +339,7 @@ export const useChannelStore = defineStore('channel', () => {
     addMember,
     removeMember,
     updateMemberStatus,
+    ensureChannelMembers,
   };
 });
 export { ChannelMember };

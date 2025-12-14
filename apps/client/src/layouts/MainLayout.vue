@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { type ChannelMember } from '@/stores/channel-store'
 import { useSelectionStore } from '@/stores/selection-store'
 import { useMessageStore } from '@/stores/message-store'
@@ -37,11 +37,13 @@ import { useAuthStore } from 'src/stores/auth-store'
 import { memberToSuggestion } from 'src/types/chat'
 import { Notify } from 'quasar'
 import { transmitService } from '@/services/transmit'
+import { usePresenceStore } from '@/stores/presence-store'
 
 const authStore = useAuthStore()
 const selectionStore = useSelectionStore()
 const messageStore = useMessageStore()
 const currentChannel = useCurrentChannel()
+const presenceStore = usePresenceStore()
 
 const availableCommands = computed(() => {
   if (!selectionStore.selectedChannelId) {
@@ -51,11 +53,29 @@ const availableCommands = computed(() => {
   if (!channel) return getMenuCommands()
   return getChatCommands(channel.type, channel.role === 'admin')
 })
-const availableMembers = computed(()=>{
-  const usr = authStore.user;
-  if(!usr || !currentChannel.currentChannelMembers.value) return []
-  return (currentChannel.currentChannelMembers.value.filter((m: ChannelMember)=> m.id !== usr.id)).map(memberToSuggestion)
+const availableMembers = computed(() => {
+  const usr = authStore.user
+  if (!usr) return []
+  const members = currentChannel.currentChannelMembers.value || []
+  if (!members.length && selectionStore.selectedChannelId && !currentChannel.channelStore.loading) {
+    void currentChannel.channelStore.ensureChannelMembers(selectionStore.selectedChannelId)
+  }
+  return members.filter((m: ChannelMember) => m.id !== usr.id).map(memberToSuggestion)
 })
+
+watch(
+  () => selectionStore.selectedChannelId,
+  async (channelId) => {
+    if (!channelId) return
+    if (presenceStore.isOffline) return
+    if (currentChannel.currentChannelMembers.value?.length) return
+    try {
+      await currentChannel.channelStore.ensureChannelMembers(channelId)
+    } catch {
+      /* ignore */
+    }
+  }
+)
 
 const hasSidebar = computed(() => {
   // Sidebar is always visible on desktop, even with 0 channels (shows empty state)
@@ -78,6 +98,9 @@ const handleCommand = (cmd: CommandType, arg: string) => {
     case 'quit':
     case 'cancel':
       void handleCancel();
+      break;
+    case 'list':
+      void handleMembers();
       break;
     case 'join':
       void handleJoin(arg);
@@ -103,6 +126,22 @@ const handleCancel = async () => {
   if (result.success && selectionStore.selectedChannelId === channelId) {
     selectionStore.clearSelection()
   }
+}
+const handleMembers = async () => {
+  if (!selectionStore.selectedChannelId) {
+    Notify.create({ type: 'negative', message: 'No channel selected' })
+    return
+  }
+  if (currentChannel.channelStore.loading) return
+  const result = await currentChannel.channelStore.ensureChannelMembers(selectionStore.selectedChannelId)
+  if (!result?.success) {
+    Notify.create({ type: 'negative', message: 'Unable to load members for this channel.' })
+    return
+  }
+  if (!result.members?.length) {
+    Notify.create({ type: 'info', message: 'No members found for this channel yet.' })
+  }
+  selectionStore.showMembersModal = true
 }
 const handleInvite = async (name: string) => {
   const username = name.startsWith('@') ? name.slice(1) : name;

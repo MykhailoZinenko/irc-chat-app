@@ -183,8 +183,8 @@ const suggestions = computed<Suggestion[]>(() => {
   // /command suggestions
   if (isCommandMode.value && props.commands?.length) {
     const q = commandQuery.value
-    for (const cmd of props.commands) {
-      if (!q || cmd.name.toLowerCase().includes(q)) {
+    if (!q) {
+      for (const cmd of props.commands) {
         list.push({
           type: 'command',
           value: cmd.name,
@@ -192,6 +192,28 @@ const suggestions = computed<Suggestion[]>(() => {
           description: cmd.description
         } as Suggestion)
       }
+    } else {
+      const startsWith: Suggestion[] = []
+      const contains: Suggestion[] = []
+      for (const cmd of props.commands) {
+        const name = cmd.name.toLowerCase()
+        if (name.startsWith(q)) {
+          startsWith.push({
+            type: 'command',
+            value: cmd.name,
+            label: `/${cmd.name}`,
+            description: cmd.description
+          } as Suggestion)
+        } else if (name.includes(q)) {
+          contains.push({
+            type: 'command',
+            value: cmd.name,
+            label: `/${cmd.name}`,
+            description: cmd.description
+          } as Suggestion)
+        }
+      }
+      list.push(...startsWith, ...contains)
     }
   }
   // @mention suggestions

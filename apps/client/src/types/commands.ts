@@ -4,7 +4,7 @@ import { type ChannelType } from "./chat"
 
 // ─────────────────────────────────────────────
 
-const COMMAND_TYPES = ["join", "cancel", "quit", "invite", "revoke", "kick"] as const;
+const COMMAND_TYPES = ["join", "cancel", "quit", "invite", "revoke", "kick", "list"] as const;
 
 export type CommandType = typeof COMMAND_TYPES[number];
 
@@ -28,6 +28,11 @@ export const CMD_JOIN = {
 export const CMD_CANCEL = {
   name: "cancel",
   description: "/cancel - Leave the current channel. If the channel admin uses this command, the channel is deleted."
+} as const satisfies CommandItem
+
+export const CMD_LIST = {
+  name: "list",
+  description: "/list - Show the list of channel members."
 } as const satisfies CommandItem
 
 export const CMD_INVITE_PRIVATE = {
@@ -69,7 +74,8 @@ export const Commands_Menu: CommandItem[] = [
 
 export const Commands_Chat: CommandItem[] = [
   CMD_JOIN,
-  CMD_CANCEL
+  CMD_CANCEL,
+  CMD_LIST
 ]
 
 // PRIVATE channel admins

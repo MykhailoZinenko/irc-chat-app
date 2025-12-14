@@ -9,6 +9,7 @@ import { useChannelStore } from './channel-store'
 export type PresenceStatus = 'online' | 'dnd' | 'offline'
 
 const STORAGE_KEY = 'presence-status'
+const STORAGE_PREF_KEY = 'presence-preferred'
 
 const readInitialStatus = (): PresenceStatus => {
   if (typeof localStorage === 'undefined') return 'online'
@@ -19,6 +20,12 @@ const readInitialStatus = (): PresenceStatus => {
 
 export const usePresenceStore = defineStore('presence', () => {
   const status = ref<PresenceStatus>(readInitialStatus())
+  const preferredStatus = ref<PresenceStatus>((() => {
+    if (typeof localStorage === 'undefined') return status.value
+    const stored = localStorage.getItem(STORAGE_PREF_KEY)
+    if (stored === 'online' || stored === 'dnd' || stored === 'offline') return stored
+    return status.value
+  })())
   const authStore = useAuthStore()
   const channelStore = useChannelStore()
 
@@ -31,11 +38,22 @@ export const usePresenceStore = defineStore('presence', () => {
     localStorage.setItem(STORAGE_KEY, value)
   }
 
+  const persistPreferredStatus = (value: PresenceStatus) => {
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem(STORAGE_PREF_KEY, value)
+  }
+
   const applyConnection = (value: PresenceStatus) => {
     transmitService.setConnectionMode(value === 'offline' ? 'offline' : 'online')
   }
 
-  const hydrateStatus = (value: PresenceStatus) => {
+  const applyLocalStatus = (
+    value: PresenceStatus,
+    options?: { updatePreferred?: boolean; skipPersist?: boolean }
+  ) => {
+    const updatePreferred = options?.updatePreferred ?? false
+    const skipPersist = options?.skipPersist ?? false
+
     status.value = value
     if (authStore.user) {
       authStore.user.status = value
@@ -43,26 +61,46 @@ export const usePresenceStore = defineStore('presence', () => {
     if (authStore.user?.id) {
       channelStore.updateMemberStatus(authStore.user.id, value)
     }
+
+    if (updatePreferred) {
+      preferredStatus.value = value
+    }
+
+    if (!skipPersist) {
+      persistStatus(value)
+      if (updatePreferred) {
+        persistPreferredStatus(value)
+      }
+    }
   }
 
-  const setStatus = async (value: PresenceStatus, options?: { force?: boolean }) => {
+  const hydrateStatus = (value: PresenceStatus, options?: { updatePreferred?: boolean; skipPersist?: boolean }) => {
+    applyLocalStatus(value, options)
+  }
+
+  const setStatus = async (
+    value: PresenceStatus,
+    options?: { force?: boolean; skipRemote?: boolean; skipPersist?: boolean; updatePreferred?: boolean }
+  ) => {
     const force = options?.force === true
-    if (!force && status.value === value) return
+    const skipRemote = options?.skipRemote === true
+    const skipPersist = options?.skipPersist === true
+    const updatePreferred = options?.updatePreferred ?? true
+    if (!force && status.value === value) {
+      if (updatePreferred && preferredStatus.value !== value) {
+        applyLocalStatus(value, { updatePreferred, skipPersist })
+      }
+      return
+    }
 
     try {
-      if (localStorage.getItem('auth_token')) {
+      if (!skipRemote && localStorage.getItem('auth_token')) {
         await api.put('/api/users/status', { status: value })
       }
-      status.value = value
-      if (authStore.user) {
-        authStore.user.status = value
-      }
-      if (authStore.user?.id) {
-        channelStore.updateMemberStatus(authStore.user.id, value)
-      }
+      applyLocalStatus(value, { updatePreferred, skipPersist })
     } catch (error: any) {
       if (value === 'offline') {
-        status.value = value
+        applyLocalStatus(value, { updatePreferred, skipPersist: true })
       }
       Notify.create({
         type: 'negative',
@@ -74,7 +112,6 @@ export const usePresenceStore = defineStore('presence', () => {
   watch(
     status,
     (value) => {
-      persistStatus(value)
       applyConnection(value)
     },
     { immediate: true }
@@ -82,16 +119,22 @@ export const usePresenceStore = defineStore('presence', () => {
 
   return {
     status,
+    preferredStatus,
     isOnline,
     isDnd,
     isOffline,
     setStatus,
     hydrateStatus,
     async syncWithServer(serverStatus: PresenceStatus) {
-      if (status.value !== serverStatus) {
-        await setStatus(status.value, { force: true })
+      const desiredStatus =
+        serverStatus === 'offline' && preferredStatus.value !== 'offline'
+          ? preferredStatus.value
+          : serverStatus
+
+      if (desiredStatus === preferredStatus.value && desiredStatus !== serverStatus) {
+        await setStatus(desiredStatus, { force: true })
       } else {
-        hydrateStatus(serverStatus)
+        await setStatus(desiredStatus, { force: true, skipRemote: true, updatePreferred: true })
       }
     },
   }

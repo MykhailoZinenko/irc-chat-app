@@ -33,7 +33,47 @@
         @close="handleCloseInfoPanel"
         @user-click="handleUserClick"
         @leave="handleLeaveChannel"
+        @show-members="openMembersModal"
       />
+
+      <q-dialog v-model="selectionStore.showMembersModal" :key="`members-${selectionStore.selectedChannelId || 'none'}`">
+        <q-card style="width: 520px; max-width: 90vw;">
+          <q-card-section class="row items-center justify-between">
+            <div>
+              <div class="text-base font-semibold text-gray-800">Members ({{ modalMembers.length }})</div>
+              <div class="text-sm text-gray-500" v-if="currentChatData">{{ currentChatData.name }}</div>
+            </div>
+            <q-btn flat round dense icon="close" color="grey-7" @click="selectionStore.showMembersModal = false" />
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section style="max-height: 60vh; min-height: 160px;" class="scroll">
+            <q-list>
+              <template v-if="modalMembers.length">
+                <MemberListItem
+                  v-for="member in modalMembers"
+                  :key="member.id"
+                  :member="member"
+                  clickable
+                  @select="handleUserClick"
+                />
+              </template>
+              <q-item v-else dense>
+                <q-item-section class="text-grey-6">
+                  {{ channelStore.loading ? 'Loading members...' : 'No members found for this channel.' }}
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right">
+            <q-btn flat color="primary" label="Close" @click="selectionStore.showMembersModal = false" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </div>
   </q-page>
 </template>
@@ -54,6 +94,7 @@ import ChannelSidebarContainer from '@/containers/ChannelSidebarContainer.vue'
 import ChatViewContainer from '@/containers/ChatViewContainer.vue'
 import InfoPanel from '@/components/chat/InfoPanel.vue'
 import UserProfile from '@/components/profile/UserProfile.vue'
+import MemberListItem from '@/components/ui/MemberListItem.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -356,6 +397,16 @@ const currentChatData = computed(() => {
   }
 })
 
+const modalMembers = computed(() => {
+  if (!channelStore.currentChannelMembers?.length) return []
+  // Sort members: admins first, then by nickname
+  return [...channelStore.currentChannelMembers].sort((a, b) => {
+    if (a.role === 'admin' && b.role !== 'admin') return -1
+    if (a.role !== 'admin' && b.role === 'admin') return 1
+    return (a.nickName || '').localeCompare(b.nickName || '')
+  })
+})
+
 const handleCloseInfoPanel = () => {
   selectionStore.infoPanelOpen = false
 }
@@ -386,6 +437,27 @@ const handleLeaveChannel = async () => {
     // Navigate to next channel
     await router.push('/chat')
   }
+}
+
+const openMembersModal = async () => {
+  if (!selectionStore.selectedChannelId) return
+  if (presenceStore.isOffline) {
+    Notify.create({ type: 'negative', message: 'You are offline. Go online to view members.' })
+    return
+  }
+
+  const result = await channelStore.ensureChannelMembers(selectionStore.selectedChannelId)
+
+  if (!result?.success) {
+    Notify.create({ type: 'negative', message: 'Unable to load members for this channel.' })
+    return
+  }
+
+  if (!result.members?.length) {
+    Notify.create({ type: 'info', message: 'No members found for this channel yet.' })
+  }
+
+  selectionStore.showMembersModal = true
 }
 
 const anyNotificationPrefEnabled = computed(() => {
@@ -490,6 +562,15 @@ watch(
       } else {
         void router.push('/chat')
       }
+    }
+  }
+)
+
+watch(
+  () => selectionStore.selectedChannelId,
+  (val) => {
+    if (!val) {
+      selectionStore.showMembersModal = false
     }
   }
 )
